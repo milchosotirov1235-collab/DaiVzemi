@@ -85,6 +85,19 @@ export default function Home() {
     setCurrentUserEmail(null);
   };
 
+  const formatPrice = (value: string | number | null) => {
+    if (value === null || value === undefined || value === "") {
+      return "По договаряне";
+    }
+
+    const formatted = String(value).trim();
+    if (/€|EUR|\$|USD|лв|BGN/i.test(formatted)) {
+      return formatted;
+    }
+
+    return `${formatted} €`;
+  };
+
   return (
     <main className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -166,13 +179,13 @@ export default function Home() {
             <input
               type="text"
               placeholder="Какво търсите?"
-              className="flex-1 rounded-2xl px-5 py-4 text-lg font-bold text-slate-900 outline-none"
+              className="flex-1 rounded-2xl bg-white px-5 py-4 text-lg font-bold text-slate-950 caret-blue-950 outline-none placeholder:text-slate-400"
             />
 
             <input
               type="text"
               placeholder="Град"
-              className="rounded-2xl px-5 py-4 text-lg font-bold text-slate-900 outline-none md:w-60"
+              className="rounded-2xl bg-white px-5 py-4 text-lg font-bold text-slate-950 caret-blue-950 outline-none placeholder:text-slate-400 md:w-60"
             />
 
             <button className="rounded-2xl bg-blue-950 px-8 py-4 text-lg font-black text-white">
@@ -278,7 +291,7 @@ export default function Home() {
                       {listing.title}
                     </h3>
                     <p className="text-lg font-extrabold text-blue-950">
-                      {listing.price ?? "По договаряне"}
+                      {formatPrice(listing.price)}
                     </p>
                   </div>
 
