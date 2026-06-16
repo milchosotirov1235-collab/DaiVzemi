@@ -18,8 +18,32 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
+type Listing = {
+  title: string;
+  price: string | number | null;
+  city: string | null;
+  category: string | null;
+  listing_type: string | null;
+};
+
+const fallbackImageByCategory: Record<string, string> = {
+  Имоти: "🏙️",
+  Автомобили: "🚗",
+  Авточасти: "🔧",
+  Електроника: "📺",
+  "Детски стоки": "🧸",
+  "Дом и градина": "🏡",
+  Мода: "👗",
+  "Спорт и хоби": "🏀",
+  Услуги: "🛠️",
+  Работа: "💼",
+  Компютри: "💻",
+  Книги: "📚",
+};
+
 export default function Home() {
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+  const [latestListings, setLatestListings] = useState<Listing[]>([]);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -38,76 +62,28 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    const loadLatestListings = async () => {
+      const { data, error } = await supabase
+        .from("listings")
+        .select("title, price, city, category, listing_type")
+        .order("created_at", { ascending: false })
+        .limit(8);
+
+      if (!error && data) {
+        setLatestListings(data as Listing[]);
+      } else {
+        setLatestListings([]);
+      }
+    };
+
+    loadLatestListings();
+  }, []);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setCurrentUserEmail(null);
   };
-  const latestListings = [
-    {
-      title: "Просторен тристаен апартамент",
-      price: "179 000 лв.",
-      city: "София",
-      type: "Продавам",
-      category: "Имоти",
-      image: "🏙️",
-    },
-    {
-      title: "Нова ръчна машина за кафе",
-      price: "120 лв.",
-      city: "Пловдив",
-      type: "Продавам",
-      category: "Електроника",
-      image: "☕",
-    },
-    {
-      title: "Стилен офисен стол",
-      price: "85 лв.",
-      city: "Варна",
-      type: "Продавам",
-      category: "Дом и градина",
-      image: "🪑",
-    },
-    {
-      title: "Детски велосипед в перфектно състояние",
-      price: "185 лв.",
-      city: "Бургас",
-      type: "Подарявам",
-      category: "Детски стоки",
-      image: "🚲",
-    },
-    {
-      title: "Смарт телефон с 2 години гаранция",
-      price: "650 лв.",
-      city: "Русе",
-      type: "Продавам",
-      category: "Телефони",
-      image: "📱",
-    },
-    {
-      title: "Изгоден комплект за домашен фитнес",
-      price: "145 лв.",
-      city: "Стара Загора",
-      type: "Продавам",
-      category: "Спорт и хоби",
-      image: "🏋️‍♂️",
-    },
-    {
-      title: "Автомобилен акумулатор 12V",
-      price: "95 лв.",
-      city: "Плевен",
-      type: "Продавам",
-      category: "Авточасти",
-      image: "🔋",
-    },
-    {
-      title: "Услуга за ремонт на компютър",
-      price: "По договаряне",
-      city: "София",
-      type: "Услуги",
-      category: "Компютри",
-      image: "💻",
-    },
-  ];
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -273,47 +249,56 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          {latestListings.map((listing) => (
-            <article
-              key={listing.title}
-              className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="relative">
-                <div className="flex h-56 items-center justify-center rounded-t-[28px] bg-blue-950 text-6xl text-white">
-                  {listing.image}
-                </div>
-                <span className="absolute left-5 top-5 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950 shadow-sm">
-                  {listing.type}
-                </span>
-              </div>
-
-              <div className="space-y-4 p-6">
-                <div className="space-y-2">
-                  <h3 className="text-xl font-black text-slate-950">
-                    {listing.title}
-                  </h3>
-                  <p className="text-lg font-extrabold text-blue-950">
-                    {listing.price}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2 text-sm text-slate-600">
-                  <span className="rounded-full bg-slate-100 px-3 py-1">
-                    {listing.city}
-                  </span>
-                  <span className="rounded-full bg-slate-100 px-3 py-1">
-                    {listing.category}
+        {latestListings.length === 0 ? (
+          <div className="mt-10 rounded-[28px] border border-dashed border-slate-300 bg-white px-8 py-16 text-center shadow-sm">
+            <p className="text-2xl font-black text-slate-900">Все още няма обяви</p>
+            <p className="mt-2 text-sm text-slate-600">
+              Първата публикация ще се появи тук скоро.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+            {latestListings.map((listing, index) => (
+              <article
+                key={`${listing.title}-${index}`}
+                className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+              >
+                <div className="relative">
+                  <div className="flex h-56 items-center justify-center rounded-t-[28px] bg-blue-950 text-6xl text-white">
+                    {listing.category ? fallbackImageByCategory[listing.category] ?? "📦" : "📦"}
+                  </div>
+                  <span className="absolute left-5 top-5 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950 shadow-sm">
+                    {listing.listing_type ?? "Обява"}
                   </span>
                 </div>
 
-                <button className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-blue-950 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-900">
-                  Виж обявата
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+                <div className="space-y-4 p-6">
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-black text-slate-950">
+                      {listing.title}
+                    </h3>
+                    <p className="text-lg font-extrabold text-blue-950">
+                      {listing.price ?? "По договаряне"}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 text-sm text-slate-600">
+                    <span className="rounded-full bg-slate-100 px-3 py-1">
+                      {listing.city ?? "Без град"}
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-3 py-1">
+                      {listing.category ?? "Без категория"}
+                    </span>
+                  </div>
+
+                  <button className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-blue-950 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-900">
+                    Виж обявата
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );
