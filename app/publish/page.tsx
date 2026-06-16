@@ -1,4 +1,61 @@
+"use client";
+
+import { useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+
 export default function PublishPage() {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [city, setCity] = useState("");
+  const [category, setCategory] = useState("Имоти");
+  const [listingType, setListingType] = useState("Продавам");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user ?? null;
+    if (!user) {
+      setError("Трябва да влезете в профила си, за да публикувате обява.");
+      return;
+    }
+
+    setLoading(true);
+
+    const { error: insertError } = await supabase.from("listings").insert([
+      {
+        title,
+        description,
+        price,
+        city,
+        category,
+        listing_type: listingType,
+        user_id: user.id,
+      },
+    ]);
+
+    setLoading(false);
+
+    if (insertError) {
+      setError(insertError.message);
+      return;
+    }
+
+    setSuccess("Обявата е публикувана успешно.");
+    setTitle("");
+    setDescription("");
+    setPrice("");
+    setCity("");
+    setCategory("Имоти");
+    setListingType("Продавам");
+  };
+
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 py-20 text-white">
@@ -20,11 +77,25 @@ export default function PublishPage() {
             </p>
           </div>
 
-          <form className="space-y-8">
+          <form className="space-y-8" onSubmit={handleSubmit}>
+            {error ? (
+              <div className="rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+                {error}
+              </div>
+            ) : null}
+
+            {success ? (
+              <div className="rounded-3xl border border-green-200 bg-green-50 px-5 py-4 text-sm text-green-700">
+                {success}
+              </div>
+            ) : null}
+
             <div className="grid gap-6 lg:grid-cols-2">
               <label className="space-y-3">
                 <span className="text-sm font-semibold text-slate-700">Заглавие</span>
                 <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   type="text"
                   placeholder="Например: Модерен апартамент в центъра"
                   className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -33,7 +104,11 @@ export default function PublishPage() {
 
               <label className="space-y-3">
                 <span className="text-sm font-semibold text-slate-700">Тип обява</span>
-                <select className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                <select
+                  value={listingType}
+                  onChange={(e) => setListingType(e.target.value)}
+                  className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
                   <option>Продавам</option>
                   <option>Подарявам</option>
                   <option>Разменям</option>
@@ -45,7 +120,11 @@ export default function PublishPage() {
             <div className="grid gap-6 lg:grid-cols-2">
               <label className="space-y-3">
                 <span className="text-sm font-semibold text-slate-700">Категория</span>
-                <select className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
                   <option>Имоти</option>
                   <option>Автомобили</option>
                   <option>Авточасти</option>
@@ -64,6 +143,8 @@ export default function PublishPage() {
               <label className="space-y-3">
                 <span className="text-sm font-semibold text-slate-700">Цена</span>
                 <input
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
                   type="text"
                   placeholder="Например: 500 лв."
                   className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -74,6 +155,8 @@ export default function PublishPage() {
             <label className="space-y-3">
               <span className="text-sm font-semibold text-slate-700">Град</span>
               <input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
                 type="text"
                 placeholder="Например: София"
                 className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -83,6 +166,8 @@ export default function PublishPage() {
             <label className="space-y-3">
               <span className="text-sm font-semibold text-slate-700">Описание</span>
               <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 rows={6}
                 placeholder="Опишете детайлно състоянието, характеристики и допълнителни условия."
                 className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -99,9 +184,10 @@ export default function PublishPage() {
 
             <button
               type="submit"
-              className="w-full rounded-3xl bg-blue-950 px-6 py-4 text-base font-black text-white transition hover:bg-blue-900"
+              disabled={loading}
+              className="w-full rounded-3xl bg-blue-950 px-6 py-4 text-base font-black text-white transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Публикувай
+              {loading ? "Публикуване..." : "Публикувай"}
             </button>
           </form>
         </div>
