@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Header from "@/components/Header";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
@@ -37,6 +38,8 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
+      <Header />
+
       <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 py-20 text-white">
         <div className="mx-auto max-w-6xl px-6 text-center">
           <p className="mb-3 text-sm uppercase tracking-[0.3em] text-blue-200">DaiVzemi</p>
