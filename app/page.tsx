@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   Baby,
@@ -13,8 +16,32 @@ import {
   Trees,
   Wrench,
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function Home() {
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setCurrentUserEmail(data?.user?.email ?? null);
+    };
+
+    loadUser();
+
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUserEmail(session?.user?.email ?? null);
+    });
+
+    return () => {
+      subscription?.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setCurrentUserEmail(null);
+  };
   const latestListings = [
     {
       title: "Просторен тристаен апартамент",
@@ -110,18 +137,35 @@ export default function Home() {
           </nav>
 
           <div className="hidden items-center gap-3 lg:flex mr-3">
-            <a
-              href="/login"
-              className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
-            >
-              Вход
-            </a>
-            <a
-              href="/register"
-              className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
-            >
-              Регистрация
-            </a>
+            {currentUserEmail ? (
+              <>
+                <span className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white">
+                  {currentUserEmail}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  Изход
+                </button>
+              </>
+            ) : (
+              <>
+                <a
+                  href="/login"
+                  className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  Вход
+                </a>
+                <a
+                  href="/register"
+                  className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  Регистрация
+                </a>
+              </>
+            )}
           </div>
 
           <a href="/publish" className="ml-auto rounded-xl bg-white px-4 py-2.5 text-sm font-black text-blue-950 shadow-sm hover:bg-blue-50 lg:px-4 lg:py-2.5">
