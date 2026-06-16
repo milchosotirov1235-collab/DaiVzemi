@@ -1,4 +1,18 @@
 import Image from "next/image";
+import {
+  Baby,
+  BookOpen,
+  Briefcase,
+  Car,
+  Hammer,
+  Home as HomeIcon,
+  Monitor,
+  Shirt,
+  Smartphone,
+  Trophy,
+  Trees,
+  Wrench,
+} from "lucide-react";
 
 export default function Home() {
   const latestListings = [
@@ -161,26 +175,29 @@ export default function Home() {
           Категории
         </h2>
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-5 md:grid-cols-4">
           {[
-            "🏠 Имоти",
-            "🚗 Автомобили",
-            "🔧 Авточасти",
-            "📱 Електроника",
-            "👶 Детски стоки",
-            "🏡 Дом и градина",
-            "👕 Мода",
-            "⚽ Спорт и хоби",
-            "🛠️ Услуги",
-            "💼 Работа",
-            "💻 Компютри",
-            "📚 Книги",
-          ].map((category) => (
+            { icon: HomeIcon, label: "Имоти" },
+            { icon: Car, label: "Автомобили" },
+            { icon: Wrench, label: "Авточасти" },
+            { icon: Smartphone, label: "Електроника" },
+            { icon: Baby, label: "Детски стоки" },
+            { icon: Trees, label: "Дом и градина" },
+            { icon: Shirt, label: "Мода" },
+            { icon: Trophy, label: "Спорт и хоби" },
+            { icon: Hammer, label: "Услуги" },
+            { icon: Briefcase, label: "Работа" },
+            { icon: Monitor, label: "Компютри" },
+            { icon: BookOpen, label: "Книги" },
+          ].map(({ icon: Icon, label }) => (
             <div
-              key={category}
-              className="rounded-2xl bg-white p-5 text-[1.05rem] font-extrabold text-slate-900 shadow-sm"
+              key={label}
+              className="group rounded-2xl bg-white p-7 text-center shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-1 hover:ring-blue-300 hover:shadow-lg"
             >
-              {category}
+              <Icon className="mx-auto h-9 w-9 text-blue-950" />
+              <div className="mt-5 text-[20px] font-extrabold text-slate-950">
+                {label}
+              </div>
             </div>
           ))}
         </div>
