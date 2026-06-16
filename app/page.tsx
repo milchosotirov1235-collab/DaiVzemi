@@ -109,9 +109,9 @@ export default function Home() {
             <a href="#">Търся</a>
           </nav>
 
-          <button className="ml-auto rounded-xl bg-white px-4 py-2.5 text-sm font-black text-blue-950 shadow-sm hover:bg-blue-50 lg:px-4 lg:py-2.5">
+          <a href="/publish" className="ml-auto rounded-xl bg-white px-4 py-2.5 text-sm font-black text-blue-950 shadow-sm hover:bg-blue-50 lg:px-4 lg:py-2.5">
             Публикувай обява
-          </button>
+          </a>
         </div>
       </header>
 
