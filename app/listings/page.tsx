@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
+import { ChevronDown } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 type Listing = {
@@ -51,15 +52,65 @@ const fallbackImageByCategory: Record<string, string> = {
   Книги: "📚",
 };
 
+function CustomDropdown({
+  value,
+  placeholder,
+  options,
+  isOpen,
+  onToggle,
+  onSelect,
+}: {
+  value: string;
+  placeholder: string;
+  options: string[];
+  isOpen: boolean;
+  onToggle: () => void;
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-bold text-slate-950 shadow-sm outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+      >
+        <span>{value || placeholder}</span>
+        <ChevronDown
+          className={`h-4 w-4 text-blue-950 transition ${isOpen ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {isOpen ? (
+        <div className="absolute left-0 right-0 top-[110%] z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
+          <button
+            type="button"
+            onClick={() => onSelect("")}
+            className="w-full rounded-xl px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-slate-100"
+          >
+            {placeholder}
+          </button>
+
+          {options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onSelect(option)}
+              className="w-full rounded-xl px-3 py-2 text-left text-sm font-bold text-slate-950 transition hover:bg-slate-100"
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 const formatPrice = (value: string | number | null) => {
-  if (value === null || value === undefined || value === "") {
-    return "По договаряне";
-  }
+  if (value === null || value === undefined || value === "") return "По договаряне";
 
   const formatted = String(value).trim();
-  if (/€|EUR|\$|USD|лв|BGN/i.test(formatted)) {
-    return formatted;
-  }
+  if (/€|EUR|\$|USD|лв|BGN/i.test(formatted)) return formatted;
 
   return `${formatted} €`;
 };
@@ -67,10 +118,7 @@ const formatPrice = (value: string | number | null) => {
 const getNumericPrice = (value: string | number | null) => {
   if (value === null || value === undefined) return null;
 
-  const cleaned = String(value)
-    .replace(",", ".")
-    .replace(/[^\d.]/g, "");
-
+  const cleaned = String(value).replace(",", ".").replace(/[^\d.]/g, "");
   const parsed = Number(cleaned);
 
   return Number.isFinite(parsed) ? parsed : null;
@@ -102,6 +150,8 @@ function ListingsPageContent() {
   const [typeInput, setTypeInput] = useState(searchParams.get("type") ?? "");
   const [minPriceInput, setMinPriceInput] = useState(searchParams.get("minPrice") ?? "");
   const [maxPriceInput, setMaxPriceInput] = useState(searchParams.get("maxPrice") ?? "");
+
+  const [openDropdown, setOpenDropdown] = useState<"category" | "type" | null>(null);
 
   const search = searchParams.get("search") ?? "";
   const city = searchParams.get("city") ?? "";
@@ -138,6 +188,7 @@ function ListingsPageContent() {
     setTypeInput("");
     setMinPriceInput("");
     setMaxPriceInput("");
+    setOpenDropdown(null);
     router.push("/listings");
   };
 
@@ -157,18 +208,9 @@ function ListingsPageContent() {
         query = query.or(`title.ilike.${searchValue},description.ilike.${searchValue}`);
       }
 
-      if (city.trim()) {
-        const cityValue = `%${city.trim()}%`;
-        query = query.ilike("city", cityValue);
-      }
-
-      if (category.trim()) {
-        query = query.eq("category", category.trim());
-      }
-
-      if (type.trim()) {
-        query = query.eq("listing_type", type.trim());
-      }
+      if (city.trim()) query = query.ilike("city", `%${city.trim()}%`);
+      if (category.trim()) query = query.eq("category", category.trim());
+      if (type.trim()) query = query.eq("listing_type", type.trim());
 
       const { data, error } = await query;
 
@@ -183,16 +225,12 @@ function ListingsPageContent() {
 
         if (minPrice.trim()) {
           const min = Number(minPrice.replace(",", "."));
-          if (Number.isFinite(min) && (numericPrice === null || numericPrice < min)) {
-            return false;
-          }
+          if (Number.isFinite(min) && (numericPrice === null || numericPrice < min)) return false;
         }
 
         if (maxPrice.trim()) {
           const max = Number(maxPrice.replace(",", "."));
-          if (Number.isFinite(max) && (numericPrice === null || numericPrice > max)) {
-            return false;
-          }
+          if (Number.isFinite(max) && (numericPrice === null || numericPrice > max)) return false;
         }
 
         return true;
@@ -206,7 +244,7 @@ function ListingsPageContent() {
   }, [search, city, category, type, minPrice, maxPrice]);
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-slate-50" onClick={() => setOpenDropdown(null)}>
       <Header />
 
       <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-20 text-white">
@@ -225,7 +263,7 @@ function ListingsPageContent() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-8">
+      <section className="mx-auto max-w-7xl px-6 py-8" onClick={(e) => e.stopPropagation()}>
         <div className="rounded-[28px] bg-white p-5 shadow-sm ring-1 ring-slate-200">
           <div className="grid gap-4 lg:grid-cols-6">
             <input
@@ -242,31 +280,31 @@ function ListingsPageContent() {
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
             />
 
-            <select
+            <CustomDropdown
               value={categoryInput}
-              onChange={(event) => setCategoryInput(event.target.value)}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-            >
-              <option value="">Всички категории</option>
-              {categories.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
+              placeholder="Всички категории"
+              options={categories}
+              isOpen={openDropdown === "category"}
+              onToggle={() =>
+                setOpenDropdown(openDropdown === "category" ? null : "category")
+              }
+              onSelect={(value) => {
+                setCategoryInput(value);
+                setOpenDropdown(null);
+              }}
+            />
 
-            <select
+            <CustomDropdown
               value={typeInput}
-              onChange={(event) => setTypeInput(event.target.value)}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-            >
-              <option value="">Всички типове</option>
-              {listingTypes.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
+              placeholder="Всички типове"
+              options={listingTypes}
+              isOpen={openDropdown === "type"}
+              onToggle={() => setOpenDropdown(openDropdown === "type" ? null : "type")}
+              onSelect={(value) => {
+                setTypeInput(value);
+                setOpenDropdown(null);
+              }}
+            />
 
             <button
               type="button"
@@ -333,16 +371,16 @@ function ListingsPageContent() {
                       />
                     ) : (
                       <div className="flex h-52 items-center justify-center bg-blue-950 text-5xl text-white transition duration-300 group-hover:bg-blue-900">
-                        {listing.category ? fallbackImageByCategory[listing.category] ?? "📦" : "📦"}
+                        {listing.category
+                          ? fallbackImageByCategory[listing.category] ?? "📦"
+                          : "📦"}
                       </div>
                     )}
 
                     <div className="space-y-4 p-6">
-                      <div>
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950">
-                          {listing.listing_type ?? "Обява"}
-                        </span>
-                      </div>
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950">
+                        {listing.listing_type ?? "Обява"}
+                      </span>
 
                       <div>
                         <h2 className="text-2xl font-black text-slate-950">
@@ -393,9 +431,7 @@ export default function ListingsPage() {
         <main className="min-h-screen bg-slate-50">
           <Header />
           <div className="flex min-h-[40vh] items-center justify-center">
-            <p className="text-base font-semibold text-slate-600">
-              Зареждане...
-            </p>
+            <p className="text-base font-semibold text-slate-600">Зареждане...</p>
           </div>
         </main>
       }
