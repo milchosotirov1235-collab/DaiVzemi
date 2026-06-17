@@ -3,22 +3,48 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { Heart } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function Header() {
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+const [username, setUsername] = useState<string | null>(null);
+const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setCurrentUserEmail(data?.user?.email ?? null);
+  const { data } = await supabase.auth.getUser();
+
+setCurrentUserEmail(data?.user?.email ?? null);
+
+if (data?.user) {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", data.user.id)
+    .maybeSingle();
+
+  setUsername(profile?.username ?? null);
+}
     };
 
     loadUser();
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      setCurrentUserEmail(session?.user?.email ?? null);
-    });
+const { data: subscription } = supabase.auth.onAuthStateChange(
+  async (_event, session) => {
+    setCurrentUserEmail(session?.user?.email ?? null);
+
+    if (session?.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", session.user.id)
+        .maybeSingle();
+
+      setUsername(profile?.username ?? null);
+    }
+  }
+);
 
     return () => {
       subscription?.subscription.unsubscribe();
@@ -33,7 +59,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-blue-950 text-white shadow-lg">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
-        <Link href="/" className="flex items-center shrink-0">
+        <Link href="/" className="flex shrink-0 items-center">
           <Image
             src="/logo.png"
             alt="DaiVzemi"
@@ -55,18 +81,28 @@ export default function Header() {
           <a href="#">Търся</a>
         </nav>
 
-        <div className="hidden items-center gap-3 lg:flex mr-3">
+        <div className="mr-3 hidden items-center gap-3 lg:flex">
           {currentUserEmail ? (
             <>
+              <Link
+                href="/favorites"
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+              >
+                <Heart className="h-4 w-4" />
+                Любими
+              </Link>
+
               <Link
                 href="/my-listings"
                 className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
               >
                 Моите обяви
               </Link>
+
               <span className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white">
                 {currentUserEmail}
               </span>
+
               <button
                 type="button"
                 onClick={handleSignOut}
@@ -83,6 +119,7 @@ export default function Header() {
               >
                 Вход
               </Link>
+
               <Link
                 href="/register"
                 className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
