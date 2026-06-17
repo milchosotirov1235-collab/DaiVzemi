@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Header from "@/components/Header";
 import {
   Baby,
@@ -19,11 +20,14 @@ import {
 import { supabase } from "@/lib/supabaseClient";
 
 type Listing = {
+  id: string;
   title: string;
   price: string | number | null;
   city: string | null;
   category: string | null;
   listing_type: string | null;
+  image_url: string | null;
+  image_urls: string[] | null;
 };
 
 const fallbackImageByCategory: Record<string, string> = {
@@ -48,7 +52,7 @@ export default function Home() {
     const loadLatestListings = async () => {
       const { data, error } = await supabase
         .from("listings")
-        .select("title, price, city, category, listing_type")
+        .select("id, title, price, city, category, listing_type, image_url, image_urls")
         .order("created_at", { ascending: false })
         .limit(8);
 
@@ -189,40 +193,58 @@ export default function Home() {
           <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {latestListings.map((listing, index) => (
               <article
-                key={`${listing.title}-${index}`}
-                className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                key={listing.id ?? `${listing.title}-${index}`}
+                className="group cursor-pointer overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
-                <div className="relative">
-                  <div className="flex h-56 items-center justify-center rounded-t-[28px] bg-blue-950 text-6xl text-white">
-                    {listing.category ? fallbackImageByCategory[listing.category] ?? "📦" : "📦"}
-                  </div>
-                  <span className="absolute left-5 top-5 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950 shadow-sm">
-                    {listing.listing_type ?? "Обява"}
-                  </span>
-                </div>
-
-                <div className="space-y-4 p-6">
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-black text-slate-950">
-                      {listing.title}
-                    </h3>
-                    <p className="text-lg font-extrabold text-blue-950">
-                      {formatPrice(listing.price)}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 text-sm text-slate-600">
-                    <span className="rounded-full bg-slate-100 px-3 py-1">
-                      {listing.city ?? "Без град"}
-                    </span>
-                    <span className="rounded-full bg-slate-100 px-3 py-1">
-                      {listing.category ?? "Без категория"}
+                <Link href={`/listing/${listing.id}`} className="block">
+                  <div className="relative">
+                    {(() => {
+                      const cardImage = listing.image_urls?.find(Boolean) ?? listing.image_url;
+                      return cardImage ? (
+                        <img
+                          src={cardImage}
+                          alt={listing.title}
+                          className="h-56 w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                        />
+                      ) : (
+                        <div className="flex h-56 items-center justify-center rounded-t-[28px] bg-blue-950 text-6xl text-white transition duration-300 group-hover:bg-blue-900">
+                          {listing.category ? fallbackImageByCategory[listing.category] ?? "📦" : "📦"}
+                        </div>
+                      );
+                    })()}
+                    <span className="absolute left-5 top-5 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950 shadow-sm">
+                      {listing.listing_type ?? "Обява"}
                     </span>
                   </div>
 
-                  <button className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-blue-950 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-900">
+                  <div className="space-y-4 p-6">
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-black text-slate-950">
+                        {listing.title}
+                      </h3>
+                      <p className="text-lg font-extrabold text-blue-950">
+                        {formatPrice(listing.price)}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 text-sm text-slate-600">
+                      <span className="rounded-full bg-slate-100 px-3 py-1">
+                        {listing.city ?? "Без град"}
+                      </span>
+                      <span className="rounded-full bg-slate-100 px-3 py-1">
+                        {listing.category ?? "Без категория"}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+
+                <div className="px-6 pb-6">
+                  <Link
+                    href={`/listing/${listing.id}`}
+                    className="inline-flex w-full items-center justify-center rounded-2xl bg-blue-950 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-900"
+                  >
                     Виж обявата
-                  </button>
+                  </Link>
                 </div>
               </article>
             ))}

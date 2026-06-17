@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import Header from "@/components/Header";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function RegisterPage() {
   const [accountType, setAccountType] = useState("Частно лице");
+  const [isAccountTypeOpen, setIsAccountTypeOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,18 +29,16 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    const { data, error: signUpError } = await supabase.auth.signUp(
-      {
-        email,
-        password,
-      },
-      {
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
         data: {
           accountType,
           name,
         },
-      }
-    );
+      },
+    });
 
     setLoading(false);
 
@@ -89,17 +89,40 @@ export default function RegisterPage() {
               </div>
             ) : null}
 
-            <label className="space-y-3">
-              <span className="text-sm font-semibold text-slate-700">Тип обява</span>
-              <select
-                value={accountType}
-                onChange={(event) => setAccountType(event.target.value)}
-                className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-base text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              >
-                <option>Частно лице</option>
-                <option>Фирма</option>
-              </select>
-            </label>
+            <div className="space-y-3">
+              <span className="block text-sm font-semibold text-slate-700">Тип обява</span>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsAccountTypeOpen((prev) => !prev)}
+                  className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-left shadow-sm transition hover:bg-slate-100 focus:border-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                >
+                  <span className="text-base font-medium text-slate-900">{accountType}</span>
+                  <ChevronDown className={`h-5 w-5 text-slate-500 transition ${isAccountTypeOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {isAccountTypeOpen ? (
+                  <div className="absolute z-20 mt-2 w-full rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl">
+                    {[
+                      "Частно лице",
+                      "Фирма",
+                    ].map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          setAccountType(option);
+                          setIsAccountTypeOpen(false);
+                        }}
+                        className={`flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100 ${option === accountType ? "bg-slate-100 text-slate-900" : ""}`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
 
             <label className="space-y-3">
               <span className="text-sm font-semibold text-slate-700">Име</span>

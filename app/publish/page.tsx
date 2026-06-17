@@ -28,11 +28,51 @@ export default function PublishPage() {
   const [city, setCity] = useState("");
   const [category, setCategory] = useState("Имоти");
   const [listingType, setListingType] = useState("Продавам");
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [isListingTypeOpen, setIsListingTypeOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+
+    if (files.length === 0) {
+      setSelectedImages([]);
+      setImagePreviewUrls([]);
+      setUploadProgress(0);
+      return;
+    }
+
+    if (files.length > 10) {
+      setError("Можете да изберете максимум 10 снимки.");
+      return;
+    }
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const maxSize = 5 * 1024 * 1024;
+
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        setError("Разрешени са само JPG, JPEG, PNG и WEBP файлове.");
+        return;
+      }
+
+      if (file.size > maxSize) {
+        setError("Размерът на всяка снимка не трябва да надвишава 5MB.");
+        return;
+      }
+    }
+
+    setError("");
+    setSelectedImages(files);
+    setImagePreviewUrls(files.map((file) => URL.createObjectURL(file)));
+    setUploadProgress(0);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,7 +86,55 @@ export default function PublishPage() {
       return;
     }
 
+    if (selectedImages.length > 10) {
+      setError("Можете да изберете максимум 10 снимки.");
+      return;
+    }
+
     setLoading(true);
+    setUploadingImages(false);
+    setUploadProgress(0);
+
+    let uploadedUrls: string[] = [];
+
+    if (selectedImages.length > 0) {
+      setUploadingImages(true);
+      const timestamp = Date.now();
+
+      for (let index = 0; index < selectedImages.length; index += 1) {
+        const file = selectedImages[index];
+        const safeFileName = file.name.replace(/\s+/g, "_");
+        const filePath = `${user.id}/${timestamp}_${index}_${safeFileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("listing-images")
+          .upload(filePath, file, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (uploadError) {
+          setUploadingImages(false);
+          setLoading(false);
+          setError(uploadError.message);
+          return;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from("listing-images")
+          .getPublicUrl(filePath);
+
+        if (publicUrlData?.publicUrl) {
+          uploadedUrls.push(publicUrlData.publicUrl);
+        }
+
+        setUploadProgress(
+          Math.round(((index + 1) / selectedImages.length) * 100)
+        );
+      }
+
+      setUploadingImages(false);
+    }
 
     const { error: insertError } = await supabase.from("listings").insert([
       {
@@ -57,10 +145,14 @@ export default function PublishPage() {
         category,
         listing_type: listingType,
         user_id: user.id,
+        image_url: uploadedUrls[0] ?? null,
+        image_urls: uploadedUrls,
       },
     ]);
 
     setLoading(false);
+    setUploadingImages(false);
+    setUploadProgress(0);
 
     if (insertError) {
       setError(insertError.message);
@@ -74,6 +166,11 @@ export default function PublishPage() {
     setCity("");
     setCategory("Имоти");
     setListingType("Продавам");
+    setSelectedImages([]);
+    setImagePreviewUrls((prev) => {
+      prev.forEach((url) => URL.revokeObjectURL(url));
+      return [];
+    });
   };
 
   return (
@@ -230,16 +327,55 @@ export default function PublishPage() {
             </label>
 
             <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
-              <p className="text-base font-semibold text-slate-700">Снимки upload placeholder</p>
-              <p className="mt-2 text-sm text-slate-500">Добавете до 5 снимки, за да направите обявата по-привлекателна.</p>
-              <div className="mt-5 inline-flex rounded-2xl border border-blue-950 bg-blue-950 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-900">
-                Избери файлове
-              </div>
+              <p className="text-base font-semibold text-slate-700">Снимки на обявата</p>
+              <p className="mt-2 text-sm text-slate-500">
+                Разрешени формати: JPG, JPEG, PNG, WEBP (макс. 5MB на файл, до 10 снимки)
+              </p>
+
+              <label className="mt-5 inline-flex cursor-pointer rounded-2xl border border-blue-950 bg-blue-950 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-900">
+                Избери снимки
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="hidden"
+                  onChange={handleImageChange}
+                />
+              </label>
+
+              {imagePreviewUrls.length > 0 ? (
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  {imagePreviewUrls.map((url, index) => (
+                    <div key={url} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                      <img
+                        src={url}
+                        alt={`Preview ${index + 1}`}
+                        className="h-32 w-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {uploadingImages ? (
+                <div className="mt-4 text-left">
+                  <div className="flex items-center justify-between text-sm text-slate-600">
+                    <span>Качване на снимки</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
+                    <div
+                      className="h-full rounded-full bg-blue-950 transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || uploadingImages}
               className="w-full rounded-2xl bg-blue-950 px-6 py-4 text-base font-black text-white transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? "Публикуване..." : "Публикувай"}

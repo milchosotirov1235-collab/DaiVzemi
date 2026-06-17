@@ -45,7 +45,7 @@ export default function Header() {
         </Link>
 
         <nav className="hidden items-center gap-3 text-[0.95rem] font-semibold lg:flex xl:gap-5">
-          <a href="#">Обяви</a>
+          <Link href="/listings">Обяви</Link>
           <a href="#">Имоти</a>
           <a href="#">Автомобили</a>
           <a href="#">Авточасти</a>
@@ -58,6 +58,12 @@ export default function Header() {
         <div className="hidden items-center gap-3 lg:flex mr-3">
           {currentUserEmail ? (
             <>
+              <Link
+                href="/my-listings"
+                className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+              >
+                Моите обяви
+              </Link>
               <span className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white">
                 {currentUserEmail}
               </span>
