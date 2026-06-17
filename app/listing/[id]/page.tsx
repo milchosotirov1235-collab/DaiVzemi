@@ -75,6 +75,7 @@ export default function ListingPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
 const [userId, setUserId] = useState<string | null>(null);
+const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
 
   const images = listing
     ? Array.from(
@@ -110,7 +111,7 @@ const [userId, setUserId] = useState<string | null>(null);
 
 const toggleFavorite = async () => {
   if (!userId) {
-    alert("Влезте в профила си, за да добавяте любими.");
+setNoticeMessage("Влезте в профила си, за да добавяте любими.");
     return;
   }
 
@@ -152,9 +153,15 @@ const toggleFavorite = async () => {
       setLoading(false);
     };
 
-    if (id) {
-      loadListing();
+if (id) {
+  loadListing();
+
+  supabase.auth.getUser().then(({ data }) => {
+    if (data.user) {
+      setUserId(data.user.id);
     }
+  });
+}
   }, [id]);
 
   useEffect(() => {
@@ -328,9 +335,25 @@ const toggleFavorite = async () => {
                   {listing.title}
                 </h1>
 
-                <p className="text-4xl font-black text-blue-950 sm:text-5xl">
-                  {formatPrice(listing.price)}
-                </p>
+
+<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <p className="text-4xl font-black text-blue-950 sm:text-5xl">
+    {formatPrice(listing.price)}
+  </p>
+
+  <button
+    type="button"
+    onClick={toggleFavorite}
+    className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-5 py-3 text-sm font-black transition ${
+      isFavorite
+        ? "border-blue-950 bg-blue-950 text-white"
+        : "border-blue-950 bg-white text-blue-950 hover:bg-blue-50"
+    }`}
+  >
+    <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
+    {isFavorite ? "В любими" : "Добави в любими"}
+  </button>
+</div>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-3">
