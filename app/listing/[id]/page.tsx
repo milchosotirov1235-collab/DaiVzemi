@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Header from "@/components/Header";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -40,6 +41,7 @@ const formatPrice = (value: string | number | null) => {
   }
 
   const formatted = String(value).trim();
+
   if (/€|EUR|\$|USD|лв|BGN/i.test(formatted)) {
     return formatted;
   }
@@ -51,7 +53,10 @@ const formatDate = (value: string | null) => {
   if (!value) return "Няма дата";
 
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Няма дата";
+
+  if (Number.isNaN(date.getTime())) {
+    return "Няма дата";
+  }
 
   return new Intl.DateTimeFormat("bg-BG", {
     day: "2-digit",
@@ -66,29 +71,38 @@ export default function ListingPage() {
 
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const galleryImages = (listing?.image_urls ?? []).filter(Boolean) as string[];
-  const hasGallery = galleryImages.length > 0;
-  const mainImage = selectedImage ?? listing?.image_url ?? null;
+  const images = listing
+    ? Array.from(
+        new Set(
+          [
+            ...(listing.image_urls ?? []),
+            listing.image_url,
+          ].filter(Boolean) as string[]
+        )
+      )
+    : [];
+
+  const mainImage = images[selectedImageIndex] ?? null;
+  const hasImages = images.length > 0;
+  const hasMultipleImages = images.length > 1;
 
   const goToPreviousImage = () => {
-    if (!galleryImages.length) return;
-    const currentIndex = galleryImages.findIndex((image) => image === mainImage);
-    const previousIndex =
-      currentIndex <= 0 ? galleryImages.length - 1 : currentIndex - 1;
-    setSelectedImage(galleryImages[previousIndex]);
+    if (!hasMultipleImages) return;
+
+    setSelectedImageIndex((current) =>
+      current === 0 ? images.length - 1 : current - 1
+    );
   };
 
   const goToNextImage = () => {
-    if (!galleryImages.length) return;
-    const currentIndex = galleryImages.findIndex((image) => image === mainImage);
-    const nextIndex =
-      currentIndex === -1 || currentIndex === galleryImages.length - 1
-        ? 0
-        : currentIndex + 1;
-    setSelectedImage(galleryImages[nextIndex]);
+    if (!hasMultipleImages) return;
+
+    setSelectedImageIndex((current) =>
+      current === images.length - 1 ? 0 : current + 1
+    );
   };
 
   useEffect(() => {
@@ -103,11 +117,9 @@ export default function ListingPage() {
 
       if (!error && data) {
         setListing(data);
-        const firstImage = (data.image_urls ?? []).filter(Boolean)[0] ?? data.image_url;
-        setSelectedImage(firstImage ?? null);
+        setSelectedImageIndex(0);
       } else {
         setListing(null);
-        setSelectedImage(null);
       }
 
       setLoading(false);
@@ -124,30 +136,33 @@ export default function ListingPage() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsModalOpen(false);
-        return;
       }
 
       if (event.key === "ArrowLeft") {
-        event.preventDefault();
         goToPreviousImage();
       }
 
       if (event.key === "ArrowRight") {
-        event.preventDefault();
         goToNextImage();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isModalOpen, goToPreviousImage, goToNextImage]);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isModalOpen, hasMultipleImages, images.length]);
 
   if (loading) {
     return (
       <main className="min-h-screen bg-slate-50">
-        <div className="mx-auto flex min-h-screen max-w-4xl items-center justify-center px-6 py-16">
+        <Header />
+        <div className="mx-auto flex min-h-[70vh] max-w-4xl items-center justify-center px-6 py-16">
           <div className="rounded-3xl bg-white p-10 text-center shadow-xl ring-1 ring-slate-200">
-            <p className="text-base font-semibold text-slate-600">Зареждане...</p>
+            <p className="text-base font-semibold text-slate-600">
+              Зареждане...
+            </p>
           </div>
         </div>
       </main>
@@ -157,9 +172,13 @@ export default function ListingPage() {
   if (!listing) {
     return (
       <main className="min-h-screen bg-slate-50">
-        <div className="mx-auto flex min-h-screen max-w-4xl items-center justify-center px-6 py-16">
+        <Header />
+        <div className="mx-auto flex min-h-[70vh] max-w-4xl items-center justify-center px-6 py-16">
           <div className="w-full rounded-3xl bg-white p-10 text-center shadow-xl ring-1 ring-slate-200">
-            <p className="text-2xl font-black text-slate-900">Обявата не е намерена</p>
+            <p className="text-2xl font-black text-slate-900">
+              Обявата не е намерена
+            </p>
+
             <Link
               href="/"
               className="mt-6 inline-flex items-center justify-center rounded-2xl bg-blue-950 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-900"
@@ -178,7 +197,9 @@ export default function ListingPage() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-16 text-white">
+      <Header />
+
+      <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-14 text-white">
         <div className="mx-auto max-w-6xl">
           <Link
             href="/"
@@ -193,7 +214,7 @@ export default function ListingPage() {
         <div className="mx-auto max-w-5xl">
           <div className="overflow-hidden rounded-[32px] bg-white shadow-2xl ring-1 ring-slate-200">
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900">
-              {mainImage ? (
+              {hasImages && mainImage ? (
                 <div className="relative">
                   <button
                     type="button"
@@ -203,28 +224,33 @@ export default function ListingPage() {
                     <img
                       src={mainImage}
                       alt={listing.title}
-                      className="h-[420px] w-full max-w-full object-cover"
+                      className="h-[420px] w-full object-cover"
                     />
                   </button>
 
-                  {hasGallery ? (
+                  {hasMultipleImages ? (
                     <>
                       <button
                         type="button"
                         onClick={goToPreviousImage}
-                        className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-slate-950/45 text-white shadow-lg backdrop-blur transition hover:bg-slate-950/65"
+                        className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-slate-950/45 text-white shadow-lg backdrop-blur transition hover:bg-slate-950/70"
                         aria-label="Предишна снимка"
                       >
                         <ChevronLeft className="h-5 w-5" />
                       </button>
+
                       <button
                         type="button"
                         onClick={goToNextImage}
-                        className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-slate-950/45 text-white shadow-lg backdrop-blur transition hover:bg-slate-950/65"
+                        className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-slate-950/45 text-white shadow-lg backdrop-blur transition hover:bg-slate-950/70"
                         aria-label="Следваща снимка"
                       >
                         <ChevronRight className="h-5 w-5" />
                       </button>
+
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-slate-950/60 px-4 py-2 text-sm font-bold text-white backdrop-blur">
+                        {selectedImageIndex + 1} / {images.length}
+                      </div>
                     </>
                   ) : null}
                 </div>
@@ -234,26 +260,36 @@ export default function ListingPage() {
                   <span className="relative z-10">{placeholderEmoji}</span>
                 </div>
               )}
+
               <div className="absolute left-4 top-4 flex flex-wrap gap-2 sm:left-6 sm:top-6">
                 <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950 shadow-sm">
                   {listing.listing_type ?? "Обява"}
                 </span>
+
                 <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950 shadow-sm">
                   {listing.category ?? "Без категория"}
                 </span>
               </div>
             </div>
 
-            {hasGallery ? (
+            {hasImages ? (
               <div className="grid grid-cols-4 gap-3 p-4 sm:grid-cols-6">
-                {galleryImages.map((image, index) => (
+                {images.map((image, index) => (
                   <button
                     key={`${image}-${index}`}
                     type="button"
-                    onClick={() => setSelectedImage(image)}
-                    className={`overflow-hidden rounded-2xl border ${mainImage === image ? "border-blue-950" : "border-slate-200"}`}
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`overflow-hidden rounded-2xl border transition ${
+                      selectedImageIndex === index
+                        ? "border-blue-950 ring-2 ring-blue-950/20"
+                        : "border-slate-200 hover:border-blue-300"
+                    }`}
                   >
-                    <img src={image} alt={`${listing.title} ${index + 1}`} className="h-20 w-full object-cover" />
+                    <img
+                      src={image}
+                      alt={`${listing.title} ${index + 1}`}
+                      className="h-20 w-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
@@ -264,6 +300,7 @@ export default function ListingPage() {
                 <h1 className="text-3xl font-black leading-tight text-slate-950 sm:text-5xl">
                   {listing.title}
                 </h1>
+
                 <p className="text-4xl font-black text-blue-950 sm:text-5xl">
                   {formatPrice(listing.price)}
                 </p>
@@ -278,6 +315,7 @@ export default function ListingPage() {
                     {listing.city ?? "Без град"}
                   </p>
                 </div>
+
                 <div className="rounded-2xl bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                     Категория
@@ -286,6 +324,7 @@ export default function ListingPage() {
                     {listing.category ?? "Без категория"}
                   </p>
                 </div>
+
                 <div className="rounded-2xl bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                     Публикувана
@@ -300,6 +339,7 @@ export default function ListingPage() {
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
                   Описание
                 </p>
+
                 <p className="mt-3 whitespace-pre-wrap text-base leading-7 text-slate-700">
                   {listing.description || "Няма описание."}
                 </p>
@@ -320,41 +360,40 @@ export default function ListingPage() {
 
       {isModalOpen && mainImage ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm transition-opacity duration-300"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm"
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="relative max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl transition-transform duration-300"
+            className="relative flex max-h-[92vh] w-full max-w-6xl items-center justify-center"
             onClick={(event) => event.stopPropagation()}
           >
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="absolute right-3 top-3 z-10 rounded-full bg-slate-900/70 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-slate-900"
+              className="absolute right-3 top-3 z-20 rounded-full bg-slate-900/75 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-slate-900"
             >
               ✕
             </button>
 
-            {galleryImages.length > 1 ? (
+            <div className="absolute left-3 top-3 z-20 rounded-full bg-slate-900/75 px-3 py-1.5 text-sm font-semibold text-white">
+              {selectedImageIndex + 1} / {images.length}
+            </div>
+
+            {hasMultipleImages ? (
               <>
                 <button
                   type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    goToPreviousImage();
-                  }}
-                  className="absolute left-3 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-slate-950/55 text-white shadow-lg backdrop-blur transition hover:bg-slate-950/75"
+                  onClick={goToPreviousImage}
+                  className="absolute left-3 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-slate-950/60 text-white shadow-lg backdrop-blur transition hover:bg-slate-950/80"
                   aria-label="Предишна снимка"
                 >
                   <ChevronLeft className="h-6 w-6" />
                 </button>
+
                 <button
                   type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    goToNextImage();
-                  }}
-                  className="absolute right-3 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-slate-950/55 text-white shadow-lg backdrop-blur transition hover:bg-slate-950/75"
+                  onClick={goToNextImage}
+                  className="absolute right-3 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-slate-950/60 text-white shadow-lg backdrop-blur transition hover:bg-slate-950/80"
                   aria-label="Следваща снимка"
                 >
                   <ChevronRight className="h-6 w-6" />
@@ -365,7 +404,7 @@ export default function ListingPage() {
             <img
               src={mainImage}
               alt={listing.title}
-              className="max-h-[90vh] w-full object-contain transition-all duration-300"
+              className="max-h-[92vh] max-w-full rounded-3xl object-contain shadow-2xl"
             />
           </div>
         </div>
