@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import { supabase } from "@/lib/supabaseClient";
@@ -58,18 +59,35 @@ const formatDate = (value: string | null) => {
   }).format(date);
 };
 
-export default function ListingsPage() {
+function ListingsPageContent() {
+  const searchParams = useSearchParams();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const search = searchParams.get("search") ?? "";
+  const city = searchParams.get("city") ?? "";
+  const hasFilters = search.trim().length > 0 || city.trim().length > 0;
+
   useEffect(() => {
     const loadListings = async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("listings")
         .select(
-          "id, title, price, city, category, listing_type, created_at, image_url, image_urls"
+          "id, title, description, price, city, category, listing_type, created_at, image_url, image_urls"
         )
         .order("created_at", { ascending: false });
+
+      if (search.trim()) {
+        const searchValue = `%${search.trim()}%`;
+        query = query.or(`title.ilike.${searchValue},description.ilike.${searchValue}`);
+      }
+
+      if (city.trim()) {
+        const cityValue = `%${city.trim()}%`;
+        query = query.ilike("city", cityValue);
+      }
+
+      const { data, error } = await query;
 
       if (!error && data) {
         setListings(data as Listing[]);
@@ -81,7 +99,7 @@ export default function ListingsPage() {
     };
 
     loadListings();
-  }, []);
+  }, [search, city]);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -92,9 +110,13 @@ export default function ListingsPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">
             DaiVzemi
           </p>
-          <h1 className="mt-3 text-4xl font-black md:text-5xl">Всички обяви</h1>
+          <h1 className="mt-3 text-4xl font-black md:text-5xl">
+            {hasFilters ? "Резултати от търсенето" : "Всички обяви"}
+          </h1>
           <p className="mt-4 text-base text-blue-100 md:text-lg">
-            Разгледайте най-новите обяви в DaiVzemi.
+            {hasFilters
+              ? "Покажи резултатите според избраните критерии."
+              : "Разгледайте най-новите обяви в DaiVzemi."}
           </p>
         </div>
       </section>
@@ -106,7 +128,9 @@ export default function ListingsPage() {
           </div>
         ) : listings.length === 0 ? (
           <div className="rounded-3xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200">
-            <p className="text-xl font-black text-slate-900">Все още няма обяви.</p>
+            <p className="text-xl font-black text-slate-900">
+              Няма намерени обяви по това търсене.
+            </p>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -173,5 +197,22 @@ export default function ListingsPage() {
         )}
       </section>
     </main>
+  );
+}
+
+export default function ListingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-50">
+          <Header />
+          <div className="flex min-h-[40vh] items-center justify-center">
+            <p className="text-base font-semibold text-slate-600">Зареждане...</p>
+          </div>
+        </main>
+      }
+    >
+      <ListingsPageContent />
+    </Suspense>
   );
 }

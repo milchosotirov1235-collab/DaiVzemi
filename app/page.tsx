@@ -47,6 +47,8 @@ const fallbackImageByCategory: Record<string, string> = {
 
 export default function Home() {
   const [latestListings, setLatestListings] = useState<Listing[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [cityTerm, setCityTerm] = useState("");
 
   useEffect(() => {
     const loadLatestListings = async () => {
@@ -65,6 +67,21 @@ export default function Home() {
 
     loadLatestListings();
   }, []);
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+
+    if (searchTerm.trim()) {
+      params.set("search", searchTerm.trim());
+    }
+
+    if (cityTerm.trim()) {
+      params.set("city", cityTerm.trim());
+    }
+
+    const queryString = params.toString();
+    window.location.href = `/listings${queryString ? `?${queryString}` : ""}`;
+  };
 
   const formatPrice = (value: string | number | null) => {
     if (value === null || value === undefined || value === "") {
@@ -98,17 +115,25 @@ export default function Home() {
           <div className="mx-auto mt-10 flex max-w-4xl flex-col gap-3 rounded-3xl bg-white p-3 shadow-2xl md:flex-row">
             <input
               type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Какво търсите?"
               className="flex-1 rounded-2xl bg-white px-5 py-4 text-lg font-bold text-slate-950 caret-blue-950 outline-none placeholder:text-slate-400"
             />
 
             <input
               type="text"
+              value={cityTerm}
+              onChange={(e) => setCityTerm(e.target.value)}
               placeholder="Град"
               className="rounded-2xl bg-white px-5 py-4 text-lg font-bold text-slate-950 caret-blue-950 outline-none placeholder:text-slate-400 md:w-60"
             />
 
-            <button className="rounded-2xl bg-blue-950 px-8 py-4 text-lg font-black text-white">
+            <button
+              type="button"
+              onClick={handleSearch}
+              className="rounded-2xl bg-blue-950 px-8 py-4 text-lg font-black text-white"
+            >
               Търси
             </button>
           </div>
