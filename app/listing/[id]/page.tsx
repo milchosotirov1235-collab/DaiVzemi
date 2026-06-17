@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 type Listing = {
@@ -73,6 +73,8 @@ export default function ListingPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+const [userId, setUserId] = useState<string | null>(null);
 
   const images = listing
     ? Array.from(
@@ -104,6 +106,31 @@ export default function ListingPage() {
       current === images.length - 1 ? 0 : current + 1
     );
   };
+
+
+const toggleFavorite = async () => {
+  if (!userId) {
+    alert("Влезте в профила си, за да добавяте любими.");
+    return;
+  }
+
+  if (isFavorite) {
+    await supabase
+      .from("favorites")
+      .delete()
+      .eq("user_id", userId)
+      .eq("listing_id", Number(id));
+
+    setIsFavorite(false);
+  } else {
+    await supabase.from("favorites").insert({
+      user_id: userId,
+      listing_id: Number(id),
+    });
+
+    setIsFavorite(true);
+  }
+};
 
   useEffect(() => {
     const loadListing = async () => {
