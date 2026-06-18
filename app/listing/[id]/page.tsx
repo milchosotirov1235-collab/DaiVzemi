@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
-import { ChevronLeft, ChevronRight, Heart } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart, MessageCircle } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 type Listing = {
@@ -18,6 +18,7 @@ type Listing = {
   created_at: string | null;
   image_url: string | null;
   image_urls: string[] | null;
+  user_id: string | null;
 };
 
 const fallbackImageByCategory: Record<string, string> = {
@@ -67,6 +68,7 @@ const formatDate = (value: string | null) => {
 
 export default function ListingPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params?.id as string;
 
   const [listing, setListing] = useState<Listing | null>(null);
@@ -74,8 +76,9 @@ export default function ListingPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
-const [userId, setUserId] = useState<string | null>(null);
-const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
+  const [contactingLoading, setContactingLoading] = useState(false);
 
   const images = listing
     ? Array.from(
@@ -133,12 +136,68 @@ setNoticeMessage("Влезте в профила си, за да добавят�
   }
 };
 
+  const handleContactSeller = async () => {
+    if (!userId) {
+      setNoticeMessage("Влезте в профила си, за да изпратите съобщение.");
+      return;
+    }
+
+    if (!listing?.user_id) return;
+
+    if (listing.user_id === userId) {
+      setNoticeMessage("Не можете да изпратите съобщение до себе си.");
+      return;
+    }
+
+    setContactingLoading(true);
+
+    // Find existing conversation or create a new one
+    const { data: existing } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("listing_id", id)
+      .eq("buyer_id", userId)
+      .maybeSingle();
+
+    if (existing) {
+      router.push(`/messages/${existing.id}`);
+      return;
+    }
+
+    const { data: created, error } = await supabase
+      .from("conversations")
+      .insert({
+        listing_id: Number(id),
+        buyer_id: userId,
+        seller_id: listing.user_id,
+      })
+      .select("id")
+      .single();
+
+    setContactingLoading(false);
+
+    if (error || !created) {
+      setNoticeMessage("Грешка при свързване с продавача. Опитайте отново.");
+      return;
+    }
+
+    // Create listing inquiry notification for the seller
+    await supabase.from("notifications").insert({
+      user_id: listing.user_id,
+      type: "listing_inquiry",
+      conversation_id: created.id,
+      body: `Нов интерес към обявата ви: ${listing.title}`,
+    });
+
+    router.push(`/messages/${created.id}`);
+  };
+
   useEffect(() => {
     const loadListing = async () => {
       const { data, error } = await supabase
         .from("listings")
         .select(
-          "id, title, price, category, city, listing_type, description, created_at, image_url, image_urls"
+          "id, title, price, category, city, listing_type, description, created_at, image_url, image_urls, user_id"
         )
         .eq("id", id)
         .single<Listing>();
@@ -341,19 +400,39 @@ if (id) {
     {formatPrice(listing.price)}
   </p>
 
-  <button
-    type="button"
-    onClick={toggleFavorite}
-    className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-5 py-3 text-sm font-black transition ${
-      isFavorite
-        ? "border-blue-950 bg-blue-950 text-white"
-        : "border-blue-950 bg-white text-blue-950 hover:bg-blue-50"
-    }`}
-  >
-    <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
-    {isFavorite ? "В любими" : "Добави в любими"}
-  </button>
+  <div className="flex flex-wrap gap-3">
+    {listing.user_id !== userId && (
+      <button
+        type="button"
+        onClick={handleContactSeller}
+        disabled={contactingLoading}
+        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-950 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        <MessageCircle className="h-5 w-5" />
+        {contactingLoading ? "Зареждане..." : "Изпрати съобщение"}
+      </button>
+    )}
+
+    <button
+      type="button"
+      onClick={toggleFavorite}
+      className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-5 py-3 text-sm font-black transition ${
+        isFavorite
+          ? "border-blue-950 bg-blue-950 text-white"
+          : "border-blue-950 bg-white text-blue-950 hover:bg-blue-50"
+      }`}
+    >
+      <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
+      {isFavorite ? "В любими" : "Добави в любими"}
+    </button>
+  </div>
 </div>
+
+{noticeMessage && (
+  <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+    {noticeMessage}
+  </div>
+)}
               </div>
 
               <div className="grid gap-3 sm:grid-cols-3">
