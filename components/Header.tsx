@@ -31,11 +31,13 @@ function DropdownLink({
   href,
   icon,
   label,
+  badge,
   onClick,
 }: {
   href: string;
   icon: React.ReactNode;
   label: string;
+  badge?: number;
   onClick: () => void;
 }) {
   return (
@@ -45,7 +47,12 @@ function DropdownLink({
       className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
     >
       <span className="shrink-0 text-blue-950">{icon}</span>
-      {label}
+      <span className="flex-1">{label}</span>
+      {badge && badge > 0 ? (
+        <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-blue-950 px-1.5 text-[11px] font-black text-white">
+          {badge > 99 ? "99+" : badge}
+        </span>
+      ) : null}
     </Link>
   );
 }
@@ -97,6 +104,8 @@ export default function Header() {
   const [profile, setProfile] = useState<UserProfile>({ username: null, avatar_url: null });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -113,11 +122,60 @@ export default function Header() {
     });
   };
 
+  const fetchUnreadCounts = async (userId: string) => {
+    const [notifRes, convsRes] = await Promise.all([
+      supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .is("read_at", null),
+      supabase
+        .from("conversations")
+        .select("id")
+        .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
+    ]);
+
+    setUnreadNotifications(notifRes.count ?? 0);
+
+    if (convsRes.data && convsRes.data.length > 0) {
+      const convIds = convsRes.data.map((c) => c.id);
+      const { count } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .in("conversation_id", convIds)
+        .neq("sender_id", userId)
+        .is("read_at", null);
+      setUnreadMessages(count ?? 0);
+    } else {
+      setUnreadMessages(0);
+    }
+  };
+
   useEffect(() => {
+    let notifChannel: ReturnType<typeof supabase.channel> | null = null;
+    let msgChannel: ReturnType<typeof supabase.channel> | null = null;
+
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
       setCurrentUserEmail(data?.user?.email ?? null);
-      if (data?.user) await fetchProfile(data.user.id);
+      if (data?.user) {
+        await fetchProfile(data.user.id);
+        await fetchUnreadCounts(data.user.id);
+
+        // Realtime: notifications
+        notifChannel = supabase
+          .channel("header-notifications")
+          .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${data.user.id}` },
+            () => fetchUnreadCounts(data.user.id))
+          .subscribe();
+
+        // Realtime: messages
+        msgChannel = supabase
+          .channel("header-messages")
+          .on("postgres_changes", { event: "*", schema: "public", table: "messages" },
+            () => fetchUnreadCounts(data.user.id))
+          .subscribe();
+      }
     };
 
     loadUser();
@@ -127,13 +185,20 @@ export default function Header() {
         setCurrentUserEmail(session?.user?.email ?? null);
         if (session?.user) {
           await fetchProfile(session.user.id);
+          await fetchUnreadCounts(session.user.id);
         } else {
           setProfile({ username: null, avatar_url: null });
+          setUnreadNotifications(0);
+          setUnreadMessages(0);
         }
       }
     );
 
-    return () => { subscription?.subscription.unsubscribe(); };
+    return () => {
+      subscription?.subscription.unsubscribe();
+      if (notifChannel) supabase.removeChannel(notifChannel);
+      if (msgChannel) supabase.removeChannel(msgChannel);
+    };
   }, []);
 
   useEffect(() => {
@@ -258,8 +323,8 @@ export default function Header() {
 
                         <div className="my-2 border-t border-slate-100" />
                         <SectionLabel label="Комуникация" />
-                        <DropdownLink href="/messages" icon={<MessageSquare className="h-4 w-4" />} label="Съобщения" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="/notifications" icon={<Bell className="h-4 w-4" />} label="Известия" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/messages" icon={<MessageSquare className="h-4 w-4" />} label="Съобщения" badge={unreadMessages} onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/notifications" icon={<Bell className="h-4 w-4" />} label="Известия" badge={unreadNotifications} onClick={() => setUserMenuOpen(false)} />
 
                         <div className="my-2 border-t border-slate-100" />
                         <SectionLabel label="Настройки" />
