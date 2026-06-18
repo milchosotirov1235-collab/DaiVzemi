@@ -227,7 +227,7 @@ export default function Header() {
             width={320}
             height={90}
             priority
-            className="h-auto w-[180px] md:w-[220px]"
+            className="h-auto w-[220px] md:w-[280px]"
           />
         </Link>
 
