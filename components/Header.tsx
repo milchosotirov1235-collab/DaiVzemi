@@ -3,31 +3,143 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, LayoutList, LogOut, Menu, User, X } from "lucide-react";
+import {
+  Bell,
+  BookMarked,
+  ChevronDown,
+  FileText,
+  Heart,
+  HelpCircle,
+  LayoutList,
+  LogOut,
+  Menu,
+  MessageSquare,
+  Phone,
+  Settings,
+  Shield,
+  User,
+  X,
+} from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+type UserProfile = {
+  username: string | null;
+  avatar_url: string | null;
+};
+
+// ---------------------------------------------------------------------------
+// Helper — dropdown link row
+// ---------------------------------------------------------------------------
+
+function DropdownLink({
+  href,
+  icon,
+  label,
+  onClick,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+    >
+      <span className="shrink-0 text-blue-950">{icon}</span>
+      {label}
+    </Link>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Helper — dropdown section label
+// ---------------------------------------------------------------------------
+
+function SectionLabel({ label }: { label: string }) {
+  return (
+    <p className="mb-0.5 px-3 pt-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+      {label}
+    </p>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Avatar — image or letter fallback
+// ---------------------------------------------------------------------------
+
+function Avatar({
+  avatarUrl,
+  letter,
+  size = "sm",
+}: {
+  avatarUrl: string | null;
+  letter: string;
+  size?: "sm" | "md" | "lg";
+}) {
+  const sizeClass = {
+    sm: "h-7 w-7 text-xs",
+    md: "h-10 w-10 text-sm",
+    lg: "h-11 w-11 text-base",
+  }[size];
+
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt="avatar"
+        className={`${sizeClass} rounded-full object-cover ring-2 ring-white/30`}
+      />
+    );
+  }
+
+  return (
+    <span
+      className={`${sizeClass} flex shrink-0 items-center justify-center rounded-full bg-white font-black text-blue-950`}
+    >
+      {letter}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main Header
+// ---------------------------------------------------------------------------
 
 export default function Header() {
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
+  const [profile, setProfile] = useState<UserProfile>({ username: null, avatar_url: null });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
 
+  // Load profile from Supabase
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("username, avatar_url")
+      .eq("id", userId)
+      .maybeSingle<UserProfile>();
+
+    setProfile({
+      username: data?.username ?? null,
+      avatar_url: data?.avatar_url ?? null,
+    });
+  };
+
   useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
-
       setCurrentUserEmail(data?.user?.email ?? null);
-
       if (data?.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("id", data.user.id)
-          .maybeSingle();
-
-        setUsername(profile?.username ?? null);
+        await fetchProfile(data.user.id);
       }
     };
 
@@ -36,17 +148,10 @@ export default function Header() {
     const { data: subscription } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setCurrentUserEmail(session?.user?.email ?? null);
-
         if (session?.user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("username")
-            .eq("id", session.user.id)
-            .maybeSingle();
-
-          setUsername(profile?.username ?? null);
+          await fetchProfile(session.user.id);
         } else {
-          setUsername(null);
+          setProfile({ username: null, avatar_url: null });
         }
       }
     );
@@ -56,13 +161,10 @@ export default function Header() {
     };
   }, []);
 
-  // Close user dropdown when clicking outside
+  // Close dropdown on outside click
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        userMenuRef.current &&
-        !userMenuRef.current.contains(event.target as Node)
-      ) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
         setUserMenuOpen(false);
       }
     };
@@ -76,16 +178,28 @@ export default function Header() {
     };
   }, [userMenuOpen]);
 
+  // Close mobile menu on resize to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setCurrentUserEmail(null);
-    setUsername(null);
+    setProfile({ username: null, avatar_url: null });
     setUserMenuOpen(false);
     setMobileMenuOpen(false);
   };
 
-  const displayName = username ?? currentUserEmail ?? "";
+  const displayName = profile.username ?? currentUserEmail ?? "";
   const avatarLetter = displayName.charAt(0).toUpperCase() || "?";
+  const isLoggedIn = Boolean(currentUserEmail);
 
   const navLinks = [
     { href: "/listings", label: "Обяви" },
@@ -100,7 +214,10 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-blue-950 text-white shadow-lg">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
+      {/* ------------------------------------------------------------------ */}
+      {/* Main bar — 3-column grid: logo | nav (centered) | actions           */}
+      {/* ------------------------------------------------------------------ */}
+      <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-6 py-3">
 
         {/* Logo */}
         <Link href="/" className="flex shrink-0 items-center">
@@ -110,172 +227,194 @@ export default function Header() {
             width={320}
             height={90}
             priority
-            className="h-auto w-[200px] md:w-[240px]"
+            className="h-auto w-[180px] md:w-[220px]"
           />
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-4 text-[0.9rem] font-semibold lg:flex xl:gap-5">
+        {/* Navigation — centered in the middle column */}
+        <nav className="hidden items-center justify-center gap-0.5 text-[0.88rem] font-semibold lg:flex xl:gap-1">
           {navLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
-              className="opacity-90 transition hover:opacity-100"
+              className="rounded-lg px-3 py-2 text-white/85 transition-colors hover:bg-white/10 hover:text-white"
             >
               {link.label}
             </Link>
           ))}
         </nav>
 
-        {/* Desktop right side */}
-        <div className="hidden items-center gap-2 lg:flex">
-          {currentUserEmail ? (
-            <>
-              {/* Favorites shortcut */}
-              <Link
-                href="/favorites"
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
-              >
-                <Heart className="h-4 w-4" />
-                Любими
-              </Link>
+        {/* Right-side actions */}
+        <div className="flex items-center gap-2">
 
-              {/* User avatar dropdown */}
-              <div className="relative" ref={userMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setUserMenuOpen((prev) => !prev)}
-                  className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1.5 pl-2 pr-4 text-sm font-semibold text-white transition hover:bg-white/20"
-                  aria-expanded={userMenuOpen}
-                  aria-haspopup="true"
+          {/* ── Desktop ── */}
+          <div className="hidden items-center gap-2 lg:flex">
+            {isLoggedIn ? (
+              <>
+                {/* Favorites icon */}
+                <Link
+                  href="/favorites"
+                  title="Любими"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
                 >
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-sm font-black text-blue-950">
-                    {avatarLetter}
-                  </span>
-                  <span className="max-w-[120px] truncate">{username ?? currentUserEmail}</span>
-                </button>
+                  <Heart className="h-4 w-4" />
+                </Link>
 
-                {userMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-                    {/* User info */}
-                    <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-4">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-950 text-sm font-black text-white">
-                        {avatarLetter}
-                      </span>
-                      <div className="min-w-0">
-                        {username && (
-                          <p className="truncate text-sm font-black text-slate-900">
-                            {username}
+                {/* User panel trigger */}
+                <div className="relative" ref={userMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setUserMenuOpen((v) => !v)}
+                    aria-expanded={userMenuOpen}
+                    aria-haspopup="true"
+                    className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1 pl-1 pr-3 text-sm font-semibold text-white transition hover:bg-white/20"
+                  >
+                    <Avatar
+                      avatarUrl={profile.avatar_url}
+                      letter={avatarLetter}
+                      size="sm"
+                    />
+                    <span className="hidden max-w-[110px] truncate xl:block">
+                      {profile.username ?? currentUserEmail}
+                    </span>
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${
+                        userMenuOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {/* ── Dropdown panel ── */}
+                  {userMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl ring-1 ring-black/5">
+
+                      {/* User identity header */}
+                      <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-4">
+                        <Avatar
+                          avatarUrl={profile.avatar_url}
+                          letter={avatarLetter}
+                          size="lg"
+                        />
+                        <div className="min-w-0">
+                          {profile.username && (
+                            <p className="truncate text-sm font-black text-slate-900">
+                              {profile.username}
+                            </p>
+                          )}
+                          <p className="truncate text-xs text-slate-500">
+                            {currentUserEmail}
                           </p>
-                        )}
-                        <p className="truncate text-xs text-slate-500">
-                          {currentUserEmail}
-                        </p>
+                        </div>
+                      </div>
+
+                      <div className="p-2">
+
+                        {/* Profile section */}
+                        <SectionLabel label="Профил" />
+                        <DropdownLink href="/profile" icon={<User className="h-4 w-4" />} label="Моят профил" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/my-listings" icon={<LayoutList className="h-4 w-4" />} label="Моите обяви" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/favorites" icon={<Heart className="h-4 w-4" />} label="Любими" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="#" icon={<BookMarked className="h-4 w-4" />} label="Запазени търсения" onClick={() => setUserMenuOpen(false)} />
+
+                        <div className="my-2 border-t border-slate-100" />
+
+                        {/* Communication section */}
+                        <SectionLabel label="Комуникация" />
+                        <DropdownLink href="#" icon={<MessageSquare className="h-4 w-4" />} label="Съобщения" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="#" icon={<Bell className="h-4 w-4" />} label="Известия" onClick={() => setUserMenuOpen(false)} />
+
+                        <div className="my-2 border-t border-slate-100" />
+
+                        {/* Settings section */}
+                        <SectionLabel label="Настройки" />
+                        <DropdownLink href="#" icon={<Settings className="h-4 w-4" />} label="Настройки на акаунта" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="#" icon={<Shield className="h-4 w-4" />} label="Настройки за поверителност" onClick={() => setUserMenuOpen(false)} />
+
+                        <div className="my-2 border-t border-slate-100" />
+
+                        {/* Support section */}
+                        <SectionLabel label="Поддръжка" />
+                        <DropdownLink href="#" icon={<HelpCircle className="h-4 w-4" />} label="Помощен център" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="#" icon={<Phone className="h-4 w-4" />} label="Свържете се с нас" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="#" icon={<FileText className="h-4 w-4" />} label="Общи условия" onClick={() => setUserMenuOpen(false)} />
+
+                        <div className="my-2 border-t border-slate-100" />
+
+                        {/* Logout */}
+                        <button
+                          type="button"
+                          onClick={handleSignOut}
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+                        >
+                          <LogOut className="h-4 w-4 shrink-0" />
+                          Изход
+                        </button>
+
                       </div>
                     </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  Вход
+                </Link>
+                <Link
+                  href="/register"
+                  className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  Регистрация
+                </Link>
+              </>
+            )}
 
-                    {/* Menu items */}
-                    <div className="p-2">
-                      <Link
-                        href="/profile"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                      >
-                        <User className="h-4 w-4 shrink-0 text-blue-950" />
-                        Моят профил
-                      </Link>
+            {/* Publish CTA — always visible */}
+            <Link
+              href="/publish"
+              className="rounded-xl bg-white px-4 py-2.5 text-sm font-black text-blue-950 shadow-sm transition hover:bg-blue-50"
+            >
+              Публикувай обява
+            </Link>
+          </div>
 
-                      <Link
-                        href="/my-listings"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                      >
-                        <LayoutList className="h-4 w-4 shrink-0 text-blue-950" />
-                        Моите обяви
-                      </Link>
-
-                      <Link
-                        href="/favorites"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                      >
-                        <Heart className="h-4 w-4 shrink-0 text-blue-950" />
-                        Любими
-                      </Link>
-                    </div>
-
-                    <div className="border-t border-slate-100 p-2">
-                      <button
-                        type="button"
-                        onClick={handleSignOut}
-                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50"
-                      >
-                        <LogOut className="h-4 w-4 shrink-0" />
-                        Изход
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
-              >
-                Вход
-              </Link>
-
-              <Link
-                href="/register"
-                className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
-              >
-                Регистрация
-              </Link>
-            </>
-          )}
-
-          {/* CTA — always visible */}
-          <Link
-            href="/publish"
-            className="rounded-xl bg-white px-4 py-2.5 text-sm font-black text-blue-950 shadow-sm transition hover:bg-blue-50"
-          >
-            Публикувай обява
-          </Link>
-        </div>
-
-        {/* Mobile right side */}
-        <div className="flex items-center gap-2 lg:hidden">
-          <Link
-            href="/publish"
-            className="rounded-xl bg-white px-3 py-2 text-sm font-black text-blue-950 shadow-sm transition hover:bg-blue-50"
-          >
-            Публикувай
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
-            aria-label="Меню"
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          {/* ── Mobile ── */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <Link
+              href="/publish"
+              className="rounded-xl bg-white px-3 py-2 text-sm font-black text-blue-950 shadow-sm transition hover:bg-blue-50"
+            >
+              Публикувай
+            </Link>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              aria-label="Меню"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 transition hover:bg-white/20"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Mobile menu panel                                                   */}
+      {/* ------------------------------------------------------------------ */}
       {mobileMenuOpen && (
         <div className="border-t border-white/10 bg-blue-950 px-6 pb-6 pt-4 lg:hidden">
-          {/* Nav links */}
+
+          {/* Nav grid */}
           <nav className="grid grid-cols-2 gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="rounded-xl px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10"
+                className="rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10 hover:text-white"
               >
                 {link.label}
               </Link>
@@ -283,60 +422,49 @@ export default function Header() {
           </nav>
 
           <div className="mt-4 border-t border-white/10 pt-4">
-            {currentUserEmail ? (
-              <div className="space-y-1">
-                {/* User info row */}
+            {isLoggedIn ? (
+              <div className="space-y-0.5">
+
+                {/* Identity row */}
                 <div className="flex items-center gap-3 rounded-xl px-4 py-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-sm font-black text-blue-950">
-                    {avatarLetter}
-                  </span>
+                  <Avatar avatarUrl={profile.avatar_url} letter={avatarLetter} size="md" />
                   <div className="min-w-0">
-                    {username && (
-                      <p className="truncate text-sm font-black text-white">
-                        {username}
-                      </p>
+                    {profile.username && (
+                      <p className="truncate text-sm font-black text-white">{profile.username}</p>
                     )}
-                    <p className="truncate text-xs text-blue-200">
-                      {currentUserEmail}
-                    </p>
+                    <p className="truncate text-xs text-blue-200">{currentUserEmail}</p>
                   </div>
                 </div>
 
-                <Link
-                  href="/profile"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10"
-                >
-                  <User className="h-4 w-4 shrink-0" />
-                  Моят профил
+                <Link href="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10">
+                  <User className="h-4 w-4 shrink-0" /> Моят профил
+                </Link>
+                <Link href="/my-listings" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10">
+                  <LayoutList className="h-4 w-4 shrink-0" /> Моите обяви
+                </Link>
+                <Link href="/favorites" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10">
+                  <Heart className="h-4 w-4 shrink-0" /> Любими
+                </Link>
+                <Link href="#" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10">
+                  <MessageSquare className="h-4 w-4 shrink-0" /> Съобщения
+                </Link>
+                <Link href="#" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10">
+                  <Bell className="h-4 w-4 shrink-0" /> Известия
+                </Link>
+                <Link href="#" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10">
+                  <Settings className="h-4 w-4 shrink-0" /> Настройки
                 </Link>
 
-                <Link
-                  href="/my-listings"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10"
-                >
-                  <LayoutList className="h-4 w-4 shrink-0" />
-                  Моите обяви
-                </Link>
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-red-300 transition hover:bg-white/10"
+                  >
+                    <LogOut className="h-4 w-4 shrink-0" /> Изход
+                  </button>
+                </div>
 
-                <Link
-                  href="/favorites"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10"
-                >
-                  <Heart className="h-4 w-4 shrink-0" />
-                  Любими
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-red-300 transition hover:bg-white/10"
-                >
-                  <LogOut className="h-4 w-4 shrink-0" />
-                  Изход
-                </button>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3">
@@ -347,7 +475,6 @@ export default function Header() {
                 >
                   Вход
                 </Link>
-
                 <Link
                   href="/register"
                   onClick={() => setMobileMenuOpen(false)}
