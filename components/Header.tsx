@@ -32,7 +32,7 @@ type UserProfile = {
 };
 
 // ---------------------------------------------------------------------------
-// Helper — dropdown link row
+// Helper — single dropdown link row
 // ---------------------------------------------------------------------------
 
 function DropdownLink({
@@ -59,7 +59,7 @@ function DropdownLink({
 }
 
 // ---------------------------------------------------------------------------
-// Helper — dropdown section label
+// Helper — dropdown section heading
 // ---------------------------------------------------------------------------
 
 function SectionLabel({ label }: { label: string }) {
@@ -71,7 +71,7 @@ function SectionLabel({ label }: { label: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Avatar — image or letter fallback
+// Avatar — profile image, initial letter, or fallback icon
 // ---------------------------------------------------------------------------
 
 function Avatar({
@@ -84,7 +84,7 @@ function Avatar({
   size?: "sm" | "md" | "lg";
 }) {
   const sizeClass = {
-    sm: "h-7 w-7 text-xs",
+    sm: "h-8 w-8 text-xs",
     md: "h-10 w-10 text-sm",
     lg: "h-11 w-11 text-base",
   }[size];
@@ -109,18 +109,23 @@ function Avatar({
 }
 
 // ---------------------------------------------------------------------------
-// Main Header
+// Header
 // ---------------------------------------------------------------------------
 
 export default function Header() {
+  // ── State ──────────────────────────────────────────────────────────────────
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
-  const [profile, setProfile] = useState<UserProfile>({ username: null, avatar_url: null });
+  const [profile, setProfile] = useState<UserProfile>({
+    username: null,
+    avatar_url: null,
+  });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Load profile from Supabase
+  // ── Supabase: load profile ──────────────────────────────────────────────────
+
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
@@ -138,9 +143,7 @@ export default function Header() {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
       setCurrentUserEmail(data?.user?.email ?? null);
-      if (data?.user) {
-        await fetchProfile(data.user.id);
-      }
+      if (data?.user) await fetchProfile(data.user.id);
     };
 
     loadUser();
@@ -161,10 +164,14 @@ export default function Header() {
     };
   }, []);
 
-  // Close dropdown on outside click
+  // ── Close dropdown on outside click ─────────────────────────────────────────
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(e.target as Node)
+      ) {
         setUserMenuOpen(false);
       }
     };
@@ -178,16 +185,17 @@ export default function Header() {
     };
   }, [userMenuOpen]);
 
-  // Close mobile menu on resize to desktop
+  // ── Close mobile menu on resize to desktop ──────────────────────────────────
+
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setMobileMenuOpen(false);
-      }
+      if (window.innerWidth >= 1024) setMobileMenuOpen(false);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // ── Sign out ─────────────────────────────────────────────────────────────────
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -197,9 +205,13 @@ export default function Header() {
     setMobileMenuOpen(false);
   };
 
-  const displayName = profile.username ?? currentUserEmail ?? "";
-  const avatarLetter = displayName.charAt(0).toUpperCase() || "?";
+  // ── Derived values ──────────────────────────────────────────────────────────
+
   const isLoggedIn = Boolean(currentUserEmail);
+  const avatarLetter =
+    (profile.username ?? currentUserEmail ?? "P").charAt(0).toUpperCase();
+  // Label shown on the trigger button — never email
+  const triggerLabel = profile.username ?? "Профил";
 
   const navLinks = [
     { href: "/listings", label: "Обяви" },
@@ -212,14 +224,18 @@ export default function Header() {
     { href: "#", label: "Търся" },
   ];
 
+  // ── Render ──────────────────────────────────────────────────────────────────
+
   return (
     <header className="sticky top-0 z-50 bg-blue-950 text-white shadow-lg">
-      {/* ------------------------------------------------------------------ */}
-      {/* Main bar — 3-column grid: logo | nav (centered) | actions           */}
-      {/* ------------------------------------------------------------------ */}
-      <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-6 py-3">
 
-        {/* Logo */}
+      {/* ====================================================================
+          Main bar
+          Layout: [Logo] [Nav flex-1 center] [Actions ml-auto]
+          ==================================================================== */}
+      <div className="mx-auto flex max-w-7xl items-center gap-6 px-6 py-4">
+
+        {/* ── LEFT: Logo ─────────────────────────────────────────────────── */}
         <Link href="/" className="flex shrink-0 items-center">
           <Image
             src="/logo.png"
@@ -227,187 +243,186 @@ export default function Header() {
             width={320}
             height={90}
             priority
-            className="h-auto w-[220px] md:w-[280px]"
+            className="h-auto w-[200px] md:w-[240px] lg:w-[260px]"
           />
         </Link>
 
-        {/* Navigation — centered in the middle column */}
-        <nav className="hidden items-center justify-center gap-0.5 text-[0.88rem] font-semibold lg:flex xl:gap-1">
+        {/* ── CENTER: Navigation ─────────────────────────────────────────── */}
+        <nav className="hidden flex-1 items-center justify-center gap-0.5 lg:flex xl:gap-1">
           {navLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
-              className="rounded-lg px-3 py-2 text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+              className="rounded-lg px-3 py-2 text-sm font-semibold text-white/80 transition-colors hover:bg-white/10 hover:text-white"
             >
               {link.label}
             </Link>
           ))}
         </nav>
 
-        {/* Right-side actions */}
-        <div className="flex items-center gap-2">
+        {/* ── RIGHT: Desktop actions ─────────────────────────────────────── */}
+        <div className="ml-auto hidden shrink-0 items-center gap-3 lg:flex">
 
-          {/* ── Desktop ── */}
-          <div className="hidden items-center gap-2 lg:flex">
-            {isLoggedIn ? (
-              <>
-                {/* Favorites icon */}
-                <Link
-                  href="/favorites"
-                  title="Любими"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+          {isLoggedIn ? (
+            <>
+              {/* Favorites */}
+              <Link
+                href="/favorites"
+                className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+              >
+                <Heart className="h-4 w-4 shrink-0" />
+                <span className="hidden xl:inline">Любими</span>
+              </Link>
+
+              {/* User panel */}
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setUserMenuOpen((v) => !v)}
+                  aria-expanded={userMenuOpen}
+                  aria-haspopup="true"
+                  className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1.5 pl-1.5 pr-4 text-sm font-semibold text-white transition hover:bg-white/20"
                 >
-                  <Heart className="h-4 w-4" />
-                </Link>
+                  <Avatar
+                    avatarUrl={profile.avatar_url}
+                    letter={avatarLetter}
+                    size="sm"
+                  />
+                  <span className="max-w-[130px] truncate">{triggerLabel}</span>
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${
+                      userMenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
 
-                {/* User panel trigger */}
-                <div className="relative" ref={userMenuRef}>
-                  <button
-                    type="button"
-                    onClick={() => setUserMenuOpen((v) => !v)}
-                    aria-expanded={userMenuOpen}
-                    aria-haspopup="true"
-                    className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1 pl-1 pr-3 text-sm font-semibold text-white transition hover:bg-white/20"
-                  >
-                    <Avatar
-                      avatarUrl={profile.avatar_url}
-                      letter={avatarLetter}
-                      size="sm"
-                    />
-                    <span className="hidden max-w-[110px] truncate xl:block">
-                      {profile.username ?? currentUserEmail}
-                    </span>
-                    <ChevronDown
-                      className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${
-                        userMenuOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
+                {/* Dropdown */}
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl ring-1 ring-black/5">
 
-                  {/* ── Dropdown panel ── */}
-                  {userMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl ring-1 ring-black/5">
-
-                      {/* User identity header */}
-                      <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-4">
-                        <Avatar
-                          avatarUrl={profile.avatar_url}
-                          letter={avatarLetter}
-                          size="lg"
-                        />
-                        <div className="min-w-0">
-                          {profile.username && (
-                            <p className="truncate text-sm font-black text-slate-900">
-                              {profile.username}
-                            </p>
-                          )}
-                          <p className="truncate text-xs text-slate-500">
-                            {currentUserEmail}
+                    {/* Identity header */}
+                    <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-4">
+                      <Avatar
+                        avatarUrl={profile.avatar_url}
+                        letter={avatarLetter}
+                        size="lg"
+                      />
+                      <div className="min-w-0">
+                        {profile.username && (
+                          <p className="truncate text-sm font-black text-slate-900">
+                            {profile.username}
                           </p>
-                        </div>
-                      </div>
-
-                      <div className="p-2">
-
-                        {/* Profile section */}
-                        <SectionLabel label="Профил" />
-                        <DropdownLink href="/profile" icon={<User className="h-4 w-4" />} label="Моят профил" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="/my-listings" icon={<LayoutList className="h-4 w-4" />} label="Моите обяви" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="/favorites" icon={<Heart className="h-4 w-4" />} label="Любими" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="#" icon={<BookMarked className="h-4 w-4" />} label="Запазени търсения" onClick={() => setUserMenuOpen(false)} />
-
-                        <div className="my-2 border-t border-slate-100" />
-
-                        {/* Communication section */}
-                        <SectionLabel label="Комуникация" />
-                        <DropdownLink href="#" icon={<MessageSquare className="h-4 w-4" />} label="Съобщения" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="#" icon={<Bell className="h-4 w-4" />} label="Известия" onClick={() => setUserMenuOpen(false)} />
-
-                        <div className="my-2 border-t border-slate-100" />
-
-                        {/* Settings section */}
-                        <SectionLabel label="Настройки" />
-                        <DropdownLink href="#" icon={<Settings className="h-4 w-4" />} label="Настройки на акаунта" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="#" icon={<Shield className="h-4 w-4" />} label="Настройки за поверителност" onClick={() => setUserMenuOpen(false)} />
-
-                        <div className="my-2 border-t border-slate-100" />
-
-                        {/* Support section */}
-                        <SectionLabel label="Поддръжка" />
-                        <DropdownLink href="#" icon={<HelpCircle className="h-4 w-4" />} label="Помощен център" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="#" icon={<Phone className="h-4 w-4" />} label="Свържете се с нас" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="#" icon={<FileText className="h-4 w-4" />} label="Общи условия" onClick={() => setUserMenuOpen(false)} />
-
-                        <div className="my-2 border-t border-slate-100" />
-
-                        {/* Logout */}
-                        <button
-                          type="button"
-                          onClick={handleSignOut}
-                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
-                        >
-                          <LogOut className="h-4 w-4 shrink-0" />
-                          Изход
-                        </button>
-
+                        )}
+                        <p className="truncate text-xs text-slate-500">
+                          {currentUserEmail}
+                        </p>
                       </div>
                     </div>
-                  )}
-                </div>
-              </>
+
+                    <div className="p-2">
+
+                      {/* Profile */}
+                      <SectionLabel label="Профил" />
+                      <DropdownLink href="/profile" icon={<User className="h-4 w-4" />} label="Моят профил" onClick={() => setUserMenuOpen(false)} />
+                      <DropdownLink href="/my-listings" icon={<LayoutList className="h-4 w-4" />} label="Моите обяви" onClick={() => setUserMenuOpen(false)} />
+                      <DropdownLink href="/favorites" icon={<Heart className="h-4 w-4" />} label="Любими" onClick={() => setUserMenuOpen(false)} />
+                      <DropdownLink href="#" icon={<BookMarked className="h-4 w-4" />} label="Запазени търсения" onClick={() => setUserMenuOpen(false)} />
+
+                      <div className="my-2 border-t border-slate-100" />
+
+                      {/* Communication */}
+                      <SectionLabel label="Комуникация" />
+                      <DropdownLink href="#" icon={<MessageSquare className="h-4 w-4" />} label="Съобщения" onClick={() => setUserMenuOpen(false)} />
+                      <DropdownLink href="#" icon={<Bell className="h-4 w-4" />} label="Известия" onClick={() => setUserMenuOpen(false)} />
+
+                      <div className="my-2 border-t border-slate-100" />
+
+                      {/* Settings */}
+                      <SectionLabel label="Настройки" />
+                      <DropdownLink href="#" icon={<Settings className="h-4 w-4" />} label="Настройки на акаунта" onClick={() => setUserMenuOpen(false)} />
+                      <DropdownLink href="#" icon={<Shield className="h-4 w-4" />} label="Настройки за поверителност" onClick={() => setUserMenuOpen(false)} />
+
+                      <div className="my-2 border-t border-slate-100" />
+
+                      {/* Support */}
+                      <SectionLabel label="Поддръжка" />
+                      <DropdownLink href="#" icon={<HelpCircle className="h-4 w-4" />} label="Помощен център" onClick={() => setUserMenuOpen(false)} />
+                      <DropdownLink href="#" icon={<Phone className="h-4 w-4" />} label="Свържете се с нас" onClick={() => setUserMenuOpen(false)} />
+                      <DropdownLink href="#" icon={<FileText className="h-4 w-4" />} label="Общи условия" onClick={() => setUserMenuOpen(false)} />
+
+                      <div className="my-2 border-t border-slate-100" />
+
+                      {/* Logout */}
+                      <button
+                        type="button"
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+                      >
+                        <LogOut className="h-4 w-4 shrink-0" />
+                        Изход
+                      </button>
+
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+              >
+                Вход
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+              >
+                Регистрация
+              </Link>
+            </>
+          )}
+
+          {/* Publish CTA — always far right */}
+          <Link
+            href="/publish"
+            className="rounded-xl bg-white px-5 py-2.5 text-sm font-black text-blue-950 shadow-sm transition hover:bg-blue-50"
+          >
+            Публикувай обява
+          </Link>
+        </div>
+
+        {/* ── RIGHT: Mobile controls ─────────────────────────────────────── */}
+        <div className="ml-auto flex shrink-0 items-center gap-3 lg:hidden">
+          <Link
+            href="/publish"
+            className="rounded-xl bg-white px-3 py-2 text-sm font-black text-blue-950 shadow-sm transition hover:bg-blue-50"
+          >
+            Публикувай
+          </Link>
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            aria-label="Меню"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 transition hover:bg-white/20"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5" />
             ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
-                >
-                  Вход
-                </Link>
-                <Link
-                  href="/register"
-                  className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
-                >
-                  Регистрация
-                </Link>
-              </>
+              <Menu className="h-5 w-5" />
             )}
-
-            {/* Publish CTA — always visible */}
-            <Link
-              href="/publish"
-              className="rounded-xl bg-white px-4 py-2.5 text-sm font-black text-blue-950 shadow-sm transition hover:bg-blue-50"
-            >
-              Публикувай обява
-            </Link>
-          </div>
-
-          {/* ── Mobile ── */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <Link
-              href="/publish"
-              className="rounded-xl bg-white px-3 py-2 text-sm font-black text-blue-950 shadow-sm transition hover:bg-blue-50"
-            >
-              Публикувай
-            </Link>
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen((v) => !v)}
-              aria-label="Меню"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 transition hover:bg-white/20"
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
+          </button>
         </div>
       </div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Mobile menu panel                                                   */}
-      {/* ------------------------------------------------------------------ */}
+      {/* ====================================================================
+          Mobile menu panel
+          ==================================================================== */}
       {mobileMenuOpen && (
         <div className="border-t border-white/10 bg-blue-950 px-6 pb-6 pt-4 lg:hidden">
 
-          {/* Nav grid */}
+          {/* Nav links */}
           <nav className="grid grid-cols-2 gap-1">
             {navLinks.map((link) => (
               <Link
@@ -427,12 +442,20 @@ export default function Header() {
 
                 {/* Identity row */}
                 <div className="flex items-center gap-3 rounded-xl px-4 py-3">
-                  <Avatar avatarUrl={profile.avatar_url} letter={avatarLetter} size="md" />
+                  <Avatar
+                    avatarUrl={profile.avatar_url}
+                    letter={avatarLetter}
+                    size="md"
+                  />
                   <div className="min-w-0">
                     {profile.username && (
-                      <p className="truncate text-sm font-black text-white">{profile.username}</p>
+                      <p className="truncate text-sm font-black text-white">
+                        {profile.username}
+                      </p>
                     )}
-                    <p className="truncate text-xs text-blue-200">{currentUserEmail}</p>
+                    <p className="truncate text-xs text-blue-200">
+                      {currentUserEmail}
+                    </p>
                   </div>
                 </div>
 
