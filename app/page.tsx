@@ -149,15 +149,16 @@ export default function Home() {
             ["🔄", "Разменям"],
             ["🙏", "Търся"],
           ].map(([icon, title]) => (
-            <div
+            <Link
               key={title}
+              href={`/listings?type=${encodeURIComponent(title as string)}`}
               className="rounded-3xl bg-white p-8 text-center shadow-md transition hover:shadow-xl"
             >
               <div className="text-5xl">{icon}</div>
               <h3 className="mt-4 text-2xl font-black text-blue-950">
                 {title}
               </h3>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
@@ -183,15 +184,16 @@ export default function Home() {
             { icon: Monitor, label: "Компютри" },
             { icon: BookOpen, label: "Книги" },
           ].map(({ icon: Icon, label }) => (
-            <div
+            <Link
               key={label}
+              href={`/listings?category=${encodeURIComponent(label)}`}
               className="group rounded-2xl bg-white p-7 text-center shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-1 hover:ring-blue-300 hover:shadow-lg"
             >
               <Icon className="mx-auto h-9 w-9 text-blue-950" />
               <div className="mt-5 text-[20px] font-extrabold text-slate-950">
                 {label}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
