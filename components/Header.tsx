@@ -274,8 +274,16 @@ export default function Header() {
                 <span className="hidden xl:inline">Любими</span>
               </Link>
 
+              {/* Publish CTA */}
+              <Link
+                href="/publish"
+                className="rounded-xl bg-white px-5 py-2.5 text-sm font-black text-blue-950 shadow-sm transition hover:bg-blue-50"
+              >
+                Публикувай обява
+              </Link>
+
               {/* User panel */}
-              <div className="relative" ref={userMenuRef}>
+              <div className="relative ml-8" ref={userMenuRef}>
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen((v) => !v)}
@@ -384,13 +392,6 @@ export default function Header() {
             </>
           )}
 
-          {/* Publish CTA — always far right */}
-          <Link
-            href="/publish"
-            className="rounded-xl bg-white px-5 py-2.5 text-sm font-black text-blue-950 shadow-sm transition hover:bg-blue-50"
-          >
-            Публикувай обява
-          </Link>
         </div>
 
         {/* ── RIGHT: Mobile controls ─────────────────────────────────────── */}
