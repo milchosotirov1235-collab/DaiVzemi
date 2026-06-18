@@ -166,13 +166,13 @@ export default function Header() {
 
   const navLinks = [
     { href: "/listings", label: "Обяви" },
-    { href: "#", label: "Имоти" },
-    { href: "#", label: "Автомобили" },
-    { href: "#", label: "Авточасти" },
-    { href: "#", label: "Услуги" },
-    { href: "#", label: "Подарявам" },
-    { href: "#", label: "Разменям" },
-    { href: "#", label: "Търся" },
+    { href: "/listings?category=Имоти", label: "Имоти" },
+    { href: "/listings?category=Автомобили", label: "Автомобили" },
+    { href: "/listings?category=Авточасти", label: "Авточасти" },
+    { href: "/listings?category=Услуги", label: "Услуги" },
+    { href: "/listings?type=Подарявам", label: "Подарявам" },
+    { href: "/listings?type=Разменям", label: "Разменям" },
+    { href: "/listings?type=Търся", label: "Търся" },
   ];
 
   return (
@@ -254,23 +254,23 @@ export default function Header() {
                         <DropdownLink href="/profile" icon={<User className="h-4 w-4" />} label="Моят профил" onClick={() => setUserMenuOpen(false)} />
                         <DropdownLink href="/my-listings" icon={<LayoutList className="h-4 w-4" />} label="Моите обяви" onClick={() => setUserMenuOpen(false)} />
                         <DropdownLink href="/favorites" icon={<Heart className="h-4 w-4" />} label="Любими" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="#" icon={<BookMarked className="h-4 w-4" />} label="Запазени търсения" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/favorites" icon={<BookMarked className="h-4 w-4" />} label="Запазени търсения" onClick={() => setUserMenuOpen(false)} />
 
                         <div className="my-2 border-t border-slate-100" />
                         <SectionLabel label="Комуникация" />
-                        <DropdownLink href="#" icon={<MessageSquare className="h-4 w-4" />} label="Съобщения" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="#" icon={<Bell className="h-4 w-4" />} label="Известия" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/profile" icon={<MessageSquare className="h-4 w-4" />} label="Съобщения" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/profile" icon={<Bell className="h-4 w-4" />} label="Известия" onClick={() => setUserMenuOpen(false)} />
 
                         <div className="my-2 border-t border-slate-100" />
                         <SectionLabel label="Настройки" />
-                        <DropdownLink href="#" icon={<Settings className="h-4 w-4" />} label="Настройки на акаунта" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="#" icon={<Shield className="h-4 w-4" />} label="Настройки за поверителност" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/profile" icon={<Settings className="h-4 w-4" />} label="Настройки на акаунта" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/profile" icon={<Shield className="h-4 w-4" />} label="Настройки за поверителност" onClick={() => setUserMenuOpen(false)} />
 
                         <div className="my-2 border-t border-slate-100" />
                         <SectionLabel label="Поддръжка" />
-                        <DropdownLink href="#" icon={<HelpCircle className="h-4 w-4" />} label="Помощен център" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="#" icon={<Phone className="h-4 w-4" />} label="Свържете се с нас" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="#" icon={<FileText className="h-4 w-4" />} label="Общи условия" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/listings" icon={<HelpCircle className="h-4 w-4" />} label="Помощен център" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/listings" icon={<Phone className="h-4 w-4" />} label="Свържете се с нас" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/listings" icon={<FileText className="h-4 w-4" />} label="Общи условия" onClick={() => setUserMenuOpen(false)} />
 
                         <div className="my-2 border-t border-slate-100" />
                         <button
