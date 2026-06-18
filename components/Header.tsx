@@ -254,12 +254,12 @@ export default function Header() {
                         <DropdownLink href="/profile" icon={<User className="h-4 w-4" />} label="Моят профил" onClick={() => setUserMenuOpen(false)} />
                         <DropdownLink href="/my-listings" icon={<LayoutList className="h-4 w-4" />} label="Моите обяви" onClick={() => setUserMenuOpen(false)} />
                         <DropdownLink href="/favorites" icon={<Heart className="h-4 w-4" />} label="Любими" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="/favorites" icon={<BookMarked className="h-4 w-4" />} label="Запазени търсения" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/saved-searches" icon={<BookMarked className="h-4 w-4" />} label="Запазени търсения" onClick={() => setUserMenuOpen(false)} />
 
                         <div className="my-2 border-t border-slate-100" />
                         <SectionLabel label="Комуникация" />
-                        <DropdownLink href="/profile" icon={<MessageSquare className="h-4 w-4" />} label="Съобщения" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="/profile" icon={<Bell className="h-4 w-4" />} label="Известия" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/messages" icon={<MessageSquare className="h-4 w-4" />} label="Съобщения" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/notifications" icon={<Bell className="h-4 w-4" />} label="Известия" onClick={() => setUserMenuOpen(false)} />
 
                         <div className="my-2 border-t border-slate-100" />
                         <SectionLabel label="Настройки" />
@@ -268,9 +268,9 @@ export default function Header() {
 
                         <div className="my-2 border-t border-slate-100" />
                         <SectionLabel label="Поддръжка" />
-                        <DropdownLink href="/listings" icon={<HelpCircle className="h-4 w-4" />} label="Помощен център" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/help" icon={<HelpCircle className="h-4 w-4" />} label="Помощен център" onClick={() => setUserMenuOpen(false)} />
                         <DropdownLink href="/listings" icon={<Phone className="h-4 w-4" />} label="Свържете се с нас" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="/listings" icon={<FileText className="h-4 w-4" />} label="Общи условия" onClick={() => setUserMenuOpen(false)} />
+                        <DropdownLink href="/terms" icon={<FileText className="h-4 w-4" />} label="Общи условия" onClick={() => setUserMenuOpen(false)} />
 
                         <div className="my-2 border-t border-slate-100" />
                         <button
@@ -344,9 +344,9 @@ export default function Header() {
                 <Link href="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><User className="h-4 w-4 shrink-0" /> Моят профил</Link>
                 <Link href="/my-listings" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><LayoutList className="h-4 w-4 shrink-0" /> Моите обяви</Link>
                 <Link href="/favorites" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><Heart className="h-4 w-4 shrink-0" /> Любими</Link>
-                <Link href="#" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><MessageSquare className="h-4 w-4 shrink-0" /> Съобщения</Link>
-                <Link href="#" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><Bell className="h-4 w-4 shrink-0" /> Известия</Link>
-                <Link href="#" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><Settings className="h-4 w-4 shrink-0" /> Настройки</Link>
+                <Link href="/messages" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><MessageSquare className="h-4 w-4 shrink-0" /> Съобщения</Link>
+                <Link href="/notifications" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><Bell className="h-4 w-4 shrink-0" /> Известия</Link>
+                <Link href="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><Settings className="h-4 w-4 shrink-0" /> Настройки</Link>
                 <div className="pt-1">
                   <button type="button" onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-red-300 transition hover:bg-white/10">
                     <LogOut className="h-4 w-4 shrink-0" /> Изход

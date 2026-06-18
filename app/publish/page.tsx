@@ -471,7 +471,7 @@ export default function PublishPage() {
                 className={`rounded-[28px] border p-5 shadow-sm ${
                   notice.type === "error"
                     ? "border-red-200 bg-red-50 text-red-700"
-                    : "border-blue-200 bg-blue-50 text-blue-950"
+                    : "border-green-200 bg-green-50 text-green-800"
                 }`}
               >
                 <div className="flex gap-3">
