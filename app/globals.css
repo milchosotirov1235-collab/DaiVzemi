@@ -60,18 +60,32 @@ select:disabled,
 }
 
 /* ── Stop cursor flicker on interactive elements ────────────────────────────
-   SVG icons and inline spans inside buttons/links have their own hit-boxes.
-   As the mouse crosses from the button surface onto a child SVG or span, the
-   browser re-evaluates the cursor and briefly shows a different one, causing
-   visible flicker.  pointer-events:none on those children removes their
-   individual hit-boxes so the parent button is always the cursor owner.
+   Every SVG (and its child <path>/<circle>/etc.) inside a button or link has
+   its own pointer hit-box. The browser re-evaluates the cursor each time the
+   mouse crosses from the button background onto a child node, causing visible
+   flicker. The previous fix used ">" (direct child only) and missed icons that
+   are wrapped in a layout <div> inside the button (e.g. ChevronDown inside
+   SearchableSelect is button > div > svg, not button > svg).
+   Using the descendant combinator (space) covers any nesting depth.
+   We exclude [role="button"] children so the clear-X span stays clickable.
 ──────────────────────────────────────────────────────────────────────────── */
 
-button > svg,
-button > span:not([role="button"]),
-a > svg,
-a > span,
-[role="button"] > svg,
-label > svg {
-  pointer-events: none;
+/* All SVGs anywhere inside a button or link — any depth.
+   SVG <path>/<circle>/etc. each have their own pointer hit-box, so the
+   cursor flickers as the mouse crosses node boundaries inside the icon.
+   pointer-events:none removes all those sub-boxes; cursor:inherit keeps
+   the button's own cursor visible over the icon area. */
+button svg, button svg *,
+a svg, a svg *,
+[role="button"] svg, [role="button"] svg * {
+  pointer-events: none !important;
+  cursor: inherit !important;
+}
+
+/* Restore pointer-events for any explicitly interactive children
+   (e.g. the clear-X <span role="button"> inside SearchableSelect) */
+button [role="button"],
+button button,
+button a[href] {
+  pointer-events: auto !important;
 }
