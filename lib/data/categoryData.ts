@@ -1,6 +1,8 @@
 // Category-specific reference data.
 // All options lists live here — import wherever needed.
 
+export { BG_CITIES } from "./cities";
+
 // ---------------------------------------------------------------------------
 // Имоти (Real Estate)
 // ---------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import { AlertTriangle, CheckCircle2, ChevronDown, ImagePlus, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import SearchableSelect from "@/components/SearchableSelect";
 import { BG_CITIES } from "@/lib/data/cities";
 import { CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
@@ -85,62 +86,6 @@ const CATEGORY_DETAILS: Record<string, FieldDef[]> = {
 };
 
 // ---------------------------------------------------------------------------
-// SimpleDropdown (used for detail fields)
-// ---------------------------------------------------------------------------
-
-function SimpleDropdown({
-  value,
-  placeholder,
-  options,
-  isOpen,
-  onToggle,
-  onSelect,
-}: {
-  value: string;
-  placeholder: string;
-  options: string[];
-  isOpen: boolean;
-  onToggle: () => void;
-  onSelect: (v: string) => void;
-}) {
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-left font-bold shadow-sm transition hover:bg-white focus:border-blue-950 focus:outline-none focus:ring-4 focus:ring-blue-100"
-      >
-        <span className={value ? "text-slate-900" : "text-slate-400"}>{value || placeholder}</span>
-        <ChevronDown className={`h-5 w-5 text-blue-950 transition ${isOpen ? "rotate-180" : ""}`} />
-      </button>
-      {isOpen ? (
-        <div className="absolute z-30 mt-2 max-h-60 w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
-          <button
-            type="button"
-            onClick={() => onSelect("")}
-            className="w-full rounded-xl px-4 py-2.5 text-left text-sm font-bold text-slate-400 transition hover:bg-slate-100"
-          >
-            {placeholder}
-          </button>
-          {options.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => onSelect(opt)}
-              className={`w-full rounded-xl px-4 py-2.5 text-left text-sm font-bold transition hover:bg-slate-100 ${
-                opt === value ? "bg-blue-50 text-blue-950" : "text-slate-900"
-              }`}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // CategoryDetailFields
 // ---------------------------------------------------------------------------
 
@@ -148,14 +93,10 @@ function CategoryDetailFields({
   category,
   details,
   onChange,
-  openKey,
-  onToggle,
 }: {
   category: string;
   details: Record<string, string>;
   onChange: (key: string, value: string) => void;
-  openKey: string | null;
-  onToggle: (key: string) => void;
 }) {
   const fields = CATEGORY_DETAILS[category];
   if (!fields) return null;
@@ -184,21 +125,15 @@ function CategoryDetailFields({
             </span>
 
             {field.type === "select" ? (
-              isDisabledByDep ? (
-                <div className="flex w-full cursor-not-allowed items-center justify-between rounded-2xl border border-slate-200 bg-slate-100 px-5 py-4 font-bold text-slate-400 shadow-sm">
-                  <span className="text-sm">Първо изберете марка</span>
-                  <ChevronDown className="h-5 w-5 opacity-40" />
-                </div>
-              ) : (
-                <SimpleDropdown
-                  value={details[field.key] ?? ""}
-                  placeholder={`Избери ${field.label.toLowerCase()}`}
-                  options={resolvedOptions}
-                  isOpen={openKey === field.key}
-                  onToggle={() => onToggle(field.key)}
-                  onSelect={(v) => onChange(field.key, v)}
-                />
-              )
+              <SearchableSelect
+                value={details[field.key] ?? ""}
+                onChange={(v) => onChange(field.key, v)}
+                options={resolvedOptions}
+                placeholder={`Избери ${field.label.toLowerCase()}`}
+                disabled={isDisabledByDep}
+                disabledPlaceholder="Първо изберете марка"
+                size="md"
+              />
             ) : (
               <input
                 value={details[field.key] ?? ""}
@@ -242,8 +177,6 @@ export default function PublishPage() {
   // Dropdown states
   const [isListingTypeOpen, setIsListingTypeOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const [openDetailKey, setOpenDetailKey] = useState<string | null>(null);
-
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState<{
     type: "error" | "success";
@@ -269,18 +202,12 @@ export default function PublishPage() {
       if (depField) next[depField.key] = "";
       return next;
     });
-    setOpenDetailKey(null);
-  };
-
-  const handleDetailToggle = (key: string) => {
-    setOpenDetailKey((prev) => (prev === key ? null : key));
   };
 
   const handleCategoryChange = (newCategory: string) => {
     setCategory(newCategory);
     setIsCategoryOpen(false);
     setDetails({});
-    setOpenDetailKey(null);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -465,7 +392,7 @@ export default function PublishPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900" onClick={() => setOpenDetailKey(null)}>
+    <main className="min-h-screen bg-slate-50 text-slate-900">
       <Header />
 
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-950 py-20 text-white">
@@ -608,20 +535,16 @@ export default function PublishPage() {
             </div>
 
             {/* City */}
-            <label className="block space-y-2.5">
+            <div className="space-y-2.5">
               <span className="block text-sm font-black text-blue-950">Град *</span>
-              <input
+              <SearchableSelect
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
-                type="text"
+                onChange={setCity}
+                options={BG_CITIES}
                 placeholder="Например: София"
-                list="publish-city-list"
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-950 focus:ring-4 focus:ring-blue-100"
+                size="md"
               />
-              <datalist id="publish-city-list">
-                {BG_CITIES.map((c) => <option key={c} value={c} />)}
-              </datalist>
-            </label>
+            </div>
 
             {/* Category-specific details panel */}
             {CATEGORY_DETAILS[category] && (
@@ -629,8 +552,6 @@ export default function PublishPage() {
                 category={category}
                 details={details}
                 onChange={handleDetailChange}
-                openKey={openDetailKey}
-                onToggle={handleDetailToggle}
               />
             )}
 

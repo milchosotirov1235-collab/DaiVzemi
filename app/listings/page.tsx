@@ -6,12 +6,13 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import { BookMarked, ChevronDown, Loader2, SlidersHorizontal, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { BG_CITIES } from "@/lib/data/cities";
 import { CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
+  BG_CITIES,
   PROPERTY_TYPES, ROOM_OPTIONS, FUEL_TYPES, TRANSMISSION_TYPES,
-  AUTO_PART_CATEGORIES, ELECTRONICS_SUBCATEGORIES, ITEM_CONDITIONS, SERVICE_TYPES,
+  AUTO_PART_CATEGORIES, PART_CONDITIONS, ELECTRONICS_SUBCATEGORIES, ITEM_CONDITIONS, SERVICE_TYPES,
 } from "@/lib/data/categoryData";
+import SearchableSelect from "@/components/SearchableSelect";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -161,9 +162,6 @@ function CustomDropdown({
 
 type CategoryFilterProps = {
   category: string;
-  openDropdown: string | null;
-  onToggle: (key: string) => void;
-  onClose: () => void;
   // Имоти
   propertyType: string; onPropertyType: (v: string) => void;
   rooms: string; onRooms: (v: string) => void;
@@ -194,21 +192,17 @@ function CategoryFilters(p: CategoryFilterProps) {
   if (p.category === "Имоти") {
     return (
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <CustomDropdown
+        <SearchableSelect
           value={p.propertyType}
-          placeholder="Тип имот"
+          onChange={p.onPropertyType}
           options={PROPERTY_TYPES}
-          isOpen={p.openDropdown === "propertyType"}
-          onToggle={() => p.onToggle("propertyType")}
-          onSelect={(v) => { p.onPropertyType(v); p.onClose(); }}
+          placeholder="Тип имот"
         />
-        <CustomDropdown
+        <SearchableSelect
           value={p.rooms}
-          placeholder="Стаи"
+          onChange={p.onRooms}
           options={ROOM_OPTIONS}
-          isOpen={p.openDropdown === "rooms"}
-          onToggle={() => p.onToggle("rooms")}
-          onSelect={(v) => { p.onRooms(v); p.onClose(); }}
+          placeholder="Стаи"
         />
         <input
           value={p.sqmMin}
@@ -233,39 +227,31 @@ function CategoryFilters(p: CategoryFilterProps) {
   if (p.category === "Автомобили") {
     return (
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <CustomDropdown
+        <SearchableSelect
           value={p.carMake}
-          placeholder="Марка"
+          onChange={(v) => { p.onCarMake(v); p.onCarModel(""); }}
           options={CAR_BRANDS}
-          isOpen={p.openDropdown === "carMake"}
-          onToggle={() => p.onToggle("carMake")}
-          onSelect={(v) => { p.onCarMake(v); p.onCarModel(""); p.onClose(); }}
+          placeholder="Марка"
         />
-        <CustomDropdown
+        <SearchableSelect
           value={p.carModel}
-          placeholder="Модел"
+          onChange={p.onCarModel}
           options={getModelsForBrand(p.carMake)}
-          isOpen={p.openDropdown === "carModel"}
-          onToggle={() => p.onToggle("carModel")}
-          onSelect={(v) => { p.onCarModel(v); p.onClose(); }}
+          placeholder="Модел"
           disabled={!p.carMake}
           disabledPlaceholder="Първо изберете марка"
         />
-        <CustomDropdown
+        <SearchableSelect
           value={p.fuel}
-          placeholder="Гориво"
+          onChange={p.onFuel}
           options={FUEL_TYPES}
-          isOpen={p.openDropdown === "fuel"}
-          onToggle={() => p.onToggle("fuel")}
-          onSelect={(v) => { p.onFuel(v); p.onClose(); }}
+          placeholder="Гориво"
         />
-        <CustomDropdown
+        <SearchableSelect
           value={p.transmission}
-          placeholder="Скоростна кутия"
+          onChange={p.onTransmission}
           options={TRANSMISSION_TYPES}
-          isOpen={p.openDropdown === "transmission"}
-          onToggle={() => p.onToggle("transmission")}
-          onSelect={(v) => { p.onTransmission(v); p.onClose(); }}
+          placeholder="Скоростна кутия"
         />
         <input
           value={p.yearFrom}
@@ -308,39 +294,31 @@ function CategoryFilters(p: CategoryFilterProps) {
   if (p.category === "Авточасти") {
     return (
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <CustomDropdown
+        <SearchableSelect
           value={p.carMake}
-          placeholder="Марка на автомобила"
+          onChange={(v) => { p.onCarMake(v); p.onCarModel(""); }}
           options={CAR_BRANDS}
-          isOpen={p.openDropdown === "carMake"}
-          onToggle={() => p.onToggle("carMake")}
-          onSelect={(v) => { p.onCarMake(v); p.onCarModel(""); p.onClose(); }}
+          placeholder="Марка на автомобила"
         />
-        <CustomDropdown
+        <SearchableSelect
           value={p.carModel}
-          placeholder="Модел на автомобила"
+          onChange={p.onCarModel}
           options={getModelsForBrand(p.carMake)}
-          isOpen={p.openDropdown === "carModel"}
-          onToggle={() => p.onToggle("carModel")}
-          onSelect={(v) => { p.onCarModel(v); p.onClose(); }}
+          placeholder="Модел на автомобила"
           disabled={!p.carMake}
           disabledPlaceholder="Първо изберете марка"
         />
-        <CustomDropdown
+        <SearchableSelect
           value={p.partType}
-          placeholder="Вид на частта"
+          onChange={p.onPartType}
           options={AUTO_PART_CATEGORIES}
-          isOpen={p.openDropdown === "partType"}
-          onToggle={() => p.onToggle("partType")}
-          onSelect={(v) => { p.onPartType(v); p.onClose(); }}
+          placeholder="Вид на частта"
         />
-        <CustomDropdown
+        <SearchableSelect
           value={p.condition}
+          onChange={p.onCondition}
+          options={PART_CONDITIONS}
           placeholder="Състояние"
-          options={["Ново", "Употребявано"]}
-          isOpen={p.openDropdown === "condition"}
-          onToggle={() => p.onToggle("condition")}
-          onSelect={(v) => { p.onCondition(v); p.onClose(); }}
         />
       </div>
     );
@@ -349,13 +327,11 @@ function CategoryFilters(p: CategoryFilterProps) {
   if (p.category === "Електроника") {
     return (
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <CustomDropdown
+        <SearchableSelect
           value={p.electronicsSubcat}
-          placeholder="Подкатегория"
+          onChange={p.onElectronicsSubcat}
           options={ELECTRONICS_SUBCATEGORIES}
-          isOpen={p.openDropdown === "electronicsSubcat"}
-          onToggle={() => p.onToggle("electronicsSubcat")}
-          onSelect={(v) => { p.onElectronicsSubcat(v); p.onClose(); }}
+          placeholder="Подкатегория"
         />
         <input
           value={p.brand}
@@ -363,13 +339,11 @@ function CategoryFilters(p: CategoryFilterProps) {
           placeholder="Марка"
           className={field}
         />
-        <CustomDropdown
+        <SearchableSelect
           value={p.condition}
-          placeholder="Състояние"
+          onChange={p.onCondition}
           options={ITEM_CONDITIONS}
-          isOpen={p.openDropdown === "condition"}
-          onToggle={() => p.onToggle("condition")}
-          onSelect={(v) => { p.onCondition(v); p.onClose(); }}
+          placeholder="Състояние"
         />
       </div>
     );
@@ -378,13 +352,11 @@ function CategoryFilters(p: CategoryFilterProps) {
   if (p.category === "Услуги") {
     return (
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <CustomDropdown
+        <SearchableSelect
           value={p.serviceType}
-          placeholder="Вид услуга"
+          onChange={p.onServiceType}
           options={SERVICE_TYPES}
-          isOpen={p.openDropdown === "serviceType"}
-          onToggle={() => p.onToggle("serviceType")}
-          onSelect={(v) => { p.onServiceType(v); p.onClose(); }}
+          placeholder="Вид услуга"
         />
       </div>
     );
@@ -812,17 +784,12 @@ function ListingsPageContent() {
               placeholder="Търси обява"
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 lg:col-span-2"
             />
-            <input
+            <SearchableSelect
               value={cityInput}
-              onChange={(e) => setCityInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && applyFilters()}
+              onChange={setCityInput}
+              options={BG_CITIES}
               placeholder="Град"
-              list="city-list"
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
             />
-            <datalist id="city-list">
-              {BG_CITIES.map((c) => <option key={c} value={c} />)}
-            </datalist>
             <CustomDropdown
               value={categoryInput}
               placeholder="Всички категории"
@@ -911,9 +878,6 @@ function ListingsPageContent() {
               </div>
               <CategoryFilters
                 category={category}
-                openDropdown={openDropdown}
-                onToggle={(key) => setOpenDropdown(openDropdown === key ? null : key)}
-                onClose={() => setOpenDropdown(null)}
                 propertyType={propertyType} onPropertyType={setPropertyType}
                 rooms={rooms} onRooms={setRooms}
                 sqmMin={sqmMin} onSqmMin={setSqmMin}
