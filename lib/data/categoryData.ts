@@ -54,7 +54,7 @@ export const FURNISHING_OPTIONS: string[] = [
 // Автомобили (re-exported from vehicles for convenience)
 // ---------------------------------------------------------------------------
 
-export { CAR_BRANDS, CAR_MODELS, getModelsForBrand } from "./vehicles";
+export { CAR_BRANDS, CAR_MODELS, ORDERED_CAR_BRANDS, VEHICLE_TYPES, getModelsForBrand } from "./vehicles";
 
 export const FUEL_TYPES: string[] = [
   "Бензин",
@@ -72,6 +72,49 @@ export const TRANSMISSION_TYPES: string[] = [
   "Автоматична",
   "Полуавтоматична",
   "Вариатор (CVT)",
+];
+
+export const EURO_STANDARDS: string[] = [
+  "Евро 1",
+  "Евро 2",
+  "Евро 3",
+  "Евро 4",
+  "Евро 5",
+  "Евро 6",
+  "Евро 6d",
+  "Евро 6d-TEMP",
+];
+
+export const DRIVE_TYPES: string[] = [
+  "Предно (FWD)",
+  "Задно (RWD)",
+  "4x4 / AWD",
+  "4x4 с блокировка",
+];
+
+export const CAR_COLORS: string[] = [
+  "Бял",
+  "Черен",
+  "Сребрист",
+  "Сив",
+  "Червен",
+  "Син",
+  "Тъмносин",
+  "Зелен",
+  "Жълт",
+  "Оранжев",
+  "Кафяв",
+  "Бежов",
+  "Бордо",
+  "Злато",
+  "Виолетов",
+  "Друг",
+];
+
+export const CAR_CONDITIONS: string[] = [
+  "Ново",
+  "Употребявано",
+  "За ремонт / части",
 ];
 
 export const CAR_BODY_TYPES: string[] = [

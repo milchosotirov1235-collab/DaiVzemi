@@ -6,10 +6,12 @@ import { AlertTriangle, CheckCircle2, ChevronDown, ImagePlus, SlidersHorizontal 
 import { supabase } from "@/lib/supabaseClient";
 import SearchableSelect from "@/components/SearchableSelect";
 import { BG_CITIES } from "@/lib/data/cities";
-import { CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
+import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
   PROPERTY_TYPES, ROOM_OPTIONS, FURNISHING_OPTIONS, HEATING_OPTIONS,
-  FUEL_TYPES, TRANSMISSION_TYPES, AUTO_PART_CATEGORIES, PART_CONDITIONS,
+  FUEL_TYPES, TRANSMISSION_TYPES, CAR_BODY_TYPES, EURO_STANDARDS,
+  DRIVE_TYPES, CAR_COLORS, CAR_CONDITIONS, VEHICLE_TYPES,
+  AUTO_PART_CATEGORIES, PART_CONDITIONS,
   ELECTRONICS_SUBCATEGORIES, ELECTRONICS_BRANDS, ITEM_CONDITIONS,
 } from "@/lib/data/categoryData";
 
@@ -54,14 +56,20 @@ type FieldDef = {
 
 const CATEGORY_DETAILS: Record<string, FieldDef[]> = {
   Автомобили: [
-    { key: "brand", label: "Марка", type: "select", options: CAR_BRANDS, required: true },
-    { key: "model", label: "Модел", type: "select", dependsOn: "brand", getOptions: getModelsForBrand },
-    { key: "year", label: "Година на производство", type: "number", placeholder: "напр. 2018" },
-    { key: "fuel", label: "Гориво", type: "select", options: FUEL_TYPES },
-    { key: "gearbox", label: "Скоростна кутия", type: "select", options: TRANSMISSION_TYPES },
-    { key: "mileage", label: "Пробег (км)", type: "number", placeholder: "напр. 150000" },
-    { key: "power", label: "Мощност (к.с.)", type: "number", placeholder: "напр. 140" },
-    { key: "engine_size", label: "Обем на двигател (cc)", type: "number", placeholder: "напр. 1968" },
+    { key: "vehicle_type", label: "Тип превозно средство", type: "select", options: VEHICLE_TYPES },
+    { key: "brand",        label: "Марка",                 type: "select", options: ORDERED_CAR_BRANDS, required: true },
+    { key: "model",        label: "Модел",                 type: "select", dependsOn: "brand", getOptions: getModelsForBrand },
+    { key: "year",         label: "Година",                type: "number", placeholder: "напр. 2018" },
+    { key: "mileage",      label: "Пробег (км)",           type: "number", placeholder: "напр. 150000" },
+    { key: "fuel",         label: "Гориво",                type: "select", options: FUEL_TYPES },
+    { key: "gearbox",      label: "Скоростна кутия",       type: "select", options: TRANSMISSION_TYPES },
+    { key: "engine_size",  label: "Кубатура (cc)",         type: "number", placeholder: "напр. 1968" },
+    { key: "power",        label: "Мощност (к.с.)",        type: "number", placeholder: "напр. 140" },
+    { key: "euro_standard",label: "Евро стандарт",         type: "select", options: EURO_STANDARDS },
+    { key: "body_type",    label: "Купе",                  type: "select", options: CAR_BODY_TYPES },
+    { key: "drive_type",   label: "Задвижване",            type: "select", options: DRIVE_TYPES },
+    { key: "color",        label: "Цвят",                  type: "select", options: CAR_COLORS },
+    { key: "condition",    label: "Състояние",             type: "select", options: CAR_CONDITIONS },
   ],
   Имоти: [
     { key: "property_type", label: "Тип имот", type: "select", options: PROPERTY_TYPES, required: true },
@@ -78,7 +86,7 @@ const CATEGORY_DETAILS: Record<string, FieldDef[]> = {
     { key: "condition", label: "Състояние", type: "select", options: ITEM_CONDITIONS },
   ],
   Авточасти: [
-    { key: "car_brand", label: "Марка на автомобила", type: "select", options: CAR_BRANDS },
+    { key: "car_brand", label: "Марка на автомобила", type: "select", options: ORDERED_CAR_BRANDS },
     { key: "car_model", label: "Модел на автомобила", type: "text", placeholder: "напр. Golf 6" },
     { key: "part_category", label: "Вид на частта", type: "select", options: AUTO_PART_CATEGORIES, required: true },
     { key: "condition", label: "Състояние", type: "select", options: PART_CONDITIONS },

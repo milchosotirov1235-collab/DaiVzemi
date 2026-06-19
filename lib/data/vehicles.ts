@@ -2,6 +2,17 @@
 // To add a brand: push to CAR_BRANDS and add a key to CAR_MODELS.
 // To add models: extend the array for the relevant brand key.
 
+// Main vehicle type (top-level selector, like mobile.bg)
+export const VEHICLE_TYPES: string[] = [
+  "Леки автомобили",
+  "Джипове",
+  "Ванове",
+  "Микробуси",
+  "Камиони",
+  "Мотоциклети",
+];
+
+// All brands alphabetically — used as the canonical source for CAR_MODELS keys
 export const CAR_BRANDS: string[] = [
   "Alfa Romeo",
   "Audi",
@@ -41,6 +52,23 @@ export const CAR_BRANDS: string[] = [
   "Toyota",
   "Volkswagen",
   "Volvo",
+];
+
+// Top brands shown first in dropdowns, then the rest alphabetically.
+// Order mirrors the most-searched brands on BG car marketplaces.
+const TOP_BRANDS = [
+  "Mercedes-Benz",
+  "Volkswagen",
+  "BMW",
+  "Audi",
+  "Skoda",
+  "Seat",
+  "Volvo",
+];
+
+export const ORDERED_CAR_BRANDS: string[] = [
+  ...TOP_BRANDS,
+  ...CAR_BRANDS.filter((b) => !TOP_BRANDS.includes(b)),
 ];
 
 // Key must exactly match a value in CAR_BRANDS.

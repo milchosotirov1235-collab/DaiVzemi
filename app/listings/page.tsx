@@ -6,10 +6,11 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import { BookMarked, ChevronDown, Loader2, SlidersHorizontal, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
+import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
   BG_CITIES,
   PROPERTY_TYPES, ROOM_OPTIONS, FUEL_TYPES, TRANSMISSION_TYPES,
+  CAR_BODY_TYPES, EURO_STANDARDS, DRIVE_TYPES, CAR_COLORS, CAR_CONDITIONS, VEHICLE_TYPES,
   AUTO_PART_CATEGORIES, PART_CONDITIONS, ELECTRONICS_SUBCATEGORIES, ITEM_CONDITIONS, SERVICE_TYPES,
 } from "@/lib/data/categoryData";
 import SearchableSelect from "@/components/SearchableSelect";
@@ -43,6 +44,7 @@ type Listing = {
   electronics_subcategory?: string | null;
   condition?: string | null;
   service_type?: string | null;
+  details?: Record<string, string> | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -168,6 +170,7 @@ type CategoryFilterProps = {
   sqmMin: string; onSqmMin: (v: string) => void;
   sqmMax: string; onSqmMax: (v: string) => void;
   // Автомобили / Авточасти
+  vehicleType: string; onVehicleType: (v: string) => void;
   carMake: string; onCarMake: (v: string) => void;
   carModel: string; onCarModel: (v: string) => void;
   yearFrom: string; onYearFrom: (v: string) => void;
@@ -176,6 +179,15 @@ type CategoryFilterProps = {
   transmission: string; onTransmission: (v: string) => void;
   mileageFrom: string; onMileageFrom: (v: string) => void;
   mileageTo: string; onMileageTo: (v: string) => void;
+  engineSizeFrom: string; onEngineSizeFrom: (v: string) => void;
+  engineSizeTo: string; onEngineSizeTo: (v: string) => void;
+  powerFrom: string; onPowerFrom: (v: string) => void;
+  powerTo: string; onPowerTo: (v: string) => void;
+  euroStandard: string; onEuroStandard: (v: string) => void;
+  bodyType: string; onBodyType: (v: string) => void;
+  driveType: string; onDriveType: (v: string) => void;
+  carColor: string; onCarColor: (v: string) => void;
+  carCondition: string; onCarCondition: (v: string) => void;
   partType: string; onPartType: (v: string) => void;
   // Електроника
   electronicsSubcat: string; onElectronicsSubcat: (v: string) => void;
@@ -226,67 +238,76 @@ function CategoryFilters(p: CategoryFilterProps) {
 
   if (p.category === "Автомобили") {
     return (
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <SearchableSelect
-          value={p.carMake}
-          onChange={(v) => { p.onCarMake(v); p.onCarModel(""); }}
-          options={CAR_BRANDS}
-          placeholder="Марка"
-        />
-        <SearchableSelect
-          value={p.carModel}
-          onChange={p.onCarModel}
-          options={getModelsForBrand(p.carMake)}
-          placeholder="Модел"
-          disabled={!p.carMake}
-          disabledPlaceholder="Първо изберете марка"
-        />
-        <SearchableSelect
-          value={p.fuel}
-          onChange={p.onFuel}
-          options={FUEL_TYPES}
-          placeholder="Гориво"
-        />
-        <SearchableSelect
-          value={p.transmission}
-          onChange={p.onTransmission}
-          options={TRANSMISSION_TYPES}
-          placeholder="Скоростна кутия"
-        />
-        <input
-          value={p.yearFrom}
-          onChange={(e) => p.onYearFrom(e.target.value)}
-          placeholder="Година от"
-          type="number"
-          min="1970"
-          max="2026"
-          className={field}
-        />
-        <input
-          value={p.yearTo}
-          onChange={(e) => p.onYearTo(e.target.value)}
-          placeholder="Година до"
-          type="number"
-          min="1970"
-          max="2026"
-          className={field}
-        />
-        <input
-          value={p.mileageFrom}
-          onChange={(e) => p.onMileageFrom(e.target.value)}
-          placeholder="Пробег от (км)"
-          type="number"
-          min="0"
-          className={field}
-        />
-        <input
-          value={p.mileageTo}
-          onChange={(e) => p.onMileageTo(e.target.value)}
-          placeholder="Пробег до (км)"
-          type="number"
-          min="0"
-          className={field}
-        />
+      <div className="mt-4 space-y-3">
+        {/* Row 1 — Vehicle type (full width) */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <SearchableSelect
+            value={p.vehicleType}
+            onChange={p.onVehicleType}
+            options={VEHICLE_TYPES}
+            placeholder="Тип превозно средство"
+          />
+          <SearchableSelect
+            value={p.carMake}
+            onChange={(v) => { p.onCarMake(v); p.onCarModel(""); }}
+            options={ORDERED_CAR_BRANDS}
+            placeholder="Марка"
+          />
+          <SearchableSelect
+            value={p.carModel}
+            onChange={p.onCarModel}
+            options={getModelsForBrand(p.carMake)}
+            placeholder="Модел"
+            disabled={!p.carMake}
+            disabledPlaceholder="Първо изберете марка"
+          />
+        </div>
+
+        {/* Row 2 — Year + Mileage */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <input value={p.yearFrom} onChange={(e) => p.onYearFrom(e.target.value)}
+            placeholder="Година от" type="number" min="1970" max="2030" className={field} />
+          <input value={p.yearTo} onChange={(e) => p.onYearTo(e.target.value)}
+            placeholder="Година до" type="number" min="1970" max="2030" className={field} />
+          <input value={p.mileageFrom} onChange={(e) => p.onMileageFrom(e.target.value)}
+            placeholder="Пробег от (км)" type="number" min="0" className={field} />
+          <input value={p.mileageTo} onChange={(e) => p.onMileageTo(e.target.value)}
+            placeholder="Пробег до (км)" type="number" min="0" className={field} />
+        </div>
+
+        {/* Row 3 — Fuel + Gearbox + Body + Drive */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <SearchableSelect value={p.fuel} onChange={p.onFuel}
+            options={FUEL_TYPES} placeholder="Гориво" />
+          <SearchableSelect value={p.transmission} onChange={p.onTransmission}
+            options={TRANSMISSION_TYPES} placeholder="Скоростна кутия" />
+          <SearchableSelect value={p.bodyType} onChange={p.onBodyType}
+            options={CAR_BODY_TYPES} placeholder="Купе" />
+          <SearchableSelect value={p.driveType} onChange={p.onDriveType}
+            options={DRIVE_TYPES} placeholder="Задвижване" />
+        </div>
+
+        {/* Row 4 — Engine + Power + Euro + Condition */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <input value={p.engineSizeFrom} onChange={(e) => p.onEngineSizeFrom(e.target.value)}
+            placeholder="Кубатура от (cc)" type="number" min="0" className={field} />
+          <input value={p.engineSizeTo} onChange={(e) => p.onEngineSizeTo(e.target.value)}
+            placeholder="Кубатура до (cc)" type="number" min="0" className={field} />
+          <input value={p.powerFrom} onChange={(e) => p.onPowerFrom(e.target.value)}
+            placeholder="Мощност от (к.с.)" type="number" min="0" className={field} />
+          <input value={p.powerTo} onChange={(e) => p.onPowerTo(e.target.value)}
+            placeholder="Мощност до (к.с.)" type="number" min="0" className={field} />
+        </div>
+
+        {/* Row 5 — Euro standard + Color + Condition */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <SearchableSelect value={p.euroStandard} onChange={p.onEuroStandard}
+            options={EURO_STANDARDS} placeholder="Евро стандарт" />
+          <SearchableSelect value={p.carColor} onChange={p.onCarColor}
+            options={CAR_COLORS} placeholder="Цвят" />
+          <SearchableSelect value={p.carCondition} onChange={p.onCarCondition}
+            options={CAR_CONDITIONS} placeholder="Състояние" />
+        </div>
       </div>
     );
   }
@@ -297,7 +318,7 @@ function CategoryFilters(p: CategoryFilterProps) {
         <SearchableSelect
           value={p.carMake}
           onChange={(v) => { p.onCarMake(v); p.onCarModel(""); }}
-          options={CAR_BRANDS}
+          options={ORDERED_CAR_BRANDS}
           placeholder="Марка на автомобила"
         />
         <SearchableSelect
@@ -420,6 +441,7 @@ function ListingsPageContent() {
   const [sqmMax, setSqmMax] = useState(searchParams.get("sqmMax") ?? "");
 
   // Category-specific filters — Автомобили / Авточасти
+  const [vehicleType, setVehicleType] = useState(searchParams.get("vehicleType") ?? "");
   const [carMake, setCarMake] = useState(searchParams.get("carMake") ?? "");
   const [carModel, setCarModel] = useState(searchParams.get("carModel") ?? "");
   const [yearFrom, setYearFrom] = useState(searchParams.get("yearFrom") ?? "");
@@ -428,6 +450,15 @@ function ListingsPageContent() {
   const [transmission, setTransmission] = useState(searchParams.get("transmission") ?? "");
   const [mileageFrom, setMileageFrom] = useState(searchParams.get("mileageFrom") ?? "");
   const [mileageTo, setMileageTo] = useState(searchParams.get("mileageTo") ?? "");
+  const [engineSizeFrom, setEngineSizeFrom] = useState(searchParams.get("engineSizeFrom") ?? "");
+  const [engineSizeTo, setEngineSizeTo] = useState(searchParams.get("engineSizeTo") ?? "");
+  const [powerFrom, setPowerFrom] = useState(searchParams.get("powerFrom") ?? "");
+  const [powerTo, setPowerTo] = useState(searchParams.get("powerTo") ?? "");
+  const [euroStandard, setEuroStandard] = useState(searchParams.get("euroStandard") ?? "");
+  const [bodyType, setBodyType] = useState(searchParams.get("bodyType") ?? "");
+  const [driveType, setDriveType] = useState(searchParams.get("driveType") ?? "");
+  const [carColor, setCarColor] = useState(searchParams.get("carColor") ?? "");
+  const [carCondition, setCarCondition] = useState(searchParams.get("carCondition") ?? "");
   const [partType, setPartType] = useState(searchParams.get("partType") ?? "");
 
   // Category-specific filters — Електроника
@@ -457,6 +488,7 @@ function ListingsPageContent() {
   const urlRooms = searchParams.get("rooms") ?? "";
   const urlSqmMin = searchParams.get("sqmMin") ?? "";
   const urlSqmMax = searchParams.get("sqmMax") ?? "";
+  const urlVehicleType = searchParams.get("vehicleType") ?? "";
   const urlCarMake = searchParams.get("carMake") ?? "";
   const urlCarModel = searchParams.get("carModel") ?? "";
   const urlYearFrom = searchParams.get("yearFrom") ?? "";
@@ -465,6 +497,15 @@ function ListingsPageContent() {
   const urlTransmission = searchParams.get("transmission") ?? "";
   const urlMileageFrom = searchParams.get("mileageFrom") ?? "";
   const urlMileageTo = searchParams.get("mileageTo") ?? "";
+  const urlEngineSizeFrom = searchParams.get("engineSizeFrom") ?? "";
+  const urlEngineSizeTo = searchParams.get("engineSizeTo") ?? "";
+  const urlPowerFrom = searchParams.get("powerFrom") ?? "";
+  const urlPowerTo = searchParams.get("powerTo") ?? "";
+  const urlEuroStandard = searchParams.get("euroStandard") ?? "";
+  const urlBodyType = searchParams.get("bodyType") ?? "";
+  const urlDriveType = searchParams.get("driveType") ?? "";
+  const urlCarColor = searchParams.get("carColor") ?? "";
+  const urlCarCondition = searchParams.get("carCondition") ?? "";
   const urlPartType = searchParams.get("partType") ?? "";
   const urlElectronicsSubcat = searchParams.get("electronicsSubcat") ?? "";
   const urlCondition = searchParams.get("condition") ?? "";
@@ -482,6 +523,7 @@ function ListingsPageContent() {
     urlRooms.length > 0 ||
     urlSqmMin.length > 0 ||
     urlSqmMax.length > 0 ||
+    urlVehicleType.length > 0 ||
     urlCarMake.length > 0 ||
     urlCarModel.length > 0 ||
     urlYearFrom.length > 0 ||
@@ -490,6 +532,15 @@ function ListingsPageContent() {
     urlTransmission.length > 0 ||
     urlMileageFrom.length > 0 ||
     urlMileageTo.length > 0 ||
+    urlEngineSizeFrom.length > 0 ||
+    urlEngineSizeTo.length > 0 ||
+    urlPowerFrom.length > 0 ||
+    urlPowerTo.length > 0 ||
+    urlEuroStandard.length > 0 ||
+    urlBodyType.length > 0 ||
+    urlDriveType.length > 0 ||
+    urlCarColor.length > 0 ||
+    urlCarCondition.length > 0 ||
     urlPartType.length > 0 ||
     urlElectronicsSubcat.length > 0 ||
     urlCondition.length > 0 ||
@@ -504,6 +555,7 @@ function ListingsPageContent() {
     setRooms(searchParams.get("rooms") ?? "");
     setSqmMin(searchParams.get("sqmMin") ?? "");
     setSqmMax(searchParams.get("sqmMax") ?? "");
+    setVehicleType(searchParams.get("vehicleType") ?? "");
     setCarMake(searchParams.get("carMake") ?? "");
     setCarModel(searchParams.get("carModel") ?? "");
     setYearFrom(searchParams.get("yearFrom") ?? "");
@@ -512,6 +564,15 @@ function ListingsPageContent() {
     setTransmission(searchParams.get("transmission") ?? "");
     setMileageFrom(searchParams.get("mileageFrom") ?? "");
     setMileageTo(searchParams.get("mileageTo") ?? "");
+    setEngineSizeFrom(searchParams.get("engineSizeFrom") ?? "");
+    setEngineSizeTo(searchParams.get("engineSizeTo") ?? "");
+    setPowerFrom(searchParams.get("powerFrom") ?? "");
+    setPowerTo(searchParams.get("powerTo") ?? "");
+    setEuroStandard(searchParams.get("euroStandard") ?? "");
+    setBodyType(searchParams.get("bodyType") ?? "");
+    setDriveType(searchParams.get("driveType") ?? "");
+    setCarColor(searchParams.get("carColor") ?? "");
+    setCarCondition(searchParams.get("carCondition") ?? "");
     setPartType(searchParams.get("partType") ?? "");
     setElectronicsSubcat(searchParams.get("electronicsSubcat") ?? "");
     setCondition(searchParams.get("condition") ?? "");
@@ -541,6 +602,7 @@ function ListingsPageContent() {
     if (rooms) params.set("rooms", rooms);
     if (sqmMin.trim()) params.set("sqmMin", sqmMin.trim());
     if (sqmMax.trim()) params.set("sqmMax", sqmMax.trim());
+    if (vehicleType) params.set("vehicleType", vehicleType);
     if (carMake) params.set("carMake", carMake);
     if (carModel.trim()) params.set("carModel", carModel.trim());
     if (yearFrom.trim()) params.set("yearFrom", yearFrom.trim());
@@ -549,6 +611,15 @@ function ListingsPageContent() {
     if (transmission) params.set("transmission", transmission);
     if (mileageFrom.trim()) params.set("mileageFrom", mileageFrom.trim());
     if (mileageTo.trim()) params.set("mileageTo", mileageTo.trim());
+    if (engineSizeFrom.trim()) params.set("engineSizeFrom", engineSizeFrom.trim());
+    if (engineSizeTo.trim()) params.set("engineSizeTo", engineSizeTo.trim());
+    if (powerFrom.trim()) params.set("powerFrom", powerFrom.trim());
+    if (powerTo.trim()) params.set("powerTo", powerTo.trim());
+    if (euroStandard) params.set("euroStandard", euroStandard);
+    if (bodyType) params.set("bodyType", bodyType);
+    if (driveType) params.set("driveType", driveType);
+    if (carColor) params.set("carColor", carColor);
+    if (carCondition) params.set("carCondition", carCondition);
     if (partType) params.set("partType", partType);
     if (electronicsSubcat) params.set("electronicsSubcat", electronicsSubcat);
     if (condition) params.set("condition", condition);
@@ -579,6 +650,7 @@ function ListingsPageContent() {
     if (urlRooms) filters.rooms = urlRooms;
     if (urlSqmMin) filters.sqmMin = urlSqmMin;
     if (urlSqmMax) filters.sqmMax = urlSqmMax;
+    if (urlVehicleType) filters.vehicleType = urlVehicleType;
     if (urlCarMake) filters.carMake = urlCarMake;
     if (urlCarModel) filters.carModel = urlCarModel;
     if (urlYearFrom) filters.yearFrom = urlYearFrom;
@@ -587,6 +659,15 @@ function ListingsPageContent() {
     if (urlTransmission) filters.transmission = urlTransmission;
     if (urlMileageFrom) filters.mileageFrom = urlMileageFrom;
     if (urlMileageTo) filters.mileageTo = urlMileageTo;
+    if (urlEngineSizeFrom) filters.engineSizeFrom = urlEngineSizeFrom;
+    if (urlEngineSizeTo) filters.engineSizeTo = urlEngineSizeTo;
+    if (urlPowerFrom) filters.powerFrom = urlPowerFrom;
+    if (urlPowerTo) filters.powerTo = urlPowerTo;
+    if (urlEuroStandard) filters.euroStandard = urlEuroStandard;
+    if (urlBodyType) filters.bodyType = urlBodyType;
+    if (urlDriveType) filters.driveType = urlDriveType;
+    if (urlCarColor) filters.carColor = urlCarColor;
+    if (urlCarCondition) filters.carCondition = urlCarCondition;
     if (urlPartType) filters.partType = urlPartType;
     if (urlElectronicsSubcat) filters.electronicsSubcat = urlElectronicsSubcat;
     if (urlCondition) filters.condition = urlCondition;
@@ -634,8 +715,11 @@ function ListingsPageContent() {
     setSearchInput(""); setCityInput(""); setCategoryInput("");
     setTypeInput(""); setMinPriceInput(""); setMaxPriceInput("");
     setPropertyType(""); setRooms(""); setSqmMin(""); setSqmMax("");
+    setVehicleType("");
     setCarMake(""); setCarModel(""); setYearFrom(""); setYearTo("");
     setFuel(""); setTransmission(""); setMileageFrom(""); setMileageTo("");
+    setEngineSizeFrom(""); setEngineSizeTo(""); setPowerFrom(""); setPowerTo("");
+    setEuroStandard(""); setBodyType(""); setDriveType(""); setCarColor(""); setCarCondition("");
     setPartType(""); setElectronicsSubcat(""); setCondition(""); setBrand("");
     setServiceType("");
     setOpenDropdown(null);
@@ -653,7 +737,7 @@ function ListingsPageContent() {
       let query = supabase
         .from("listings")
         .select(
-          "id, title, description, price, city, category, listing_type, created_at, image_url, image_urls, property_type, rooms, area_sqm, car_make, car_model, car_year, fuel_type, transmission, mileage, part_type, electronics_subcategory, condition, service_type"
+          "id, title, description, price, city, category, listing_type, created_at, image_url, image_urls, property_type, rooms, area_sqm, car_make, car_model, car_year, fuel_type, transmission, mileage, part_type, electronics_subcategory, condition, service_type, details"
         )
         .order("created_at", { ascending: false });
 
@@ -698,22 +782,65 @@ function ListingsPageContent() {
         }
 
         // Автомобили / Авточасти
-        if (urlCarMake && l.car_make?.toLowerCase() !== urlCarMake.toLowerCase()) return false;
-        if (urlCarModel && !l.car_model?.toLowerCase().includes(urlCarModel.toLowerCase())) return false;
-        if (urlYearFrom && l.car_year !== null && l.car_year !== undefined) {
-          if (l.car_year < Number(urlYearFrom)) return false;
+        // Check both old dedicated columns (legacy) and new details JSONB (current)
+        const d = (l.details ?? {}) as Record<string, string>;
+
+        if (urlVehicleType && d.vehicle_type !== urlVehicleType) return false;
+
+        if (urlCarMake) {
+          const makeNew = d.brand?.toLowerCase();
+          const makeOld = l.car_make?.toLowerCase();
+          if (makeNew !== urlCarMake.toLowerCase() && makeOld !== urlCarMake.toLowerCase()) return false;
         }
-        if (urlYearTo && l.car_year !== null && l.car_year !== undefined) {
-          if (l.car_year > Number(urlYearTo)) return false;
+        if (urlCarModel) {
+          const modelNew = d.model?.toLowerCase();
+          const modelOld = l.car_model?.toLowerCase();
+          const q = urlCarModel.toLowerCase();
+          if (!modelNew?.includes(q) && !modelOld?.includes(q)) return false;
         }
-        if (urlFuel && l.fuel_type !== urlFuel) return false;
-        if (urlTransmission && l.transmission !== urlTransmission) return false;
-        if (urlMileageFrom && l.mileage !== null && l.mileage !== undefined) {
-          if (l.mileage < Number(urlMileageFrom)) return false;
+        if (urlYearFrom) {
+          const yr = Number(d.year ?? l.car_year);
+          if (Number.isFinite(yr) && yr < Number(urlYearFrom)) return false;
         }
-        if (urlMileageTo && l.mileage !== null && l.mileage !== undefined) {
-          if (l.mileage > Number(urlMileageTo)) return false;
+        if (urlYearTo) {
+          const yr = Number(d.year ?? l.car_year);
+          if (Number.isFinite(yr) && yr > Number(urlYearTo)) return false;
         }
+        if (urlFuel) {
+          if (d.fuel !== urlFuel && l.fuel_type !== urlFuel) return false;
+        }
+        if (urlTransmission) {
+          if (d.gearbox !== urlTransmission && l.transmission !== urlTransmission) return false;
+        }
+        if (urlMileageFrom) {
+          const mi = Number(d.mileage ?? l.mileage);
+          if (Number.isFinite(mi) && mi < Number(urlMileageFrom)) return false;
+        }
+        if (urlMileageTo) {
+          const mi = Number(d.mileage ?? l.mileage);
+          if (Number.isFinite(mi) && mi > Number(urlMileageTo)) return false;
+        }
+        if (urlEngineSizeFrom) {
+          const es = Number(d.engine_size);
+          if (Number.isFinite(es) && es < Number(urlEngineSizeFrom)) return false;
+        }
+        if (urlEngineSizeTo) {
+          const es = Number(d.engine_size);
+          if (Number.isFinite(es) && es > Number(urlEngineSizeTo)) return false;
+        }
+        if (urlPowerFrom) {
+          const pw = Number(d.power);
+          if (Number.isFinite(pw) && pw < Number(urlPowerFrom)) return false;
+        }
+        if (urlPowerTo) {
+          const pw = Number(d.power);
+          if (Number.isFinite(pw) && pw > Number(urlPowerTo)) return false;
+        }
+        if (urlEuroStandard && d.euro_standard !== urlEuroStandard) return false;
+        if (urlBodyType && d.body_type !== urlBodyType) return false;
+        if (urlDriveType && d.drive_type !== urlDriveType) return false;
+        if (urlCarColor && d.color !== urlCarColor) return false;
+        if (urlCarCondition && d.condition !== urlCarCondition) return false;
         if (urlPartType && l.part_type !== urlPartType) return false;
 
         // Електроника
@@ -735,7 +862,9 @@ function ListingsPageContent() {
   }, [
     search, city, category, type, minPrice, maxPrice,
     urlPropertyType, urlRooms, urlSqmMin, urlSqmMax,
-    urlCarMake, urlCarModel, urlYearFrom, urlYearTo, urlFuel, urlTransmission, urlMileageFrom, urlMileageTo, urlPartType,
+    urlVehicleType, urlCarMake, urlCarModel, urlYearFrom, urlYearTo, urlFuel, urlTransmission,
+    urlMileageFrom, urlMileageTo, urlEngineSizeFrom, urlEngineSizeTo, urlPowerFrom, urlPowerTo,
+    urlEuroStandard, urlBodyType, urlDriveType, urlCarColor, urlCarCondition, urlPartType,
     urlElectronicsSubcat, urlCondition, urlBrand,
     urlServiceType,
   ]);
@@ -882,6 +1011,7 @@ function ListingsPageContent() {
                 rooms={rooms} onRooms={setRooms}
                 sqmMin={sqmMin} onSqmMin={setSqmMin}
                 sqmMax={sqmMax} onSqmMax={setSqmMax}
+                vehicleType={vehicleType} onVehicleType={setVehicleType}
                 carMake={carMake} onCarMake={setCarMake}
                 carModel={carModel} onCarModel={setCarModel}
                 yearFrom={yearFrom} onYearFrom={setYearFrom}
@@ -890,6 +1020,15 @@ function ListingsPageContent() {
                 transmission={transmission} onTransmission={setTransmission}
                 mileageFrom={mileageFrom} onMileageFrom={setMileageFrom}
                 mileageTo={mileageTo} onMileageTo={setMileageTo}
+                engineSizeFrom={engineSizeFrom} onEngineSizeFrom={setEngineSizeFrom}
+                engineSizeTo={engineSizeTo} onEngineSizeTo={setEngineSizeTo}
+                powerFrom={powerFrom} onPowerFrom={setPowerFrom}
+                powerTo={powerTo} onPowerTo={setPowerTo}
+                euroStandard={euroStandard} onEuroStandard={setEuroStandard}
+                bodyType={bodyType} onBodyType={setBodyType}
+                driveType={driveType} onDriveType={setDriveType}
+                carColor={carColor} onCarColor={setCarColor}
+                carCondition={carCondition} onCarCondition={setCarCondition}
                 partType={partType} onPartType={setPartType}
                 electronicsSubcat={electronicsSubcat} onElectronicsSubcat={setElectronicsSubcat}
                 condition={condition} onCondition={setCondition}
@@ -913,6 +1052,7 @@ function ListingsPageContent() {
                 { label: urlRooms, key: "rooms" },
                 { label: urlSqmMin ? `от ${urlSqmMin} кв.м.` : "", key: "sqmMin" },
                 { label: urlSqmMax ? `до ${urlSqmMax} кв.м.` : "", key: "sqmMax" },
+                { label: urlVehicleType, key: "vehicleType" },
                 { label: urlCarMake, key: "carMake" },
                 { label: urlCarModel, key: "carModel" },
                 { label: urlYearFrom ? `от ${urlYearFrom}г.` : "", key: "yearFrom" },
@@ -921,6 +1061,15 @@ function ListingsPageContent() {
                 { label: urlTransmission, key: "transmission" },
                 { label: urlMileageFrom ? `от ${urlMileageFrom} км` : "", key: "mileageFrom" },
                 { label: urlMileageTo ? `до ${urlMileageTo} км` : "", key: "mileageTo" },
+                { label: urlEngineSizeFrom ? `куб. от ${urlEngineSizeFrom}` : "", key: "engineSizeFrom" },
+                { label: urlEngineSizeTo ? `куб. до ${urlEngineSizeTo}` : "", key: "engineSizeTo" },
+                { label: urlPowerFrom ? `от ${urlPowerFrom} к.с.` : "", key: "powerFrom" },
+                { label: urlPowerTo ? `до ${urlPowerTo} к.с.` : "", key: "powerTo" },
+                { label: urlEuroStandard, key: "euroStandard" },
+                { label: urlBodyType, key: "bodyType" },
+                { label: urlDriveType, key: "driveType" },
+                { label: urlCarColor, key: "carColor" },
+                { label: urlCarCondition, key: "carCondition" },
                 { label: urlPartType, key: "partType" },
                 { label: urlElectronicsSubcat, key: "electronicsSubcat" },
                 { label: urlCondition, key: "condition" },
