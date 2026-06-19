@@ -152,34 +152,47 @@ export default function Header() {
   };
 
   useEffect(() => {
+    // Channels are created once and stored here for cleanup
     let notifChannel: ReturnType<typeof supabase.channel> | null = null;
     let msgChannel: ReturnType<typeof supabase.channel> | null = null;
 
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
-      setCurrentUserEmail(data?.user?.email ?? null);
-      if (data?.user) {
-        await fetchProfile(data.user.id);
-        await fetchUnreadCounts(data.user.id);
+      const user = data?.user ?? null;
 
-        // Realtime: notifications
-        notifChannel = supabase
-          .channel("header-notifications")
-          .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${data.user.id}` },
-            () => fetchUnreadCounts(data.user.id))
-          .subscribe();
+      setCurrentUserEmail(user?.email ?? null);
 
-        // Realtime: messages
-        msgChannel = supabase
-          .channel("header-messages")
-          .on("postgres_changes", { event: "*", schema: "public", table: "messages" },
-            () => fetchUnreadCounts(data.user.id))
-          .subscribe();
-      }
+      if (!user) return;
+
+      await fetchProfile(user.id);
+      await fetchUnreadCounts(user.id);
+
+      // Unique suffix prevents channel name collisions when React StrictMode
+      // mounts the component twice before the first cleanup completes.
+      const uid = Math.random().toString(36).slice(2);
+
+      notifChannel = supabase
+        .channel(`header-notif-${user.id}-${uid}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+          () => fetchUnreadCounts(user.id)
+        )
+        .subscribe();
+
+      msgChannel = supabase
+        .channel(`header-msg-${user.id}-${uid}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "messages" },
+          () => fetchUnreadCounts(user.id)
+        )
+        .subscribe();
     };
 
     loadUser();
 
+    // onAuthStateChange only refreshes profile/counts — never touches channels
     const { data: subscription } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setCurrentUserEmail(session?.user?.email ?? null);
