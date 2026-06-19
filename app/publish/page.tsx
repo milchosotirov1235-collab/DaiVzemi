@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import { AlertTriangle, CheckCircle2, ChevronDown, ImagePlus, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { BG_CITIES } from "@/lib/data/cities";
-import { CAR_BRANDS } from "@/lib/data/vehicles";
+import { CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
   PROPERTY_TYPES, ROOM_OPTIONS, FURNISHING_OPTIONS, HEATING_OPTIONS,
   FUEL_TYPES, TRANSMISSION_TYPES, AUTO_PART_CATEGORIES, PART_CONDITIONS,
@@ -45,13 +45,16 @@ type FieldDef = {
   type: FieldType;
   placeholder?: string;
   options?: string[];
+  // For dropdowns whose options depend on another field's value
+  dependsOn?: string;
+  getOptions?: (dependValue: string) => string[];
   required?: boolean;
 };
 
 const CATEGORY_DETAILS: Record<string, FieldDef[]> = {
   Автомобили: [
     { key: "brand", label: "Марка", type: "select", options: CAR_BRANDS, required: true },
-    { key: "model", label: "Модел", type: "text", placeholder: "напр. Golf 7" },
+    { key: "model", label: "Модел", type: "select", dependsOn: "brand", getOptions: getModelsForBrand },
     { key: "year", label: "Година на производство", type: "number", placeholder: "напр. 2018" },
     { key: "fuel", label: "Гориво", type: "select", options: FUEL_TYPES },
     { key: "gearbox", label: "Скоростна кутия", type: "select", options: TRANSMISSION_TYPES },
@@ -165,7 +168,15 @@ function CategoryDetailFields({
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        {fields.map((field) => (
+        {fields.map((field) => {
+          // Resolve options: static list or dynamic based on another field's value
+          const dependValue = field.dependsOn ? (details[field.dependsOn] ?? "") : "";
+          const resolvedOptions = field.getOptions
+            ? field.getOptions(dependValue)
+            : (field.options ?? []);
+          const isDisabledByDep = !!field.dependsOn && !dependValue;
+
+          return (
           <label key={field.key} className="space-y-2">
             <span className="block text-sm font-black text-blue-950">
               {field.label}
@@ -173,14 +184,21 @@ function CategoryDetailFields({
             </span>
 
             {field.type === "select" ? (
-              <SimpleDropdown
-                value={details[field.key] ?? ""}
-                placeholder={`Избери ${field.label.toLowerCase()}`}
-                options={field.options ?? []}
-                isOpen={openKey === field.key}
-                onToggle={() => onToggle(field.key)}
-                onSelect={(v) => onChange(field.key, v)}
-              />
+              isDisabledByDep ? (
+                <div className="flex w-full cursor-not-allowed items-center justify-between rounded-2xl border border-slate-200 bg-slate-100 px-5 py-4 font-bold text-slate-400 shadow-sm">
+                  <span className="text-sm">Първо изберете марка</span>
+                  <ChevronDown className="h-5 w-5 opacity-40" />
+                </div>
+              ) : (
+                <SimpleDropdown
+                  value={details[field.key] ?? ""}
+                  placeholder={`Избери ${field.label.toLowerCase()}`}
+                  options={resolvedOptions}
+                  isOpen={openKey === field.key}
+                  onToggle={() => onToggle(field.key)}
+                  onSelect={(v) => onChange(field.key, v)}
+                />
+              )
             ) : (
               <input
                 value={details[field.key] ?? ""}
@@ -192,7 +210,8 @@ function CategoryDetailFields({
               />
             )}
           </label>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -241,7 +260,15 @@ export default function PublishPage() {
   const resetNotice = () => setNotice(null);
 
   const handleDetailChange = (key: string, value: string) => {
-    setDetails((prev) => ({ ...prev, [key]: value }));
+    setDetails((prev) => {
+      const next = { ...prev, [key]: value };
+      // When brand changes, clear dependent model field
+      const depField = CATEGORY_DETAILS[category]?.find(
+        (f) => f.dependsOn === key
+      );
+      if (depField) next[depField.key] = "";
+      return next;
+    });
     setOpenDetailKey(null);
   };
 

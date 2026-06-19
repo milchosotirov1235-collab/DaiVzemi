@@ -94,6 +94,8 @@ function CustomDropdown({
   isOpen,
   onToggle,
   onSelect,
+  disabled = false,
+  disabledPlaceholder,
 }: {
   value: string;
   placeholder: string;
@@ -101,7 +103,18 @@ function CustomDropdown({
   isOpen: boolean;
   onToggle: () => void;
   onSelect: (value: string) => void;
+  disabled?: boolean;
+  disabledPlaceholder?: string;
 }) {
+  if (disabled) {
+    return (
+      <div className="flex w-full cursor-not-allowed items-center justify-between rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-bold text-slate-400 shadow-sm">
+        <span>{disabledPlaceholder ?? placeholder}</span>
+        <ChevronDown className="h-4 w-4 opacity-40" />
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <button
@@ -226,7 +239,7 @@ function CategoryFilters(p: CategoryFilterProps) {
           options={CAR_BRANDS}
           isOpen={p.openDropdown === "carMake"}
           onToggle={() => p.onToggle("carMake")}
-          onSelect={(v) => { p.onCarMake(v); p.onClose(); }}
+          onSelect={(v) => { p.onCarMake(v); p.onCarModel(""); p.onClose(); }}
         />
         <CustomDropdown
           value={p.carModel}
@@ -235,6 +248,8 @@ function CategoryFilters(p: CategoryFilterProps) {
           isOpen={p.openDropdown === "carModel"}
           onToggle={() => p.onToggle("carModel")}
           onSelect={(v) => { p.onCarModel(v); p.onClose(); }}
+          disabled={!p.carMake}
+          disabledPlaceholder="Първо изберете марка"
         />
         <CustomDropdown
           value={p.fuel}
@@ -299,7 +314,7 @@ function CategoryFilters(p: CategoryFilterProps) {
           options={CAR_BRANDS}
           isOpen={p.openDropdown === "carMake"}
           onToggle={() => p.onToggle("carMake")}
-          onSelect={(v) => { p.onCarMake(v); p.onClose(); }}
+          onSelect={(v) => { p.onCarMake(v); p.onCarModel(""); p.onClose(); }}
         />
         <CustomDropdown
           value={p.carModel}
@@ -308,6 +323,8 @@ function CategoryFilters(p: CategoryFilterProps) {
           isOpen={p.openDropdown === "carModel"}
           onToggle={() => p.onToggle("carModel")}
           onSelect={(v) => { p.onCarModel(v); p.onClose(); }}
+          disabled={!p.carMake}
+          disabledPlaceholder="Първо изберете марка"
         />
         <CustomDropdown
           value={p.partType}
