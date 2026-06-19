@@ -13,7 +13,9 @@ import {
   CONSTRUCTION_TYPES, PROPERTY_CONDITIONS, FLOOR_OPTIONS, PARKING_OPTIONS,
   FUEL_TYPES, TRANSMISSION_TYPES,
   CAR_BODY_TYPES, EURO_STANDARDS, DRIVE_TYPES, CAR_COLORS, CAR_CONDITIONS, VEHICLE_TYPES,
-  AUTO_PART_CATEGORIES, PART_CONDITIONS, ELECTRONICS_SUBCATEGORIES, ITEM_CONDITIONS, SERVICE_TYPES,
+  AUTO_PART_CATEGORIES, PART_CONDITIONS,
+  ELECTRONICS_DEVICE_TYPES, ELECTRONICS_BRANDS, ELECTRONICS_STORAGE_OPTIONS,
+  ELECTRONICS_RAM_OPTIONS, ELECTRONICS_COLORS, ITEM_CONDITIONS, SERVICE_TYPES,
 } from "@/lib/data/categoryData";
 import SearchableSelect from "@/components/SearchableSelect";
 
@@ -199,7 +201,15 @@ type CategoryFilterProps = {
   carColor: string; onCarColor: (v: string) => void;
   carCondition: string; onCarCondition: (v: string) => void;
   partType: string; onPartType: (v: string) => void;
-  // Електроника
+  // Електроника (new props)
+  elDeviceType: string; onElDeviceType: (v: string) => void;
+  elBrand: string; onElBrand: (v: string) => void;
+  elModel: string; onElModel: (v: string) => void;
+  elCondition: string; onElCondition: (v: string) => void;
+  elStorage: string; onElStorage: (v: string) => void;
+  elRam: string; onElRam: (v: string) => void;
+  elColor: string; onElColor: (v: string) => void;
+  // Авточасти (condition still shared)
   electronicsSubcat: string; onElectronicsSubcat: (v: string) => void;
   condition: string; onCondition: (v: string) => void;
   brand: string; onBrand: (v: string) => void;
@@ -368,25 +378,28 @@ function CategoryFilters(p: CategoryFilterProps) {
 
   if (p.category === "Електроника") {
     return (
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <SearchableSelect
-          value={p.electronicsSubcat}
-          onChange={p.onElectronicsSubcat}
-          options={ELECTRONICS_SUBCATEGORIES}
-          placeholder="Подкатегория"
-        />
-        <input
-          value={p.brand}
-          onChange={(e) => p.onBrand(e.target.value)}
-          placeholder="Марка"
-          className={field}
-        />
-        <SearchableSelect
-          value={p.condition}
-          onChange={p.onCondition}
-          options={ITEM_CONDITIONS}
-          placeholder="Състояние"
-        />
+      <div className="mt-4 space-y-3">
+        {/* Row 1 — Device type + Brand + Model + Condition */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <SearchableSelect value={p.elDeviceType} onChange={p.onElDeviceType}
+            options={ELECTRONICS_DEVICE_TYPES} placeholder="Тип устройство" />
+          <SearchableSelect value={p.elBrand} onChange={p.onElBrand}
+            options={ELECTRONICS_BRANDS} placeholder="Марка" />
+          <input value={p.elModel} onChange={(e) => p.onElModel(e.target.value)}
+            placeholder="Модел (напр. Galaxy S24)" className={field} />
+          <SearchableSelect value={p.elCondition} onChange={p.onElCondition}
+            options={ITEM_CONDITIONS} placeholder="Състояние" />
+        </div>
+
+        {/* Row 2 — Storage + RAM + Color */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <SearchableSelect value={p.elStorage} onChange={p.onElStorage}
+            options={ELECTRONICS_STORAGE_OPTIONS} placeholder="Памет" />
+          <SearchableSelect value={p.elRam} onChange={p.onElRam}
+            options={ELECTRONICS_RAM_OPTIONS} placeholder="RAM" />
+          <SearchableSelect value={p.elColor} onChange={p.onElColor}
+            options={ELECTRONICS_COLORS} placeholder="Цвят" />
+        </div>
       </div>
     );
   }
@@ -490,7 +503,15 @@ function ListingsPageContent() {
   const [carCondition, setCarCondition] = useState(searchParams.get("carCondition") ?? "");
   const [partType, setPartType] = useState(searchParams.get("partType") ?? "");
 
-  // Category-specific filters — Електроника
+  // Category-specific filters — Електроника (new)
+  const [elDeviceType, setElDeviceType] = useState(searchParams.get("elDeviceType") ?? "");
+  const [elBrand, setElBrand] = useState(searchParams.get("elBrand") ?? "");
+  const [elModel, setElModel] = useState(searchParams.get("elModel") ?? "");
+  const [elCondition, setElCondition] = useState(searchParams.get("elCondition") ?? "");
+  const [elStorage, setElStorage] = useState(searchParams.get("elStorage") ?? "");
+  const [elRam, setElRam] = useState(searchParams.get("elRam") ?? "");
+  const [elColor, setElColor] = useState(searchParams.get("elColor") ?? "");
+  // Legacy — kept for backward compat with old saved searches and Авточасти
   const [electronicsSubcat, setElectronicsSubcat] = useState(searchParams.get("electronicsSubcat") ?? "");
   const [condition, setCondition] = useState(searchParams.get("condition") ?? "");
   const [brand, setBrand] = useState(searchParams.get("brand") ?? "");
@@ -544,6 +565,14 @@ function ListingsPageContent() {
   const urlCarColor = searchParams.get("carColor") ?? "";
   const urlCarCondition = searchParams.get("carCondition") ?? "";
   const urlPartType = searchParams.get("partType") ?? "";
+  const urlElDeviceType = searchParams.get("elDeviceType") ?? "";
+  const urlElBrand = searchParams.get("elBrand") ?? "";
+  const urlElModel = searchParams.get("elModel") ?? "";
+  const urlElCondition = searchParams.get("elCondition") ?? "";
+  const urlElStorage = searchParams.get("elStorage") ?? "";
+  const urlElRam = searchParams.get("elRam") ?? "";
+  const urlElColor = searchParams.get("elColor") ?? "";
+  // Legacy params (still read for backward compat)
   const urlElectronicsSubcat = searchParams.get("electronicsSubcat") ?? "";
   const urlCondition = searchParams.get("condition") ?? "";
   const urlBrand = searchParams.get("brand") ?? "";
@@ -587,6 +616,13 @@ function ListingsPageContent() {
     urlCarColor.length > 0 ||
     urlCarCondition.length > 0 ||
     urlPartType.length > 0 ||
+    urlElDeviceType.length > 0 ||
+    urlElBrand.length > 0 ||
+    urlElModel.length > 0 ||
+    urlElCondition.length > 0 ||
+    urlElStorage.length > 0 ||
+    urlElRam.length > 0 ||
+    urlElColor.length > 0 ||
     urlElectronicsSubcat.length > 0 ||
     urlCondition.length > 0 ||
     urlBrand.length > 0 ||
@@ -627,6 +663,13 @@ function ListingsPageContent() {
     setCarColor(searchParams.get("carColor") ?? "");
     setCarCondition(searchParams.get("carCondition") ?? "");
     setPartType(searchParams.get("partType") ?? "");
+    setElDeviceType(searchParams.get("elDeviceType") ?? "");
+    setElBrand(searchParams.get("elBrand") ?? "");
+    setElModel(searchParams.get("elModel") ?? "");
+    setElCondition(searchParams.get("elCondition") ?? "");
+    setElStorage(searchParams.get("elStorage") ?? "");
+    setElRam(searchParams.get("elRam") ?? "");
+    setElColor(searchParams.get("elColor") ?? "");
     setElectronicsSubcat(searchParams.get("electronicsSubcat") ?? "");
     setCondition(searchParams.get("condition") ?? "");
     setBrand(searchParams.get("brand") ?? "");
@@ -682,9 +725,14 @@ function ListingsPageContent() {
     if (carColor) params.set("carColor", carColor);
     if (carCondition) params.set("carCondition", carCondition);
     if (partType) params.set("partType", partType);
-    if (electronicsSubcat) params.set("electronicsSubcat", electronicsSubcat);
+    if (elDeviceType) params.set("elDeviceType", elDeviceType);
+    if (elBrand) params.set("elBrand", elBrand);
+    if (elModel.trim()) params.set("elModel", elModel.trim());
+    if (elCondition) params.set("elCondition", elCondition);
+    if (elStorage) params.set("elStorage", elStorage);
+    if (elRam) params.set("elRam", elRam);
+    if (elColor) params.set("elColor", elColor);
     if (condition) params.set("condition", condition);
-    if (brand.trim()) params.set("brand", brand.trim());
     if (serviceType) params.set("serviceType", serviceType);
 
     router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
@@ -738,9 +786,14 @@ function ListingsPageContent() {
     if (urlCarColor) filters.carColor = urlCarColor;
     if (urlCarCondition) filters.carCondition = urlCarCondition;
     if (urlPartType) filters.partType = urlPartType;
-    if (urlElectronicsSubcat) filters.electronicsSubcat = urlElectronicsSubcat;
+    if (urlElDeviceType) filters.elDeviceType = urlElDeviceType;
+    if (urlElBrand) filters.elBrand = urlElBrand;
+    if (urlElModel) filters.elModel = urlElModel;
+    if (urlElCondition) filters.elCondition = urlElCondition;
+    if (urlElStorage) filters.elStorage = urlElStorage;
+    if (urlElRam) filters.elRam = urlElRam;
+    if (urlElColor) filters.elColor = urlElColor;
     if (urlCondition) filters.condition = urlCondition;
-    if (urlBrand) filters.brand = urlBrand;
     if (urlServiceType) filters.serviceType = urlServiceType;
 
     // Check for duplicate (same user + same key params)
@@ -792,7 +845,10 @@ function ListingsPageContent() {
     setFuel(""); setTransmission(""); setMileageFrom(""); setMileageTo("");
     setEngineSizeFrom(""); setEngineSizeTo(""); setPowerFrom(""); setPowerTo("");
     setEuroStandard(""); setBodyType(""); setDriveType(""); setCarColor(""); setCarCondition("");
-    setPartType(""); setElectronicsSubcat(""); setCondition(""); setBrand("");
+    setPartType("");
+    setElDeviceType(""); setElBrand(""); setElModel(""); setElCondition("");
+    setElStorage(""); setElRam(""); setElColor("");
+    setElectronicsSubcat(""); setCondition(""); setBrand("");
     setServiceType("");
     setOpenDropdown(null);
     router.push("/listings");
@@ -932,10 +988,19 @@ function ListingsPageContent() {
         if (urlCarCondition && d.condition !== urlCarCondition) return false;
         if (urlPartType && l.part_type !== urlPartType) return false;
 
-        // Електроника
+        // Електроника — check details JSONB for new listings, old columns for legacy
+        if (urlElDeviceType) {
+          if (d.device_type !== urlElDeviceType && l.electronics_subcategory !== urlElDeviceType) return false;
+        }
+        if (urlElBrand && d.brand !== urlElBrand) return false;
+        if (urlElModel && !d.model?.toLowerCase().includes(urlElModel.toLowerCase())) return false;
+        if (urlElCondition && d.condition !== urlElCondition) return false;
+        if (urlElStorage && d.storage !== urlElStorage) return false;
+        if (urlElRam && d.ram !== urlElRam) return false;
+        if (urlElColor && d.color !== urlElColor) return false;
+        // Legacy params (old saved searches)
         if (urlElectronicsSubcat && l.electronics_subcategory !== urlElectronicsSubcat) return false;
         if (urlCondition && l.condition !== urlCondition) return false;
-        if (urlBrand && !l.car_make?.toLowerCase().includes(urlBrand.toLowerCase())) return false;
 
         // Услуги
         if (urlServiceType && l.service_type !== urlServiceType) return false;
@@ -955,7 +1020,8 @@ function ListingsPageContent() {
     urlVehicleType, urlCarMake, urlCarModel, urlYearFrom, urlYearTo, urlFuel, urlTransmission,
     urlMileageFrom, urlMileageTo, urlEngineSizeFrom, urlEngineSizeTo, urlPowerFrom, urlPowerTo,
     urlEuroStandard, urlBodyType, urlDriveType, urlCarColor, urlCarCondition, urlPartType,
-    urlElectronicsSubcat, urlCondition, urlBrand,
+    urlElDeviceType, urlElBrand, urlElModel, urlElCondition, urlElStorage, urlElRam, urlElColor,
+    urlElectronicsSubcat, urlCondition,
     urlServiceType,
   ]);
 
@@ -1128,6 +1194,13 @@ function ListingsPageContent() {
                 carColor={carColor} onCarColor={setCarColor}
                 carCondition={carCondition} onCarCondition={setCarCondition}
                 partType={partType} onPartType={setPartType}
+                elDeviceType={elDeviceType} onElDeviceType={setElDeviceType}
+                elBrand={elBrand} onElBrand={setElBrand}
+                elModel={elModel} onElModel={setElModel}
+                elCondition={elCondition} onElCondition={setElCondition}
+                elStorage={elStorage} onElStorage={setElStorage}
+                elRam={elRam} onElRam={setElRam}
+                elColor={elColor} onElColor={setElColor}
                 electronicsSubcat={electronicsSubcat} onElectronicsSubcat={setElectronicsSubcat}
                 condition={condition} onCondition={setCondition}
                 brand={brand} onBrand={setBrand}
@@ -1177,9 +1250,14 @@ function ListingsPageContent() {
                 { label: urlCarColor, key: "carColor" },
                 { label: urlCarCondition, key: "carCondition" },
                 { label: urlPartType, key: "partType" },
-                { label: urlElectronicsSubcat, key: "electronicsSubcat" },
+                { label: urlElDeviceType, key: "elDeviceType" },
+                { label: urlElBrand, key: "elBrand" },
+                { label: urlElModel, key: "elModel" },
+                { label: urlElCondition, key: "elCondition" },
+                { label: urlElStorage, key: "elStorage" },
+                { label: urlElRam ? `RAM: ${urlElRam}` : "", key: "elRam" },
+                { label: urlElColor, key: "elColor" },
                 { label: urlCondition, key: "condition" },
-                { label: urlBrand, key: "brand" },
                 { label: urlServiceType, key: "serviceType" },
               ]
                 .filter((chip) => chip.label.trim().length > 0)

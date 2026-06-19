@@ -13,7 +13,8 @@ import {
   FUEL_TYPES, TRANSMISSION_TYPES, CAR_BODY_TYPES, EURO_STANDARDS,
   DRIVE_TYPES, CAR_COLORS, CAR_CONDITIONS, VEHICLE_TYPES,
   AUTO_PART_CATEGORIES, PART_CONDITIONS,
-  ELECTRONICS_SUBCATEGORIES, ELECTRONICS_BRANDS, ITEM_CONDITIONS,
+  ELECTRONICS_DEVICE_TYPES, ELECTRONICS_BRANDS, ELECTRONICS_STORAGE_OPTIONS,
+  ELECTRONICS_RAM_OPTIONS, ELECTRONICS_COLORS, ITEM_CONDITIONS,
 } from "@/lib/data/categoryData";
 
 // ---------------------------------------------------------------------------
@@ -86,10 +87,13 @@ const CATEGORY_DETAILS: Record<string, FieldDef[]> = {
     { key: "parking",            label: "Паркиране",        type: "select", options: PARKING_OPTIONS },
   ],
   Електроника: [
-    { key: "device_type", label: "Вид устройство", type: "select", options: ELECTRONICS_SUBCATEGORIES, required: true },
-    { key: "brand", label: "Марка", type: "select", options: ELECTRONICS_BRANDS },
-    { key: "model", label: "Модел", type: "text", placeholder: "напр. Galaxy S24" },
-    { key: "condition", label: "Състояние", type: "select", options: ITEM_CONDITIONS },
+    { key: "device_type", label: "Тип устройство",  type: "select", options: ELECTRONICS_DEVICE_TYPES, required: true },
+    { key: "brand",       label: "Марка",            type: "select", options: ELECTRONICS_BRANDS },
+    { key: "model",       label: "Модел",            type: "text",   placeholder: "напр. Galaxy S24" },
+    { key: "condition",   label: "Състояние",        type: "select", options: ITEM_CONDITIONS },
+    { key: "storage",     label: "Памет",            type: "select", options: ELECTRONICS_STORAGE_OPTIONS },
+    { key: "ram",         label: "RAM",              type: "select", options: ELECTRONICS_RAM_OPTIONS },
+    { key: "color",       label: "Цвят",             type: "select", options: ELECTRONICS_COLORS },
   ],
   Авточасти: [
     { key: "car_brand", label: "Марка на автомобила", type: "select", options: ORDERED_CAR_BRANDS },

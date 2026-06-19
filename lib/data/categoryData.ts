@@ -203,52 +203,76 @@ export const PART_CONDITIONS: string[] = [
 // Електроника (Electronics)
 // ---------------------------------------------------------------------------
 
-export const ELECTRONICS_SUBCATEGORIES: string[] = [
-  "Телефони и таблети",
-  "Лаптопи и компютри",
-  "ТВ и монитори",
-  "Аудио и HI-FI",
-  "Фото и видео",
-  "Игри и конзоли",
-  "Малки електроуреди",
-  "Компоненти и части",
-  "Мрежи и сървъри",
-  "Носители и аксесоари",
-  "Друго",
+export const ELECTRONICS_DEVICE_TYPES: string[] = [
+  "Телефони",
+  "Таблети",
+  "Лаптопи",
+  "Компютри",
+  "Монитори",
+  "Телевизори",
+  "Конзоли",
+  "Фотоапарати",
+  "Смарт часовници",
+  "Аксесоари",
 ];
+
+// Legacy alias — kept for backward compatibility with old listings
+export const ELECTRONICS_SUBCATEGORIES = ELECTRONICS_DEVICE_TYPES;
 
 export const ELECTRONICS_BRANDS: string[] = [
   "Apple",
   "Samsung",
-  "Sony",
-  "LG",
   "Xiaomi",
   "Huawei",
-  "ASUS",
-  "Dell",
-  "HP",
-  "Lenovo",
-  "Acer",
-  "Microsoft",
+  "Honor",
   "OnePlus",
   "Google",
-  "Philips",
-  "Panasonic",
-  "Sharp",
-  "TCL",
-  "Hisense",
+  "Sony",
+  "LG",
+  "Lenovo",
+  "HP",
+  "Dell",
+  "Asus",
+  "Acer",
+  "MSI",
+  "Nintendo",
+  "Microsoft",
+  "PlayStation",
   "Canon",
   "Nikon",
   "Fujifilm",
   "GoPro",
   "DJI",
-  "Nintendo",
-  "PlayStation (Sony)",
-  "Xbox (Microsoft)",
-  "Bose",
   "JBL",
+  "Bose",
   "Sennheiser",
+  "Philips",
+  "Panasonic",
+  "Sharp",
+  "TCL",
+  "Hisense",
+  "Motorola",
+  "Nokia",
+  "Realme",
+  "Oppo",
+  "Vivo",
+  "Razer",
+  "Logitech",
+  "HTC",
   "Друга",
+];
+
+export const ELECTRONICS_STORAGE_OPTIONS: string[] = [
+  "16 GB", "32 GB", "64 GB", "128 GB", "256 GB", "512 GB", "1 TB", "2 TB",
+];
+
+export const ELECTRONICS_RAM_OPTIONS: string[] = [
+  "2 GB", "3 GB", "4 GB", "6 GB", "8 GB", "12 GB", "16 GB", "24 GB", "32 GB", "64 GB",
+];
+
+export const ELECTRONICS_COLORS: string[] = [
+  "Черен", "Бял", "Сребрист", "Сив", "Златист", "Розов",
+  "Виолетов", "Зелен", "Син", "Оранжев", "Червен", "Жълт", "Друг",
 ];
 
 export const ITEM_CONDITIONS: string[] = [
