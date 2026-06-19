@@ -9,7 +9,9 @@ import { supabase } from "@/lib/supabaseClient";
 import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
   BG_CITIES,
-  PROPERTY_TYPES, ROOM_OPTIONS, FUEL_TYPES, TRANSMISSION_TYPES,
+  PROPERTY_PURPOSES, PROPERTY_TYPES, ROOM_OPTIONS, FURNISHING_OPTIONS, HEATING_OPTIONS,
+  CONSTRUCTION_TYPES, PROPERTY_CONDITIONS, FLOOR_OPTIONS, PARKING_OPTIONS,
+  FUEL_TYPES, TRANSMISSION_TYPES,
   CAR_BODY_TYPES, EURO_STANDARDS, DRIVE_TYPES, CAR_COLORS, CAR_CONDITIONS, VEHICLE_TYPES,
   AUTO_PART_CATEGORIES, PART_CONDITIONS, ELECTRONICS_SUBCATEGORIES, ITEM_CONDITIONS, SERVICE_TYPES,
 } from "@/lib/data/categoryData";
@@ -165,10 +167,18 @@ function CustomDropdown({
 type CategoryFilterProps = {
   category: string;
   // Имоти
+  propertyPurpose: string; onPropertyPurpose: (v: string) => void;
   propertyType: string; onPropertyType: (v: string) => void;
   rooms: string; onRooms: (v: string) => void;
+  floor: string; onFloor: (v: string) => void;
   sqmMin: string; onSqmMin: (v: string) => void;
   sqmMax: string; onSqmMax: (v: string) => void;
+  furnished: string; onFurnished: (v: string) => void;
+  heating: string; onHeating: (v: string) => void;
+  constructionType: string; onConstructionType: (v: string) => void;
+  propertyCondition: string; onPropertyCondition: (v: string) => void;
+  elevator: string; onElevator: (v: string) => void;
+  parking: string; onParking: (v: string) => void;
   // Автомобили / Авточасти
   vehicleType: string; onVehicleType: (v: string) => void;
   carMake: string; onCarMake: (v: string) => void;
@@ -203,35 +213,46 @@ function CategoryFilters(p: CategoryFilterProps) {
 
   if (p.category === "Имоти") {
     return (
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <SearchableSelect
-          value={p.propertyType}
-          onChange={p.onPropertyType}
-          options={PROPERTY_TYPES}
-          placeholder="Тип имот"
-        />
-        <SearchableSelect
-          value={p.rooms}
-          onChange={p.onRooms}
-          options={ROOM_OPTIONS}
-          placeholder="Стаи"
-        />
-        <input
-          value={p.sqmMin}
-          onChange={(e) => p.onSqmMin(e.target.value)}
-          placeholder="Кв.м. от"
-          type="number"
-          min="0"
-          className={field}
-        />
-        <input
-          value={p.sqmMax}
-          onChange={(e) => p.onSqmMax(e.target.value)}
-          placeholder="Кв.м. до"
-          type="number"
-          min="0"
-          className={field}
-        />
+      <div className="mt-4 space-y-3">
+        {/* Row 1 — Purpose + Type + Rooms + Floor */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <SearchableSelect value={p.propertyPurpose} onChange={p.onPropertyPurpose}
+            options={PROPERTY_PURPOSES} placeholder="Предназначение" />
+          <SearchableSelect value={p.propertyType} onChange={p.onPropertyType}
+            options={PROPERTY_TYPES} placeholder="Тип имот" />
+          <SearchableSelect value={p.rooms} onChange={p.onRooms}
+            options={ROOM_OPTIONS} placeholder="Стаи" />
+          <SearchableSelect value={p.floor} onChange={p.onFloor}
+            options={FLOOR_OPTIONS} placeholder="Етаж" />
+        </div>
+
+        {/* Row 2 — Sqm range */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <input value={p.sqmMin} onChange={(e) => p.onSqmMin(e.target.value)}
+            placeholder="Кв.м. от" type="number" min="0" className={field} />
+          <input value={p.sqmMax} onChange={(e) => p.onSqmMax(e.target.value)}
+            placeholder="Кв.м. до" type="number" min="0" className={field} />
+        </div>
+
+        {/* Row 3 — Furnished + Heating + Construction + Condition */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <SearchableSelect value={p.furnished} onChange={p.onFurnished}
+            options={FURNISHING_OPTIONS} placeholder="Обзавеждане" />
+          <SearchableSelect value={p.heating} onChange={p.onHeating}
+            options={HEATING_OPTIONS} placeholder="Отопление" />
+          <SearchableSelect value={p.constructionType} onChange={p.onConstructionType}
+            options={CONSTRUCTION_TYPES} placeholder="Строителство" />
+          <SearchableSelect value={p.propertyCondition} onChange={p.onPropertyCondition}
+            options={PROPERTY_CONDITIONS} placeholder="Състояние" />
+        </div>
+
+        {/* Row 4 — Elevator + Parking */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <SearchableSelect value={p.elevator} onChange={p.onElevator}
+            options={["Да", "Не"]} placeholder="Асансьор" />
+          <SearchableSelect value={p.parking} onChange={p.onParking}
+            options={PARKING_OPTIONS} placeholder="Паркиране" />
+        </div>
       </div>
     );
   }
@@ -435,10 +456,18 @@ function ListingsPageContent() {
   const [maxPriceInput, setMaxPriceInput] = useState(searchParams.get("maxPrice") ?? "");
 
   // Category-specific filters — Имоти
+  const [propertyPurpose, setPropertyPurpose] = useState(searchParams.get("propertyPurpose") ?? "");
   const [propertyType, setPropertyType] = useState(searchParams.get("propertyType") ?? "");
   const [rooms, setRooms] = useState(searchParams.get("rooms") ?? "");
+  const [floor, setFloor] = useState(searchParams.get("floor") ?? "");
   const [sqmMin, setSqmMin] = useState(searchParams.get("sqmMin") ?? "");
   const [sqmMax, setSqmMax] = useState(searchParams.get("sqmMax") ?? "");
+  const [furnished, setFurnished] = useState(searchParams.get("furnished") ?? "");
+  const [heating, setHeating] = useState(searchParams.get("heating") ?? "");
+  const [constructionType, setConstructionType] = useState(searchParams.get("constructionType") ?? "");
+  const [propertyCondition, setPropertyCondition] = useState(searchParams.get("propertyCondition") ?? "");
+  const [elevator, setElevator] = useState(searchParams.get("elevator") ?? "");
+  const [parking, setParking] = useState(searchParams.get("parking") ?? "");
 
   // Category-specific filters — Автомобили / Авточасти
   const [vehicleType, setVehicleType] = useState(searchParams.get("vehicleType") ?? "");
@@ -484,10 +513,18 @@ function ListingsPageContent() {
   const minPrice = searchParams.get("minPrice") ?? "";
   const maxPrice = searchParams.get("maxPrice") ?? "";
 
+  const urlPropertyPurpose = searchParams.get("propertyPurpose") ?? "";
   const urlPropertyType = searchParams.get("propertyType") ?? "";
   const urlRooms = searchParams.get("rooms") ?? "";
+  const urlFloor = searchParams.get("floor") ?? "";
   const urlSqmMin = searchParams.get("sqmMin") ?? "";
   const urlSqmMax = searchParams.get("sqmMax") ?? "";
+  const urlFurnished = searchParams.get("furnished") ?? "";
+  const urlHeating = searchParams.get("heating") ?? "";
+  const urlConstructionType = searchParams.get("constructionType") ?? "";
+  const urlPropertyCondition = searchParams.get("propertyCondition") ?? "";
+  const urlElevator = searchParams.get("elevator") ?? "";
+  const urlParking = searchParams.get("parking") ?? "";
   const urlVehicleType = searchParams.get("vehicleType") ?? "";
   const urlCarMake = searchParams.get("carMake") ?? "";
   const urlCarModel = searchParams.get("carModel") ?? "";
@@ -519,10 +556,18 @@ function ListingsPageContent() {
     type.trim().length > 0 ||
     minPrice.trim().length > 0 ||
     maxPrice.trim().length > 0 ||
+    urlPropertyPurpose.length > 0 ||
     urlPropertyType.length > 0 ||
     urlRooms.length > 0 ||
+    urlFloor.length > 0 ||
     urlSqmMin.length > 0 ||
     urlSqmMax.length > 0 ||
+    urlFurnished.length > 0 ||
+    urlHeating.length > 0 ||
+    urlConstructionType.length > 0 ||
+    urlPropertyCondition.length > 0 ||
+    urlElevator.length > 0 ||
+    urlParking.length > 0 ||
     urlVehicleType.length > 0 ||
     urlCarMake.length > 0 ||
     urlCarModel.length > 0 ||
@@ -551,10 +596,18 @@ function ListingsPageContent() {
 
   // Sync local state when category changes (clear category-specific fields)
   useEffect(() => {
+    setPropertyPurpose(searchParams.get("propertyPurpose") ?? "");
     setPropertyType(searchParams.get("propertyType") ?? "");
     setRooms(searchParams.get("rooms") ?? "");
+    setFloor(searchParams.get("floor") ?? "");
     setSqmMin(searchParams.get("sqmMin") ?? "");
     setSqmMax(searchParams.get("sqmMax") ?? "");
+    setFurnished(searchParams.get("furnished") ?? "");
+    setHeating(searchParams.get("heating") ?? "");
+    setConstructionType(searchParams.get("constructionType") ?? "");
+    setPropertyCondition(searchParams.get("propertyCondition") ?? "");
+    setElevator(searchParams.get("elevator") ?? "");
+    setParking(searchParams.get("parking") ?? "");
     setVehicleType(searchParams.get("vehicleType") ?? "");
     setCarMake(searchParams.get("carMake") ?? "");
     setCarModel(searchParams.get("carModel") ?? "");
@@ -598,10 +651,18 @@ function ListingsPageContent() {
     if (maxPriceInput.trim()) params.set("maxPrice", maxPriceInput.trim());
 
     // Category-specific
+    if (propertyPurpose) params.set("propertyPurpose", propertyPurpose);
     if (propertyType) params.set("propertyType", propertyType);
     if (rooms) params.set("rooms", rooms);
+    if (floor) params.set("floor", floor);
     if (sqmMin.trim()) params.set("sqmMin", sqmMin.trim());
     if (sqmMax.trim()) params.set("sqmMax", sqmMax.trim());
+    if (furnished) params.set("furnished", furnished);
+    if (heating) params.set("heating", heating);
+    if (constructionType) params.set("constructionType", constructionType);
+    if (propertyCondition) params.set("propertyCondition", propertyCondition);
+    if (elevator) params.set("elevator", elevator);
+    if (parking) params.set("parking", parking);
     if (vehicleType) params.set("vehicleType", vehicleType);
     if (carMake) params.set("carMake", carMake);
     if (carModel.trim()) params.set("carModel", carModel.trim());
@@ -646,10 +707,18 @@ function ListingsPageContent() {
     const filters: Record<string, string> = {};
     if (minPrice) filters.minPrice = minPrice;
     if (maxPrice) filters.maxPrice = maxPrice;
+    if (urlPropertyPurpose) filters.propertyPurpose = urlPropertyPurpose;
     if (urlPropertyType) filters.propertyType = urlPropertyType;
     if (urlRooms) filters.rooms = urlRooms;
+    if (urlFloor) filters.floor = urlFloor;
     if (urlSqmMin) filters.sqmMin = urlSqmMin;
     if (urlSqmMax) filters.sqmMax = urlSqmMax;
+    if (urlFurnished) filters.furnished = urlFurnished;
+    if (urlHeating) filters.heating = urlHeating;
+    if (urlConstructionType) filters.constructionType = urlConstructionType;
+    if (urlPropertyCondition) filters.propertyCondition = urlPropertyCondition;
+    if (urlElevator) filters.elevator = urlElevator;
+    if (urlParking) filters.parking = urlParking;
     if (urlVehicleType) filters.vehicleType = urlVehicleType;
     if (urlCarMake) filters.carMake = urlCarMake;
     if (urlCarModel) filters.carModel = urlCarModel;
@@ -714,7 +783,10 @@ function ListingsPageContent() {
   const clearFilters = () => {
     setSearchInput(""); setCityInput(""); setCategoryInput("");
     setTypeInput(""); setMinPriceInput(""); setMaxPriceInput("");
-    setPropertyType(""); setRooms(""); setSqmMin(""); setSqmMax("");
+    setPropertyPurpose(""); setPropertyType(""); setRooms(""); setFloor("");
+    setSqmMin(""); setSqmMax("");
+    setFurnished(""); setHeating(""); setConstructionType(""); setPropertyCondition("");
+    setElevator(""); setParking("");
     setVehicleType("");
     setCarMake(""); setCarModel(""); setYearFrom(""); setYearTo("");
     setFuel(""); setTransmission(""); setMileageFrom(""); setMileageTo("");
@@ -771,19 +843,36 @@ function ListingsPageContent() {
           if (Number.isFinite(max) && (numericPrice === null || numericPrice > max)) return false;
         }
 
-        // Имоти
-        if (urlPropertyType && l.property_type !== urlPropertyType) return false;
-        if (urlRooms && l.rooms !== urlRooms) return false;
-        if (urlSqmMin && l.area_sqm !== null && l.area_sqm !== undefined) {
-          if (l.area_sqm < Number(urlSqmMin)) return false;
+        // details JSONB (shared by all category checks below)
+        const d = (l.details ?? {}) as Record<string, string>;
+
+        // Имоти — check details JSONB first, fall back to old dedicated columns
+
+        if (urlPropertyPurpose && d.property_purpose !== urlPropertyPurpose) return false;
+        if (urlPropertyType) {
+          if (d.property_type !== urlPropertyType && l.property_type !== urlPropertyType) return false;
         }
-        if (urlSqmMax && l.area_sqm !== null && l.area_sqm !== undefined) {
-          if (l.area_sqm > Number(urlSqmMax)) return false;
+        if (urlRooms) {
+          if (d.rooms !== urlRooms && l.rooms !== urlRooms) return false;
         }
+        if (urlFloor && d.floor !== urlFloor) return false;
+        if (urlSqmMin) {
+          const area = Number(d.area ?? l.area_sqm);
+          if (Number.isFinite(area) && area < Number(urlSqmMin)) return false;
+        }
+        if (urlSqmMax) {
+          const area = Number(d.area ?? l.area_sqm);
+          if (Number.isFinite(area) && area > Number(urlSqmMax)) return false;
+        }
+        if (urlFurnished && d.furnished !== urlFurnished) return false;
+        if (urlHeating && d.heating !== urlHeating) return false;
+        if (urlConstructionType && d.construction_type !== urlConstructionType) return false;
+        if (urlPropertyCondition && d.property_condition !== urlPropertyCondition) return false;
+        if (urlElevator && d.elevator !== urlElevator) return false;
+        if (urlParking && d.parking !== urlParking) return false;
 
         // Автомобили / Авточасти
         // Check both old dedicated columns (legacy) and new details JSONB (current)
-        const d = (l.details ?? {}) as Record<string, string>;
 
         if (urlVehicleType && d.vehicle_type !== urlVehicleType) return false;
 
@@ -861,7 +950,8 @@ function ListingsPageContent() {
     loadListings();
   }, [
     search, city, category, type, minPrice, maxPrice,
-    urlPropertyType, urlRooms, urlSqmMin, urlSqmMax,
+    urlPropertyPurpose, urlPropertyType, urlRooms, urlFloor, urlSqmMin, urlSqmMax,
+    urlFurnished, urlHeating, urlConstructionType, urlPropertyCondition, urlElevator, urlParking,
     urlVehicleType, urlCarMake, urlCarModel, urlYearFrom, urlYearTo, urlFuel, urlTransmission,
     urlMileageFrom, urlMileageTo, urlEngineSizeFrom, urlEngineSizeTo, urlPowerFrom, urlPowerTo,
     urlEuroStandard, urlBodyType, urlDriveType, urlCarColor, urlCarCondition, urlPartType,
@@ -1007,10 +1097,18 @@ function ListingsPageContent() {
               </div>
               <CategoryFilters
                 category={category}
+                propertyPurpose={propertyPurpose} onPropertyPurpose={setPropertyPurpose}
                 propertyType={propertyType} onPropertyType={setPropertyType}
                 rooms={rooms} onRooms={setRooms}
+                floor={floor} onFloor={setFloor}
                 sqmMin={sqmMin} onSqmMin={setSqmMin}
                 sqmMax={sqmMax} onSqmMax={setSqmMax}
+                furnished={furnished} onFurnished={setFurnished}
+                heating={heating} onHeating={setHeating}
+                constructionType={constructionType} onConstructionType={setConstructionType}
+                propertyCondition={propertyCondition} onPropertyCondition={setPropertyCondition}
+                elevator={elevator} onElevator={setElevator}
+                parking={parking} onParking={setParking}
                 vehicleType={vehicleType} onVehicleType={setVehicleType}
                 carMake={carMake} onCarMake={setCarMake}
                 carModel={carModel} onCarModel={setCarModel}
@@ -1048,10 +1146,18 @@ function ListingsPageContent() {
                 { label: type, key: "type" },
                 { label: minPrice ? `от ${minPrice} €` : "", key: "minPrice" },
                 { label: maxPrice ? `до ${maxPrice} €` : "", key: "maxPrice" },
+                { label: urlPropertyPurpose, key: "propertyPurpose" },
                 { label: urlPropertyType, key: "propertyType" },
                 { label: urlRooms, key: "rooms" },
+                { label: urlFloor ? `Ет. ${urlFloor}` : "", key: "floor" },
                 { label: urlSqmMin ? `от ${urlSqmMin} кв.м.` : "", key: "sqmMin" },
                 { label: urlSqmMax ? `до ${urlSqmMax} кв.м.` : "", key: "sqmMax" },
+                { label: urlFurnished, key: "furnished" },
+                { label: urlHeating, key: "heating" },
+                { label: urlConstructionType, key: "constructionType" },
+                { label: urlPropertyCondition, key: "propertyCondition" },
+                { label: urlElevator ? `Асансьор: ${urlElevator}` : "", key: "elevator" },
+                { label: urlParking, key: "parking" },
                 { label: urlVehicleType, key: "vehicleType" },
                 { label: urlCarMake, key: "carMake" },
                 { label: urlCarModel, key: "carModel" },

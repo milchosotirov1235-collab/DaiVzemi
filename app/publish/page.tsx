@@ -8,7 +8,8 @@ import SearchableSelect from "@/components/SearchableSelect";
 import { BG_CITIES } from "@/lib/data/cities";
 import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
-  PROPERTY_TYPES, ROOM_OPTIONS, FURNISHING_OPTIONS, HEATING_OPTIONS,
+  PROPERTY_PURPOSES, PROPERTY_TYPES, ROOM_OPTIONS, FURNISHING_OPTIONS, HEATING_OPTIONS,
+  CONSTRUCTION_TYPES, PROPERTY_CONDITIONS, FLOOR_OPTIONS, PARKING_OPTIONS,
   FUEL_TYPES, TRANSMISSION_TYPES, CAR_BODY_TYPES, EURO_STANDARDS,
   DRIVE_TYPES, CAR_COLORS, CAR_CONDITIONS, VEHICLE_TYPES,
   AUTO_PART_CATEGORIES, PART_CONDITIONS,
@@ -72,12 +73,17 @@ const CATEGORY_DETAILS: Record<string, FieldDef[]> = {
     { key: "condition",    label: "Състояние",             type: "select", options: CAR_CONDITIONS },
   ],
   Имоти: [
-    { key: "property_type", label: "Тип имот", type: "select", options: PROPERTY_TYPES, required: true },
-    { key: "area", label: "Площ (кв.м.)", type: "number", placeholder: "напр. 80" },
-    { key: "rooms", label: "Стаи", type: "select", options: ROOM_OPTIONS },
-    { key: "floor", label: "Етаж", type: "text", placeholder: "напр. 3 от 5" },
-    { key: "furnished", label: "Обзавеждане", type: "select", options: FURNISHING_OPTIONS },
-    { key: "heating", label: "Отопление", type: "select", options: HEATING_OPTIONS },
+    { key: "property_purpose",   label: "Предназначение",   type: "select", options: PROPERTY_PURPOSES, required: true },
+    { key: "property_type",      label: "Тип имот",         type: "select", options: PROPERTY_TYPES, required: true },
+    { key: "area",               label: "Площ (кв.м.)",     type: "number", placeholder: "напр. 80" },
+    { key: "rooms",              label: "Стаи",             type: "select", options: ROOM_OPTIONS },
+    { key: "floor",              label: "Етаж",             type: "select", options: FLOOR_OPTIONS },
+    { key: "furnished",          label: "Обзавеждане",      type: "select", options: FURNISHING_OPTIONS },
+    { key: "heating",            label: "Отопление",        type: "select", options: HEATING_OPTIONS },
+    { key: "construction_type",  label: "Строителство",     type: "select", options: CONSTRUCTION_TYPES },
+    { key: "property_condition", label: "Състояние",        type: "select", options: PROPERTY_CONDITIONS },
+    { key: "elevator",           label: "Асансьор",         type: "select", options: ["Да", "Не"] },
+    { key: "parking",            label: "Паркиране",        type: "select", options: PARKING_OPTIONS },
   ],
   Електроника: [
     { key: "device_type", label: "Вид устройство", type: "select", options: ELECTRONICS_SUBCATEGORIES, required: true },
