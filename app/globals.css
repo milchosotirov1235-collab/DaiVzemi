@@ -58,3 +58,20 @@ select:disabled,
 [aria-disabled="true"] {
   cursor: not-allowed !important;
 }
+
+/* ── Stop cursor flicker on interactive elements ────────────────────────────
+   SVG icons and inline spans inside buttons/links have their own hit-boxes.
+   As the mouse crosses from the button surface onto a child SVG or span, the
+   browser re-evaluates the cursor and briefly shows a different one, causing
+   visible flicker.  pointer-events:none on those children removes their
+   individual hit-boxes so the parent button is always the cursor owner.
+──────────────────────────────────────────────────────────────────────────── */
+
+button > svg,
+button > span:not([role="button"]),
+a > svg,
+a > span,
+[role="button"] > svg,
+label > svg {
+  pointer-events: none;
+}
