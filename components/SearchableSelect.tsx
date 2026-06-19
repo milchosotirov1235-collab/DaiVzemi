@@ -67,11 +67,6 @@ export default function SearchableSelect({
     setQuery("");
   };
 
-  const handleClearValue = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange("");
-  };
-
   // ── Disabled state ──────────────────────────────────────────────────────
   if (disabled) {
     return (
@@ -89,8 +84,8 @@ export default function SearchableSelect({
   // ── Trigger styles ───────────────────────────────────────────────────────
   const triggerCls =
     size === "md"
-      ? "flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-left font-bold shadow-sm transition hover:bg-white focus:border-blue-950 focus:outline-none focus:ring-4 focus:ring-blue-100"
-      : "flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-bold shadow-sm outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10";
+      ? "flex w-full cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-left font-bold shadow-sm transition hover:bg-white focus:border-blue-950 focus:outline-none focus:ring-4 focus:ring-blue-100"
+      : "flex w-full cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-bold shadow-sm outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10";
 
   return (
     <div ref={containerRef} className="relative">
@@ -105,11 +100,20 @@ export default function SearchableSelect({
         </span>
         <div className="flex shrink-0 items-center gap-1">
           {value && (
+            // Use onMouseDown + preventDefault so the outer button's onClick
+            // never fires when clearing, and focus stays predictable.
             <span
               role="button"
+              aria-label="Изчисти"
               tabIndex={-1}
-              onClick={handleClearValue}
-              className="flex h-5 w-5 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"
+              onMouseDown={(e) => {
+                e.preventDefault();  // don't blur / don't trigger outer button
+                e.stopPropagation();
+                onChange("");
+                setOpen(false);
+                setQuery("");
+              }}
+              className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"
             >
               <X className="h-3 w-3" />
             </span>
@@ -122,23 +126,30 @@ export default function SearchableSelect({
 
       {/* ── Dropdown panel ── */}
       {open && (
-        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 min-w-[200px] rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        // onMouseDown preventDefault keeps the search <input> focused while the
+        // user scrolls or clicks options — without this, every click blurs the
+        // input and the cursor visually disappears mid-interaction.
+        <div
+          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 min-w-[200px] rounded-2xl border border-slate-200 bg-white shadow-2xl"
+          onMouseDown={(e) => e.preventDefault()}
+        >
           {/* Search input */}
           <div className="p-2">
             <div className="flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2">
-              <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+              <Search className="h-3.5 w-3.5 shrink-0 cursor-default text-slate-400" />
               <input
                 ref={searchRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Търси..."
-                className="min-w-0 flex-1 bg-transparent text-sm font-bold text-slate-900 outline-none placeholder:font-semibold placeholder:text-slate-400"
+                className="min-w-0 flex-1 cursor-text bg-transparent text-sm font-bold text-slate-900 outline-none placeholder:font-semibold placeholder:text-slate-400"
               />
               {query && (
                 <button
                   type="button"
-                  onClick={() => setQuery("")}
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={() => { setQuery(""); searchRef.current?.focus(); }}
+                  className="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -154,7 +165,7 @@ export default function SearchableSelect({
             <button
               type="button"
               onClick={() => handleSelect("")}
-              className="w-full rounded-xl px-4 py-2 text-left text-sm font-bold text-slate-400 transition hover:bg-slate-100"
+              className="w-full cursor-pointer rounded-xl px-4 py-2 text-left text-sm font-bold text-slate-400 transition hover:bg-slate-100"
             >
               {placeholder}
             </button>
@@ -165,7 +176,7 @@ export default function SearchableSelect({
                   key={opt}
                   type="button"
                   onClick={() => handleSelect(opt)}
-                  className={`w-full rounded-xl px-4 py-2 text-left text-sm font-bold transition hover:bg-slate-100 ${
+                  className={`w-full cursor-pointer rounded-xl px-4 py-2 text-left text-sm font-bold transition hover:bg-slate-100 ${
                     opt === value ? "bg-blue-50 text-blue-950" : "text-slate-900"
                   }`}
                 >

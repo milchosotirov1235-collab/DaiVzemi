@@ -121,7 +121,7 @@ function CustomDropdown({
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-bold text-slate-950 shadow-sm outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+        className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-bold text-slate-950 shadow-sm outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
       >
         <span className={value ? "text-slate-950" : "text-slate-400"}>
           {value || placeholder}
@@ -134,7 +134,7 @@ function CustomDropdown({
           <button
             type="button"
             onClick={() => onSelect("")}
-            className="w-full rounded-xl px-3 py-2 text-left text-sm font-bold text-slate-500 transition hover:bg-slate-100"
+            className="w-full cursor-pointer rounded-xl px-3 py-2 text-left text-sm font-bold text-slate-500 transition hover:bg-slate-100"
           >
             {placeholder}
           </button>
@@ -143,7 +143,7 @@ function CustomDropdown({
               key={option}
               type="button"
               onClick={() => onSelect(option)}
-              className={`w-full rounded-xl px-3 py-2 text-left text-sm font-bold transition hover:bg-slate-100 ${
+              className={`w-full cursor-pointer rounded-xl px-3 py-2 text-left text-sm font-bold transition hover:bg-slate-100 ${
                 option === value ? "bg-blue-50 text-blue-950" : "text-slate-950"
               }`}
             >

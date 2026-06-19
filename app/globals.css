@@ -24,3 +24,37 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ── Global cursor rules ────────────────────────────────────────────────────
+   Both @layer base (for the standard cascade) and unlayered !important
+   (to beat any Tailwind utility class that might set cursor: default).
+   !important is intentional — this is a global baseline, not a specificity hack.
+──────────────────────────────────────────────────────────────────────────── */
+
+@layer base {
+  button, [role="button"], a, select, label[for] { cursor: pointer; }
+  button:disabled, input:disabled, textarea:disabled,
+  select:disabled, [aria-disabled="true"]         { cursor: not-allowed; }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  textarea                                         { cursor: text; }
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a[href],
+select:not(:disabled) {
+  cursor: pointer !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not(:disabled),
+textarea:not(:disabled) {
+  cursor: text !important;
+}
+
+button:disabled,
+input:disabled,
+textarea:disabled,
+select:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed !important;
+}

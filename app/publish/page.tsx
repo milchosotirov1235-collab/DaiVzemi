@@ -462,7 +462,7 @@ export default function PublishPage() {
                   <button
                     type="button"
                     onClick={() => setIsListingTypeOpen((prev) => !prev)}
-                    className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-left shadow-sm transition hover:bg-white focus:border-blue-950 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                    className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-left shadow-sm transition hover:bg-white focus:border-blue-950 focus:outline-none focus:ring-4 focus:ring-blue-100"
                   >
                     <span className="text-base font-bold text-slate-900">{listingType}</span>
                     <ChevronDown className={`h-5 w-5 text-blue-950 transition ${isListingTypeOpen ? "rotate-180" : ""}`} />
@@ -474,7 +474,7 @@ export default function PublishPage() {
                           key={option}
                           type="button"
                           onClick={() => { setListingType(option); setIsListingTypeOpen(false); }}
-                          className={`flex w-full items-center rounded-xl px-4 py-3 text-left text-sm font-bold transition hover:bg-slate-100 ${
+                          className={`flex w-full cursor-pointer items-center rounded-xl px-4 py-3 text-left text-sm font-bold transition hover:bg-slate-100 ${
                             option === listingType ? "bg-slate-100 text-blue-950" : "text-slate-700"
                           }`}
                         >
@@ -495,7 +495,7 @@ export default function PublishPage() {
                   <button
                     type="button"
                     onClick={() => setIsCategoryOpen((prev) => !prev)}
-                    className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-left shadow-sm transition hover:bg-white focus:border-blue-950 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                    className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-left shadow-sm transition hover:bg-white focus:border-blue-950 focus:outline-none focus:ring-4 focus:ring-blue-100"
                   >
                     <span className="text-base font-bold text-slate-900">{category}</span>
                     <ChevronDown className={`h-5 w-5 text-blue-950 transition ${isCategoryOpen ? "rotate-180" : ""}`} />
@@ -507,7 +507,7 @@ export default function PublishPage() {
                           key={option}
                           type="button"
                           onClick={() => handleCategoryChange(option)}
-                          className={`flex w-full items-center rounded-xl px-4 py-3 text-left text-sm font-bold transition hover:bg-slate-100 ${
+                          className={`flex w-full cursor-pointer items-center rounded-xl px-4 py-3 text-left text-sm font-bold transition hover:bg-slate-100 ${
                             option === category ? "bg-slate-100 text-blue-950" : "text-slate-700"
                           }`}
                         >
