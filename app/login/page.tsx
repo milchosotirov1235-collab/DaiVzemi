@@ -82,7 +82,12 @@ export default function LoginPage() {
             </label>
 
             <label className="space-y-3">
-              <span className="text-sm font-semibold text-slate-700">Парола</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-slate-700">Парола</span>
+                <Link href="/forgot-password" className="text-xs font-semibold text-blue-950 hover:text-blue-700">
+                  Забравена парола?
+                </Link>
+              </div>
               <input
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}

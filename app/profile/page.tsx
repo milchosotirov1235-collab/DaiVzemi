@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
-import { AlertTriangle, Camera, CheckCircle2, Loader2, User } from "lucide-react";
+import { AlertTriangle, Camera, CheckCircle2, Loader2, Lock, User } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 // ---------------------------------------------------------------------------
@@ -47,6 +47,13 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
+
+  // Change password
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordNotice, setPasswordNotice] = useState<Notice | null>(null);
 
   // -------------------------------------------------------------------------
   // Load profile on mount
@@ -224,6 +231,55 @@ export default function ProfilePage() {
     setAvatarFile(null);
     setAvatarPreview(null);
     setNotice({ type: "success", message: "Профилът е запазен успешно." });
+  };
+
+  // -------------------------------------------------------------------------
+  // Change password
+  // -------------------------------------------------------------------------
+
+  const changePassword = async () => {
+    setPasswordNotice(null);
+
+    if (!currentPassword) {
+      setPasswordNotice({ type: "error", message: "Въведете текущата парола." });
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordNotice({ type: "error", message: "Новата парола трябва да е поне 8 символа." });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordNotice({ type: "error", message: "Новата парола и потвърждението не съвпадат." });
+      return;
+    }
+
+    setSavingPassword(true);
+
+    // Re-authenticate with current password to verify it's correct
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: email ?? "",
+      password: currentPassword,
+    });
+
+    if (signInError) {
+      setSavingPassword(false);
+      setPasswordNotice({ type: "error", message: "Текущата парола е грешна." });
+      return;
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+
+    setSavingPassword(false);
+
+    if (updateError) {
+      setPasswordNotice({ type: "error", message: "Грешка при смяна на паролата. Опитайте отново." });
+      return;
+    }
+
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordNotice({ type: "success", message: "Паролата беше сменена успешно." });
   };
 
   // -------------------------------------------------------------------------
@@ -451,6 +507,81 @@ export default function ProfilePage() {
               >
                 {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                 {saving ? "Запазване..." : "Запази профила"}
+              </button>
+            </div>
+
+            {/* ── Change Password card (spans full width under the two columns) ── */}
+            <div className="rounded-[28px] bg-white p-8 shadow-sm ring-1 ring-slate-200 md:p-10 lg:col-span-2">
+              <div className="mb-8 flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                  <Lock className="h-5 w-5 text-blue-950" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-blue-950">Смяна на парола</h2>
+                  <p className="text-sm text-slate-500">Минимум 8 символа за новата парола.</p>
+                </div>
+              </div>
+
+              {passwordNotice && (
+                <div
+                  className={`mb-6 flex items-start gap-3 rounded-2xl border p-4 text-sm font-semibold ${
+                    passwordNotice.type === "error"
+                      ? "border-red-200 bg-red-50 text-red-700"
+                      : "border-green-200 bg-green-50 text-green-800"
+                  }`}
+                >
+                  {passwordNotice.type === "error" ? (
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  ) : (
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                  )}
+                  {passwordNotice.message}
+                </div>
+              )}
+
+              <div className="grid gap-5 sm:grid-cols-3">
+                <label className="space-y-2">
+                  <span className="block text-sm font-black text-blue-950">Текуща парола</span>
+                  <input
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    type="password"
+                    placeholder="••••••••"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                  />
+                </label>
+
+                <label className="space-y-2">
+                  <span className="block text-sm font-black text-blue-950">Нова парола</span>
+                  <input
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    type="password"
+                    placeholder="Минимум 8 символа"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                  />
+                </label>
+
+                <label className="space-y-2">
+                  <span className="block text-sm font-black text-blue-950">Потвърди новата парола</span>
+                  <input
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    type="password"
+                    placeholder="Повтори паролата"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                  />
+                </label>
+              </div>
+
+              <button
+                type="button"
+                onClick={changePassword}
+                disabled={savingPassword}
+                className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-blue-950 px-8 py-4 font-black text-white shadow-lg transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {savingPassword && <Loader2 className="h-4 w-4 animate-spin" />}
+                {savingPassword ? "Запазване..." : "Смени паролата"}
               </button>
             </div>
           </div>
