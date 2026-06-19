@@ -4,6 +4,13 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import { AlertTriangle, CheckCircle2, ChevronDown, ImagePlus, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { BG_CITIES } from "@/lib/data/cities";
+import { CAR_BRANDS } from "@/lib/data/vehicles";
+import {
+  PROPERTY_TYPES, ROOM_OPTIONS, FURNISHING_OPTIONS, HEATING_OPTIONS,
+  FUEL_TYPES, TRANSMISSION_TYPES, AUTO_PART_CATEGORIES, PART_CONDITIONS,
+  ELECTRONICS_SUBCATEGORIES, ELECTRONICS_BRANDS, ITEM_CONDITIONS,
+} from "@/lib/data/categoryData";
 
 // ---------------------------------------------------------------------------
 // Static options
@@ -26,12 +33,6 @@ const categoryOptions = [
   "Книги",
 ];
 
-const CAR_BRANDS = [
-  "Audi", "BMW", "Dacia", "Fiat", "Ford", "Honda", "Hyundai",
-  "Kia", "Mazda", "Mercedes-Benz", "Nissan", "Opel", "Peugeot",
-  "Renault", "Seat", "Škoda", "Suzuki", "Toyota", "Volkswagen", "Volvo",
-];
-
 // ---------------------------------------------------------------------------
 // Category details config
 // ---------------------------------------------------------------------------
@@ -52,31 +53,31 @@ const CATEGORY_DETAILS: Record<string, FieldDef[]> = {
     { key: "brand", label: "Марка", type: "select", options: CAR_BRANDS, required: true },
     { key: "model", label: "Модел", type: "text", placeholder: "напр. Golf 7" },
     { key: "year", label: "Година на производство", type: "number", placeholder: "напр. 2018" },
-    { key: "fuel", label: "Гориво", type: "select", options: ["Бензин", "Дизел", "Електрически", "Хибрид", "Газ"] },
-    { key: "gearbox", label: "Скоростна кутия", type: "select", options: ["Ръчна", "Автоматична"] },
+    { key: "fuel", label: "Гориво", type: "select", options: FUEL_TYPES },
+    { key: "gearbox", label: "Скоростна кутия", type: "select", options: TRANSMISSION_TYPES },
     { key: "mileage", label: "Пробег (км)", type: "number", placeholder: "напр. 150000" },
     { key: "power", label: "Мощност (к.с.)", type: "number", placeholder: "напр. 140" },
     { key: "engine_size", label: "Обем на двигател (cc)", type: "number", placeholder: "напр. 1968" },
   ],
   Имоти: [
-    { key: "property_type", label: "Тип имот", type: "select", options: ["Апартамент", "Къща", "Парцел", "Офис", "Вила", "Гараж", "Магазин", "Склад"], required: true },
+    { key: "property_type", label: "Тип имот", type: "select", options: PROPERTY_TYPES, required: true },
     { key: "area", label: "Площ (кв.м.)", type: "number", placeholder: "напр. 80" },
-    { key: "rooms", label: "Стаи", type: "select", options: ["Едностаен", "Двустаен", "Тристаен", "Четиристаен", "Многостаен"] },
+    { key: "rooms", label: "Стаи", type: "select", options: ROOM_OPTIONS },
     { key: "floor", label: "Етаж", type: "text", placeholder: "напр. 3 от 5" },
-    { key: "furnished", label: "Обзавеждане", type: "select", options: ["Обзаведен", "Необзаведен", "Частично обзаведен"] },
-    { key: "heating", label: "Отопление", type: "select", options: ["Централно", "ТЕЦ", "Електрическо", "Газово", "Климатик", "Без отопление"] },
+    { key: "furnished", label: "Обзавеждане", type: "select", options: FURNISHING_OPTIONS },
+    { key: "heating", label: "Отопление", type: "select", options: HEATING_OPTIONS },
   ],
   Електроника: [
-    { key: "device_type", label: "Вид устройство", type: "select", options: ["Телефон", "Таблет", "Лаптоп", "Телевизор", "Камера", "Конзола", "Аудио", "Друго"], required: true },
-    { key: "brand", label: "Марка", type: "text", placeholder: "напр. Samsung" },
+    { key: "device_type", label: "Вид устройство", type: "select", options: ELECTRONICS_SUBCATEGORIES, required: true },
+    { key: "brand", label: "Марка", type: "select", options: ELECTRONICS_BRANDS },
     { key: "model", label: "Модел", type: "text", placeholder: "напр. Galaxy S24" },
-    { key: "condition", label: "Състояние", type: "select", options: ["Ново", "Употребявано", "За части"] },
+    { key: "condition", label: "Състояние", type: "select", options: ITEM_CONDITIONS },
   ],
   Авточасти: [
     { key: "car_brand", label: "Марка на автомобила", type: "select", options: CAR_BRANDS },
     { key: "car_model", label: "Модел на автомобила", type: "text", placeholder: "напр. Golf 6" },
-    { key: "part_category", label: "Вид на частта", type: "select", options: ["Двигател", "Купе", "Окачване", "Спирачки", "Електрика", "Интериор", "Гуми и джанти", "Друго"], required: true },
-    { key: "condition", label: "Състояние", type: "select", options: ["Ново", "Употребявано"] },
+    { key: "part_category", label: "Вид на частта", type: "select", options: AUTO_PART_CATEGORIES, required: true },
+    { key: "condition", label: "Състояние", type: "select", options: PART_CONDITIONS },
   ],
 };
 
@@ -587,8 +588,12 @@ export default function PublishPage() {
                 onChange={(e) => setCity(e.target.value)}
                 type="text"
                 placeholder="Например: София"
+                list="publish-city-list"
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-950 focus:ring-4 focus:ring-blue-100"
               />
+              <datalist id="publish-city-list">
+                {BG_CITIES.map((c) => <option key={c} value={c} />)}
+              </datalist>
             </label>
 
             {/* Category-specific details panel */}

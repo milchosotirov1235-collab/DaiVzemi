@@ -6,6 +6,12 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import { BookMarked, ChevronDown, Loader2, SlidersHorizontal, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { BG_CITIES } from "@/lib/data/cities";
+import { CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
+import {
+  PROPERTY_TYPES, ROOM_OPTIONS, FUEL_TYPES, TRANSMISSION_TYPES,
+  AUTO_PART_CATEGORIES, ELECTRONICS_SUBCATEGORIES, ITEM_CONDITIONS, SERVICE_TYPES,
+} from "@/lib/data/categoryData";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -58,12 +64,6 @@ const categories = [
 ];
 
 const listingTypes = ["Продавам", "Подарявам", "Разменям", "Търся"];
-
-const carBrands = [
-  "Audi", "BMW", "Dacia", "Fiat", "Ford", "Honda", "Hyundai",
-  "Kia", "Mazda", "Mercedes-Benz", "Nissan", "Opel", "Peugeot",
-  "Renault", "Seat", "Škoda", "Suzuki", "Toyota", "Volkswagen", "Volvo",
-];
 
 const fallbackImageByCategory: Record<string, string> = {
   Имоти: "🏙️",
@@ -184,7 +184,7 @@ function CategoryFilters(p: CategoryFilterProps) {
         <CustomDropdown
           value={p.propertyType}
           placeholder="Тип имот"
-          options={["Апартамент", "Къща", "Парцел", "Офис", "Вила", "Гараж", "Магазин", "Склад"]}
+          options={PROPERTY_TYPES}
           isOpen={p.openDropdown === "propertyType"}
           onToggle={() => p.onToggle("propertyType")}
           onSelect={(v) => { p.onPropertyType(v); p.onClose(); }}
@@ -192,7 +192,7 @@ function CategoryFilters(p: CategoryFilterProps) {
         <CustomDropdown
           value={p.rooms}
           placeholder="Стаи"
-          options={["1-стаен", "2-стаен", "3-стаен", "4-стаен", "Многостаен"]}
+          options={ROOM_OPTIONS}
           isOpen={p.openDropdown === "rooms"}
           onToggle={() => p.onToggle("rooms")}
           onSelect={(v) => { p.onRooms(v); p.onClose(); }}
@@ -223,21 +223,23 @@ function CategoryFilters(p: CategoryFilterProps) {
         <CustomDropdown
           value={p.carMake}
           placeholder="Марка"
-          options={carBrands}
+          options={CAR_BRANDS}
           isOpen={p.openDropdown === "carMake"}
           onToggle={() => p.onToggle("carMake")}
           onSelect={(v) => { p.onCarMake(v); p.onClose(); }}
         />
-        <input
+        <CustomDropdown
           value={p.carModel}
-          onChange={(e) => p.onCarModel(e.target.value)}
           placeholder="Модел"
-          className={field}
+          options={getModelsForBrand(p.carMake)}
+          isOpen={p.openDropdown === "carModel"}
+          onToggle={() => p.onToggle("carModel")}
+          onSelect={(v) => { p.onCarModel(v); p.onClose(); }}
         />
         <CustomDropdown
           value={p.fuel}
           placeholder="Гориво"
-          options={["Бензин", "Дизел", "Електрически", "Хибрид", "Газ"]}
+          options={FUEL_TYPES}
           isOpen={p.openDropdown === "fuel"}
           onToggle={() => p.onToggle("fuel")}
           onSelect={(v) => { p.onFuel(v); p.onClose(); }}
@@ -245,7 +247,7 @@ function CategoryFilters(p: CategoryFilterProps) {
         <CustomDropdown
           value={p.transmission}
           placeholder="Скоростна кутия"
-          options={["Ръчна", "Автоматична"]}
+          options={TRANSMISSION_TYPES}
           isOpen={p.openDropdown === "transmission"}
           onToggle={() => p.onToggle("transmission")}
           onSelect={(v) => { p.onTransmission(v); p.onClose(); }}
@@ -294,24 +296,23 @@ function CategoryFilters(p: CategoryFilterProps) {
         <CustomDropdown
           value={p.carMake}
           placeholder="Марка на автомобила"
-          options={carBrands}
+          options={CAR_BRANDS}
           isOpen={p.openDropdown === "carMake"}
           onToggle={() => p.onToggle("carMake")}
           onSelect={(v) => { p.onCarMake(v); p.onClose(); }}
         />
-        <input
+        <CustomDropdown
           value={p.carModel}
-          onChange={(e) => p.onCarModel(e.target.value)}
           placeholder="Модел на автомобила"
-          className={field}
+          options={getModelsForBrand(p.carMake)}
+          isOpen={p.openDropdown === "carModel"}
+          onToggle={() => p.onToggle("carModel")}
+          onSelect={(v) => { p.onCarModel(v); p.onClose(); }}
         />
         <CustomDropdown
           value={p.partType}
           placeholder="Вид на частта"
-          options={[
-            "Двигател", "Купе", "Окачване", "Спирачки",
-            "Електрика", "Интериор", "Гуми и джанти", "Друго",
-          ]}
+          options={AUTO_PART_CATEGORIES}
           isOpen={p.openDropdown === "partType"}
           onToggle={() => p.onToggle("partType")}
           onSelect={(v) => { p.onPartType(v); p.onClose(); }}
@@ -334,10 +335,7 @@ function CategoryFilters(p: CategoryFilterProps) {
         <CustomDropdown
           value={p.electronicsSubcat}
           placeholder="Подкатегория"
-          options={[
-            "Телефони", "Таблети", "Лаптопи", "ТВ и аудио",
-            "Камери", "Игри и конзоли", "Друго",
-          ]}
+          options={ELECTRONICS_SUBCATEGORIES}
           isOpen={p.openDropdown === "electronicsSubcat"}
           onToggle={() => p.onToggle("electronicsSubcat")}
           onSelect={(v) => { p.onElectronicsSubcat(v); p.onClose(); }}
@@ -351,7 +349,7 @@ function CategoryFilters(p: CategoryFilterProps) {
         <CustomDropdown
           value={p.condition}
           placeholder="Състояние"
-          options={["Ново", "Употребявано", "За части"]}
+          options={ITEM_CONDITIONS}
           isOpen={p.openDropdown === "condition"}
           onToggle={() => p.onToggle("condition")}
           onSelect={(v) => { p.onCondition(v); p.onClose(); }}
@@ -366,10 +364,7 @@ function CategoryFilters(p: CategoryFilterProps) {
         <CustomDropdown
           value={p.serviceType}
           placeholder="Вид услуга"
-          options={[
-            "Ремонти", "Транспорт", "Почистване", "Уроци",
-            "Красота", "IT услуги", "Строителство", "Друго",
-          ]}
+          options={SERVICE_TYPES}
           isOpen={p.openDropdown === "serviceType"}
           onToggle={() => p.onToggle("serviceType")}
           onSelect={(v) => { p.onServiceType(v); p.onClose(); }}
@@ -805,8 +800,12 @@ function ListingsPageContent() {
               onChange={(e) => setCityInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && applyFilters()}
               placeholder="Град"
+              list="city-list"
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
             />
+            <datalist id="city-list">
+              {BG_CITIES.map((c) => <option key={c} value={c} />)}
+            </datalist>
             <CustomDropdown
               value={categoryInput}
               placeholder="Всички категории"

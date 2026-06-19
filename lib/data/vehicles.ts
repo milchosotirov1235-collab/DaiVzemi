@@ -1,0 +1,87 @@
+// Vehicle data — brands and starter model sets.
+// To add a brand: push to CAR_BRANDS and add a key to CAR_MODELS.
+// To add models: extend the array for the relevant brand key.
+
+export const CAR_BRANDS: string[] = [
+  "Alfa Romeo",
+  "Audi",
+  "BMW",
+  "Chevrolet",
+  "Chrysler",
+  "Citroën",
+  "Dacia",
+  "Dodge",
+  "Fiat",
+  "Ford",
+  "Honda",
+  "Hyundai",
+  "Infiniti",
+  "Jaguar",
+  "Jeep",
+  "Kia",
+  "Land Rover",
+  "Lexus",
+  "Lincoln",
+  "Maserati",
+  "Mazda",
+  "Mercedes-Benz",
+  "Mini",
+  "Mitsubishi",
+  "Nissan",
+  "Opel",
+  "Peugeot",
+  "Porsche",
+  "Renault",
+  "Seat",
+  "Skoda",
+  "Smart",
+  "Subaru",
+  "Suzuki",
+  "Tesla",
+  "Toyota",
+  "Volkswagen",
+  "Volvo",
+];
+
+// Starter model sets — extend freely.
+// Key must exactly match a value in CAR_BRANDS.
+export const CAR_MODELS: Record<string, string[]> = {
+  "Alfa Romeo": ["147", "156", "159", "Giulia", "Giulietta", "Stelvio", "Tonale"],
+  "Audi": ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q5", "Q7", "Q8", "TT", "e-tron"],
+  "BMW": ["116i", "118i", "120i", "316i", "318i", "320i", "325i", "330i", "420i", "520i", "525i", "530i", "X1", "X3", "X5", "X6", "Z4"],
+  "Chevrolet": ["Aveo", "Captiva", "Cruze", "Epica", "Lacetti", "Malibu", "Spark", "Trax"],
+  "Citroën": ["Berlingo", "C1", "C2", "C3", "C4", "C5", "C5 Aircross", "Jumper", "Xsara"],
+  "Dacia": ["Dokker", "Duster", "Jogger", "Lodgy", "Logan", "Sandero", "Sandero Stepway", "Spring"],
+  "Fiat": ["500", "Bravo", "Doblo", "Ducato", "Grande Punto", "Panda", "Punto", "Tipo"],
+  "Ford": ["B-Max", "C-Max", "EcoSport", "Edge", "Fiesta", "Focus", "Galaxy", "Ka", "Kuga", "Mondeo", "Mustang", "Puma", "S-Max", "Transit"],
+  "Honda": ["Accord", "Civic", "CR-V", "HR-V", "Jazz", "Legend", "Pilot"],
+  "Hyundai": ["Elantra", "i10", "i20", "i30", "i40", "ix20", "ix35", "Kona", "Santa Fe", "Sonata", "Terracan", "Tucson"],
+  "Jaguar": ["E-Pace", "F-Pace", "F-Type", "S-Type", "X-Type", "XE", "XF", "XJ"],
+  "Jeep": ["Cherokee", "Compass", "Grand Cherokee", "Renegade", "Wrangler"],
+  "Kia": ["Carens", "Ceed", "EV6", "Niro", "Optima", "Picanto", "Rio", "Sorento", "Soul", "Sportage", "Stinger"],
+  "Land Rover": ["Defender", "Discovery", "Discovery Sport", "Freelander", "Range Rover", "Range Rover Evoque", "Range Rover Sport"],
+  "Lexus": ["CT", "ES", "IS", "LS", "NX", "RX", "UX"],
+  "Mazda": ["2", "3", "5", "6", "CX-3", "CX-30", "CX-5", "CX-7", "MX-5"],
+  "Mercedes-Benz": ["A 180", "A 200", "B 180", "C 180", "C 200", "C 220", "CLA", "CLS", "E 200", "E 220", "E 250", "EQA", "EQC", "GLA", "GLC", "GLE", "ML", "S 320", "S 350", "Sprinter", "Vito"],
+  "Mini": ["Clubman", "Convertible", "Cooper", "Countryman", "Paceman"],
+  "Mitsubishi": ["ASX", "Colt", "Eclipse Cross", "Galant", "L200", "Lancer", "Outlander", "Pajero", "Space Star"],
+  "Nissan": ["Juke", "Leaf", "Micra", "Murano", "Navara", "Note", "Pathfinder", "Primera", "Pulsar", "Qashqai", "Tiida", "X-Trail"],
+  "Opel": ["Adam", "Agila", "Astra", "Cascada", "Corsa", "Crossland", "Grandland", "Insignia", "Meriva", "Mokka", "Vectra", "Zafira"],
+  "Peugeot": ["107", "108", "2008", "206", "207", "208", "3008", "301", "307", "308", "407", "408", "508", "5008", "Boxer", "Expert", "Partner"],
+  "Porsche": ["911", "Cayenne", "Cayman", "Macan", "Panamera", "Taycan"],
+  "Renault": ["Captur", "Clio", "Duster", "Fluence", "Kadjar", "Kangoo", "Koleos", "Laguna", "Logan", "Master", "Megane", "Sandero", "Scenic", "Talisman", "Zoe"],
+  "Seat": ["Alhambra", "Altea", "Arona", "Ateca", "Cordoba", "Ibiza", "Leon", "Tarraco", "Toledo"],
+  "Skoda": ["Citigo", "Fabia", "Kamiq", "Karoq", "Kodiaq", "Octavia", "Rapid", "Scala", "Superb", "Yeti"],
+  "Smart": ["Forfour", "Fortwo"],
+  "Subaru": ["Forester", "Impreza", "Legacy", "Outback", "XV"],
+  "Suzuki": ["Alto", "Baleno", "Celerio", "Ignis", "Jimny", "SX4", "Swift", "Vitara"],
+  "Tesla": ["Model 3", "Model S", "Model X", "Model Y"],
+  "Toyota": ["Auris", "Avensis", "Aygo", "C-HR", "Camry", "Corolla", "Hilux", "Land Cruiser", "Prius", "RAV4", "Verso", "Yaris"],
+  "Volkswagen": ["Amarok", "Caddy", "Golf", "ID.3", "ID.4", "Passat", "Polo", "Scirocco", "Sharan", "Tiguan", "Touareg", "Touran", "Transporter", "Up"],
+  "Volvo": ["C30", "C70", "S40", "S60", "S80", "S90", "V40", "V50", "V60", "V70", "V90", "XC40", "XC60", "XC70", "XC90"],
+};
+
+// Helper: get models for a selected brand, or empty array if unknown.
+export function getModelsForBrand(brand: string): string[] {
+  return CAR_MODELS[brand] ?? [];
+}
