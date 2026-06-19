@@ -15,7 +15,8 @@ import {
   CAR_BODY_TYPES, EURO_STANDARDS, DRIVE_TYPES, CAR_COLORS, CAR_CONDITIONS, VEHICLE_TYPES,
   AUTO_PART_CATEGORIES, PART_CONDITIONS,
   ELECTRONICS_DEVICE_TYPES, ELECTRONICS_BRANDS, ELECTRONICS_STORAGE_OPTIONS,
-  ELECTRONICS_RAM_OPTIONS, ELECTRONICS_COLORS, ITEM_CONDITIONS, SERVICE_TYPES,
+  ELECTRONICS_RAM_OPTIONS, ELECTRONICS_COLORS, ITEM_CONDITIONS,
+  SERVICE_CATEGORIES, PROVIDER_TYPES, PRICE_TYPES,
   JOB_CATEGORIES, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS,
 } from "@/lib/data/categoryData";
 import SearchableSelect from "@/components/SearchableSelect";
@@ -216,6 +217,9 @@ type CategoryFilterProps = {
   brand: string; onBrand: (v: string) => void;
   // Услуги
   serviceType: string; onServiceType: (v: string) => void;
+  serviceCategory: string; onServiceCategory: (v: string) => void;
+  onlineService: string; onOnlineService: (v: string) => void;
+  providerType: string; onProviderType: (v: string) => void;
   // Работа
   jobCategory: string; onJobCategory: (v: string) => void;
   employmentType: string; onEmploymentType: (v: string) => void;
@@ -415,12 +419,12 @@ function CategoryFilters(p: CategoryFilterProps) {
   if (p.category === "Услуги") {
     return (
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <SearchableSelect
-          value={p.serviceType}
-          onChange={p.onServiceType}
-          options={SERVICE_TYPES}
-          placeholder="Вид услуга"
-        />
+        <SearchableSelect value={p.serviceCategory} onChange={p.onServiceCategory}
+          options={SERVICE_CATEGORIES} placeholder="Категория услуга" />
+        <SearchableSelect value={p.onlineService} onChange={p.onOnlineService}
+          options={["Да", "Не"]} placeholder="Онлайн услуга" />
+        <SearchableSelect value={p.providerType} onChange={p.onProviderType}
+          options={PROVIDER_TYPES} placeholder="Фирма / Частно лице" />
       </div>
     );
   }
@@ -552,6 +556,9 @@ function ListingsPageContent() {
 
   // Category-specific filters — Услуги
   const [serviceType, setServiceType] = useState(searchParams.get("serviceType") ?? "");
+  const [serviceCategory, setServiceCategory] = useState(searchParams.get("serviceCategory") ?? "");
+  const [onlineService, setOnlineService] = useState(searchParams.get("onlineService") ?? "");
+  const [providerType, setProviderType] = useState(searchParams.get("providerType") ?? "");
 
   // Category-specific filters — Работа
   const [jobCategory, setJobCategory] = useState(searchParams.get("jobCategory") ?? "");
@@ -619,6 +626,9 @@ function ListingsPageContent() {
   const urlCondition = searchParams.get("condition") ?? "";
   const urlBrand = searchParams.get("brand") ?? "";
   const urlServiceType = searchParams.get("serviceType") ?? "";
+  const urlServiceCategory = searchParams.get("serviceCategory") ?? "";
+  const urlOnlineService = searchParams.get("onlineService") ?? "";
+  const urlProviderType = searchParams.get("providerType") ?? "";
   const urlJobCategory = searchParams.get("jobCategory") ?? "";
   const urlEmploymentType = searchParams.get("employmentType") ?? "";
   const urlExperience = searchParams.get("experience") ?? "";
@@ -675,6 +685,9 @@ function ListingsPageContent() {
     urlCondition.length > 0 ||
     urlBrand.length > 0 ||
     urlServiceType.length > 0 ||
+    urlServiceCategory.length > 0 ||
+    urlOnlineService.length > 0 ||
+    urlProviderType.length > 0 ||
     urlJobCategory.length > 0 ||
     urlEmploymentType.length > 0 ||
     urlExperience.length > 0 ||
@@ -728,6 +741,9 @@ function ListingsPageContent() {
     setCondition(searchParams.get("condition") ?? "");
     setBrand(searchParams.get("brand") ?? "");
     setServiceType(searchParams.get("serviceType") ?? "");
+    setServiceCategory(searchParams.get("serviceCategory") ?? "");
+    setOnlineService(searchParams.get("onlineService") ?? "");
+    setProviderType(searchParams.get("providerType") ?? "");
     setJobCategory(searchParams.get("jobCategory") ?? "");
     setEmploymentType(searchParams.get("employmentType") ?? "");
     setExperience(searchParams.get("experience") ?? "");
@@ -793,7 +809,9 @@ function ListingsPageContent() {
     if (elRam) params.set("elRam", elRam);
     if (elColor) params.set("elColor", elColor);
     if (condition) params.set("condition", condition);
-    if (serviceType) params.set("serviceType", serviceType);
+    if (serviceCategory) params.set("serviceCategory", serviceCategory);
+    if (onlineService) params.set("onlineService", onlineService);
+    if (providerType) params.set("providerType", providerType);
     if (jobCategory) params.set("jobCategory", jobCategory);
     if (employmentType) params.set("employmentType", employmentType);
     if (experience) params.set("experience", experience);
@@ -860,7 +878,9 @@ function ListingsPageContent() {
     if (urlElRam) filters.elRam = urlElRam;
     if (urlElColor) filters.elColor = urlElColor;
     if (urlCondition) filters.condition = urlCondition;
-    if (urlServiceType) filters.serviceType = urlServiceType;
+    if (urlServiceCategory) filters.serviceCategory = urlServiceCategory;
+    if (urlOnlineService) filters.onlineService = urlOnlineService;
+    if (urlProviderType) filters.providerType = urlProviderType;
     if (urlJobCategory) filters.jobCategory = urlJobCategory;
     if (urlEmploymentType) filters.employmentType = urlEmploymentType;
     if (urlExperience) filters.experience = urlExperience;
@@ -921,7 +941,7 @@ function ListingsPageContent() {
     setElDeviceType(""); setElBrand(""); setElModel(""); setElCondition("");
     setElStorage(""); setElRam(""); setElColor("");
     setElectronicsSubcat(""); setCondition(""); setBrand("");
-    setServiceType("");
+    setServiceType(""); setServiceCategory(""); setOnlineService(""); setProviderType("");
     setJobCategory(""); setEmploymentType(""); setExperience(""); setRemote("");
     setSalaryFrom(""); setSalaryTo("");
     setOpenDropdown(null);
@@ -1092,8 +1112,14 @@ function ListingsPageContent() {
         if (urlElectronicsSubcat && l.electronics_subcategory !== urlElectronicsSubcat) return false;
         if (urlCondition && l.condition !== urlCondition) return false;
 
-        // Услуги
-        if (urlServiceType && l.service_type !== urlServiceType) return false;
+        // Услуги — check details JSONB (new) and old column (legacy)
+        if (urlServiceCategory) {
+          if (d.service_category !== urlServiceCategory && l.service_type !== urlServiceCategory) return false;
+        }
+        if (urlOnlineService && d.online_service !== urlOnlineService) return false;
+        if (urlProviderType && d.provider_type !== urlProviderType) return false;
+        // Legacy: old serviceType URL param still works for old saved searches
+        if (urlServiceType && l.service_type !== urlServiceType && d.service_category !== urlServiceType) return false;
 
         // Работа
         if (urlJobCategory && d.job_category !== urlJobCategory) return false;
@@ -1126,7 +1152,7 @@ function ListingsPageContent() {
     urlEuroStandard, urlBodyType, urlDriveType, urlCarColor, urlCarCondition, urlPartType,
     urlElDeviceType, urlElBrand, urlElModel, urlElCondition, urlElStorage, urlElRam, urlElColor,
     urlElectronicsSubcat, urlCondition,
-    urlServiceType,
+    urlServiceType, urlServiceCategory, urlOnlineService, urlProviderType,
     urlJobCategory, urlEmploymentType, urlExperience, urlRemote, urlSalaryFrom, urlSalaryTo,
   ]);
 
@@ -1310,6 +1336,9 @@ function ListingsPageContent() {
                 condition={condition} onCondition={setCondition}
                 brand={brand} onBrand={setBrand}
                 serviceType={serviceType} onServiceType={setServiceType}
+                serviceCategory={serviceCategory} onServiceCategory={setServiceCategory}
+                onlineService={onlineService} onOnlineService={setOnlineService}
+                providerType={providerType} onProviderType={setProviderType}
                 jobCategory={jobCategory} onJobCategory={setJobCategory}
                 employmentType={employmentType} onEmploymentType={setEmploymentType}
                 experience={experience} onExperience={setExperience}
@@ -1369,7 +1398,9 @@ function ListingsPageContent() {
                 { label: urlElRam ? `RAM: ${urlElRam}` : "", key: "elRam" },
                 { label: urlElColor, key: "elColor" },
                 { label: urlCondition, key: "condition" },
-                { label: urlServiceType, key: "serviceType" },
+                { label: urlServiceCategory, key: "serviceCategory" },
+                { label: urlOnlineService ? `Онлайн: ${urlOnlineService}` : "", key: "onlineService" },
+                { label: urlProviderType, key: "providerType" },
                 { label: urlJobCategory, key: "jobCategory" },
                 { label: urlEmploymentType, key: "employmentType" },
                 { label: urlExperience, key: "experience" },

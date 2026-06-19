@@ -13,6 +13,7 @@ import {
   FUEL_TYPES, TRANSMISSION_TYPES, CAR_BODY_TYPES, EURO_STANDARDS,
   DRIVE_TYPES, CAR_COLORS, CAR_CONDITIONS, VEHICLE_TYPES,
   AUTO_PART_CATEGORIES, PART_CONDITIONS,
+  SERVICE_CATEGORIES, PROVIDER_TYPES, PRICE_TYPES,
   JOB_CATEGORIES, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS,
   ELECTRONICS_DEVICE_TYPES, ELECTRONICS_BRANDS, ELECTRONICS_STORAGE_OPTIONS,
   ELECTRONICS_RAM_OPTIONS, ELECTRONICS_COLORS, ITEM_CONDITIONS,
@@ -101,6 +102,12 @@ const CATEGORY_DETAILS: Record<string, FieldDef[]> = {
     { key: "car_model",    label: "Модел автомобил",    type: "select", dependsOn: "car_brand", getOptions: getModelsForBrand },
     { key: "part_category",label: "Категория част",     type: "select", options: AUTO_PART_CATEGORIES, required: true },
     { key: "condition",    label: "Състояние",          type: "select", options: PART_CONDITIONS },
+  ],
+  Услуги: [
+    { key: "service_category", label: "Категория услуга",   type: "select", options: SERVICE_CATEGORIES, required: true },
+    { key: "online_service",   label: "Онлайн услуга",      type: "select", options: ["Да", "Не"] },
+    { key: "provider_type",    label: "Фирма / Частно лице",type: "select", options: PROVIDER_TYPES },
+    { key: "price_type",       label: "Тип на цената",      type: "select", options: PRICE_TYPES },
   ],
   Работа: [
     { key: "job_category",    label: "Категория работа", type: "select", options: JOB_CATEGORIES, required: true },
