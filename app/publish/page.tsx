@@ -96,10 +96,10 @@ const CATEGORY_DETAILS: Record<string, FieldDef[]> = {
     { key: "color",       label: "Цвят",             type: "select", options: ELECTRONICS_COLORS },
   ],
   Авточасти: [
-    { key: "car_brand", label: "Марка на автомобила", type: "select", options: ORDERED_CAR_BRANDS },
-    { key: "car_model", label: "Модел на автомобила", type: "text", placeholder: "напр. Golf 6" },
-    { key: "part_category", label: "Вид на частта", type: "select", options: AUTO_PART_CATEGORIES, required: true },
-    { key: "condition", label: "Състояние", type: "select", options: PART_CONDITIONS },
+    { key: "car_brand",    label: "Марка автомобил",    type: "select", options: ORDERED_CAR_BRANDS },
+    { key: "car_model",    label: "Модел автомобил",    type: "select", dependsOn: "car_brand", getOptions: getModelsForBrand },
+    { key: "part_category",label: "Категория част",     type: "select", options: AUTO_PART_CATEGORIES, required: true },
+    { key: "condition",    label: "Състояние",          type: "select", options: PART_CONDITIONS },
   ],
 };
 

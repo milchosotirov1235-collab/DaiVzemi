@@ -932,16 +932,19 @@ function ListingsPageContent() {
 
         if (urlVehicleType && d.vehicle_type !== urlVehicleType) return false;
 
-        if (urlCarMake) {
-          const makeNew = d.brand?.toLowerCase();
-          const makeOld = l.car_make?.toLowerCase();
-          if (makeNew !== urlCarMake.toLowerCase() && makeOld !== urlCarMake.toLowerCase()) return false;
-        }
-        if (urlCarModel) {
-          const modelNew = d.model?.toLowerCase();
-          const modelOld = l.car_model?.toLowerCase();
-          const q = urlCarModel.toLowerCase();
-          if (!modelNew?.includes(q) && !modelOld?.includes(q)) return false;
+        // carMake/carModel in vehicles context only (Авточасти has its own check below)
+        if (category !== "Авточасти") {
+          if (urlCarMake) {
+            const makeNew = d.brand?.toLowerCase();
+            const makeOld = l.car_make?.toLowerCase();
+            if (makeNew !== urlCarMake.toLowerCase() && makeOld !== urlCarMake.toLowerCase()) return false;
+          }
+          if (urlCarModel) {
+            const modelNew = d.model?.toLowerCase();
+            const modelOld = l.car_model?.toLowerCase();
+            const q = urlCarModel.toLowerCase();
+            if (!modelNew?.includes(q) && !modelOld?.includes(q)) return false;
+          }
         }
         if (urlYearFrom) {
           const yr = Number(d.year ?? l.car_year);
@@ -986,7 +989,20 @@ function ListingsPageContent() {
         if (urlDriveType && d.drive_type !== urlDriveType) return false;
         if (urlCarColor && d.color !== urlCarColor) return false;
         if (urlCarCondition && d.condition !== urlCarCondition) return false;
-        if (urlPartType && l.part_type !== urlPartType) return false;
+        // Авточасти — check details JSONB (new) and old DB columns (legacy)
+        if (urlCarMake && category === "Авточасти") {
+          if (d.car_brand?.toLowerCase() !== urlCarMake.toLowerCase() && l.car_make?.toLowerCase() !== urlCarMake.toLowerCase()) return false;
+        }
+        if (urlCarModel && category === "Авточасти") {
+          const q = urlCarModel.toLowerCase();
+          if (!d.car_model?.toLowerCase().includes(q) && !l.car_model?.toLowerCase().includes(q)) return false;
+        }
+        if (urlPartType) {
+          if (d.part_category !== urlPartType && l.part_type !== urlPartType) return false;
+        }
+        if (urlCondition && category === "Авточасти") {
+          if (d.condition !== urlCondition && l.condition !== urlCondition) return false;
+        }
 
         // Електроника — check details JSONB for new listings, old columns for legacy
         if (urlElDeviceType) {
