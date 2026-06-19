@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
-import { ChevronDown, SlidersHorizontal, X } from "lucide-react";
+import { BookMarked, ChevronDown, Loader2, SlidersHorizontal, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 // ---------------------------------------------------------------------------
@@ -457,6 +457,10 @@ function ListingsPageContent() {
   // Dropdown open state (tracks which key is open)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
+  // Save search state
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [saveNotice, setSaveNotice] = useState<"saved" | "duplicate" | "error" | null>(null);
+
   // URL-committed values (used for actual queries)
   const search = searchParams.get("search") ?? "";
   const city = searchParams.get("city") ?? "";
@@ -568,6 +572,78 @@ function ListingsPageContent() {
     if (serviceType) params.set("serviceType", serviceType);
 
     router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
+  };
+
+  const saveSearch = async () => {
+    setSavingSearch(true);
+    setSaveNotice(null);
+
+    const { data: authData } = await supabase.auth.getUser();
+    const user = authData?.user ?? null;
+
+    if (!user) {
+      setSavingSearch(false);
+      setSaveNotice("error");
+      return;
+    }
+
+    // Build filters object for extra params
+    const filters: Record<string, string> = {};
+    if (minPrice) filters.minPrice = minPrice;
+    if (maxPrice) filters.maxPrice = maxPrice;
+    if (urlPropertyType) filters.propertyType = urlPropertyType;
+    if (urlRooms) filters.rooms = urlRooms;
+    if (urlSqmMin) filters.sqmMin = urlSqmMin;
+    if (urlSqmMax) filters.sqmMax = urlSqmMax;
+    if (urlCarMake) filters.carMake = urlCarMake;
+    if (urlCarModel) filters.carModel = urlCarModel;
+    if (urlYearFrom) filters.yearFrom = urlYearFrom;
+    if (urlYearTo) filters.yearTo = urlYearTo;
+    if (urlFuel) filters.fuel = urlFuel;
+    if (urlTransmission) filters.transmission = urlTransmission;
+    if (urlMileageFrom) filters.mileageFrom = urlMileageFrom;
+    if (urlMileageTo) filters.mileageTo = urlMileageTo;
+    if (urlPartType) filters.partType = urlPartType;
+    if (urlElectronicsSubcat) filters.electronicsSubcat = urlElectronicsSubcat;
+    if (urlCondition) filters.condition = urlCondition;
+    if (urlBrand) filters.brand = urlBrand;
+    if (urlServiceType) filters.serviceType = urlServiceType;
+
+    // Check for duplicate (same user + same key params)
+    const { data: existing } = await supabase
+      .from("saved_searches")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("category", category || "")
+      .eq("listing_type", type || "")
+      .eq("city", city || "")
+      .eq("search", search || "")
+      .maybeSingle();
+
+    if (existing) {
+      setSavingSearch(false);
+      setSaveNotice("duplicate");
+      setTimeout(() => setSaveNotice(null), 3000);
+      return;
+    }
+
+    // Build a human-readable title
+    const parts = [category, type, city, search].filter(Boolean);
+    const title = parts.length > 0 ? parts.join(" · ") : "Търсене";
+
+    const { error } = await supabase.from("saved_searches").insert({
+      user_id: user.id,
+      title,
+      category: category || null,
+      listing_type: type || null,
+      city: city || null,
+      search: search || null,
+      filters,
+    });
+
+    setSavingSearch(false);
+    setSaveNotice(error ? "error" : "saved");
+    setTimeout(() => setSaveNotice(null), 3000);
   };
 
   const clearFilters = () => {
@@ -778,6 +854,35 @@ function ListingsPageContent() {
               Изчисти филтрите
             </button>
           </div>
+
+          {/* Save search row — only when filters are active */}
+          {hasFilters && (
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={saveSearch}
+                disabled={savingSearch}
+                className="flex items-center gap-2 rounded-2xl border border-blue-950 px-4 py-2.5 text-sm font-black text-blue-950 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {savingSearch ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <BookMarked className="h-4 w-4" />
+                )}
+                Запази търсенето
+              </button>
+
+              {saveNotice === "saved" && (
+                <span className="text-sm font-bold text-green-700">✓ Търсенето е запазено</span>
+              )}
+              {saveNotice === "duplicate" && (
+                <span className="text-sm font-bold text-amber-700">Това търсене вече е запазено</span>
+              )}
+              {saveNotice === "error" && (
+                <span className="text-sm font-bold text-red-600">Влезте в профила си, за да запазите търсенето</span>
+              )}
+            </div>
+          )}
 
           {/* Row 3: category-specific filters */}
           {hasSpecificFilters && (
