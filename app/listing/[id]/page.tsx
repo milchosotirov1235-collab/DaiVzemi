@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
-import { ChevronLeft, ChevronRight, Heart, MessageCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart, Loader2, MessageCircle, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 type Listing = {
@@ -20,6 +20,14 @@ type Listing = {
   image_urls: string[] | null;
   user_id: string | null;
 };
+
+const REPORT_REASONS = [
+  "Измама",
+  "Спам",
+  "Неподходящо съдържание",
+  "Невярна информация",
+  "Друго",
+];
 
 const fallbackImageByCategory: Record<string, string> = {
   Имоти: "🏙️",
@@ -79,6 +87,15 @@ export default function ListingPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
   const [contactingLoading, setContactingLoading] = useState(false);
+
+  // Report state
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportTarget, setReportTarget] = useState<"listing" | "user">("listing");
+  const [reportReason, setReportReason] = useState("");
+  const [reportDescription, setReportDescription] = useState("");
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportDone, setReportDone] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
 
   const images = listing
     ? Array.from(
@@ -190,6 +207,50 @@ setNoticeMessage("Влезте в профила си, за да добавят�
     });
 
     router.push(`/messages/${created.id}`);
+  };
+
+  const submitReport = async () => {
+    if (!reportReason) return;
+    if (!userId) {
+      setReportError("Влезте в профила си, за да докладвате.");
+      return;
+    }
+    setReportSubmitting(true);
+    setReportError(null);
+
+    const payload: Record<string, unknown> = {
+      reporter_user_id: userId,
+      reason: reportReason,
+      description: reportDescription.trim() || null,
+      status: "open",
+    };
+    if (reportTarget === "listing") {
+      payload.reported_listing_id = Number(id);
+    } else {
+      payload.reported_user_id = listing?.user_id ?? null;
+    }
+
+    const { error } = await supabase.from("reports").insert(payload);
+    setReportSubmitting(false);
+
+    if (error) {
+      setReportError("Грешка при изпращане. Опитайте отново.");
+    } else {
+      setReportDone(true);
+      setReportOpen(false);
+    }
+  };
+
+  const openReport = (target: "listing" | "user") => {
+    if (!userId) {
+      setNoticeMessage("Влезте в профила си, за да докладвате.");
+      return;
+    }
+    setReportTarget(target);
+    setReportReason("");
+    setReportDescription("");
+    setReportError(null);
+    setReportOpen(true);
   };
 
   useEffect(() => {
@@ -482,6 +543,98 @@ if (id) {
                   Назад към началото
                 </Link>
               </div>
+
+              {/* ── Report section ── */}
+              {listing.user_id !== userId && (
+                <div className="border-t border-slate-100 pt-5">
+                  {reportDone ? (
+                    <p className="text-xs font-semibold text-green-700">
+                      ✓ Докладът е изпратен. Ще го разгледаме скоро.
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-xs text-slate-400">
+                        Забелязахте проблем?{" "}
+                        <button
+                          type="button"
+                          onClick={() => openReport("listing")}
+                          className="font-semibold text-slate-500 underline underline-offset-2 transition hover:text-red-600"
+                        >
+                          Докладвай обявата
+                        </button>
+                        {listing.user_id && (
+                          <>
+                            {" · "}
+                            <button
+                              type="button"
+                              onClick={() => openReport("user")}
+                              className="font-semibold text-slate-500 underline underline-offset-2 transition hover:text-red-600"
+                            >
+                              Докладвай потребителя
+                            </button>
+                          </>
+                        )}
+                      </p>
+
+                      {reportOpen && (
+                        <div className="mt-4 rounded-[20px] border border-slate-200 bg-slate-50 p-5">
+                          <div className="mb-4 flex items-center justify-between">
+                            <p className="text-sm font-black text-slate-900">
+                              {reportTarget === "listing"
+                                ? "Докладвай обявата"
+                                : "Докладвай потребителя"}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setReportOpen(false)}
+                              className="rounded-lg p-1 text-slate-400 transition hover:text-slate-700"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+
+                          <div className="space-y-3">
+                            <select
+                              value={reportReason}
+                              onChange={(e) => setReportReason(e.target.value)}
+                              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                            >
+                              <option value="">Изберете причина</option>
+                              {REPORT_REASONS.map((r) => (
+                                <option key={r} value={r}>{r}</option>
+                              ))}
+                            </select>
+
+                            <textarea
+                              value={reportDescription}
+                              onChange={(e) => setReportDescription(e.target.value)}
+                              rows={3}
+                              placeholder="Допълнително описание (по желание)"
+                              className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none placeholder:font-normal placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                            />
+
+                            {reportError && (
+                              <p className="text-xs font-semibold text-red-600">{reportError}</p>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={submitReport}
+                              disabled={reportSubmitting || !reportReason}
+                              className="flex items-center gap-2 rounded-2xl bg-red-600 px-5 py-2.5 text-sm font-black text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {reportSubmitting && (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              )}
+                              Изпрати доклада
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
