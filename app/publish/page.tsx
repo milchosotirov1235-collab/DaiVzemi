@@ -13,6 +13,7 @@ import {
   FUEL_TYPES, TRANSMISSION_TYPES, CAR_BODY_TYPES, EURO_STANDARDS,
   DRIVE_TYPES, CAR_COLORS, CAR_CONDITIONS, VEHICLE_TYPES,
   AUTO_PART_CATEGORIES, PART_CONDITIONS,
+  JOB_CATEGORIES, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS,
   ELECTRONICS_DEVICE_TYPES, ELECTRONICS_BRANDS, ELECTRONICS_STORAGE_OPTIONS,
   ELECTRONICS_RAM_OPTIONS, ELECTRONICS_COLORS, ITEM_CONDITIONS,
 } from "@/lib/data/categoryData";
@@ -100,6 +101,14 @@ const CATEGORY_DETAILS: Record<string, FieldDef[]> = {
     { key: "car_model",    label: "Модел автомобил",    type: "select", dependsOn: "car_brand", getOptions: getModelsForBrand },
     { key: "part_category",label: "Категория част",     type: "select", options: AUTO_PART_CATEGORIES, required: true },
     { key: "condition",    label: "Състояние",          type: "select", options: PART_CONDITIONS },
+  ],
+  Работа: [
+    { key: "job_category",    label: "Категория работа", type: "select", options: JOB_CATEGORIES, required: true },
+    { key: "employment_type", label: "Тип заетост",      type: "select", options: EMPLOYMENT_TYPES },
+    { key: "experience",      label: "Опит",             type: "select", options: EXPERIENCE_LEVELS },
+    { key: "remote",          label: "Дистанционна",     type: "select", options: ["Да", "Не"] },
+    { key: "salary_from",     label: "Заплата от (лв.)", type: "number", placeholder: "напр. 1500" },
+    { key: "salary_to",       label: "Заплата до (лв.)", type: "number", placeholder: "напр. 3000" },
   ],
 };
 

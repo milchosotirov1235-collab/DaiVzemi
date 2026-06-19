@@ -16,6 +16,7 @@ import {
   AUTO_PART_CATEGORIES, PART_CONDITIONS,
   ELECTRONICS_DEVICE_TYPES, ELECTRONICS_BRANDS, ELECTRONICS_STORAGE_OPTIONS,
   ELECTRONICS_RAM_OPTIONS, ELECTRONICS_COLORS, ITEM_CONDITIONS, SERVICE_TYPES,
+  JOB_CATEGORIES, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS,
 } from "@/lib/data/categoryData";
 import SearchableSelect from "@/components/SearchableSelect";
 
@@ -88,7 +89,7 @@ const fallbackImageByCategory: Record<string, string> = {
 };
 
 // Categories that have their own dedicated filter panel
-const CATEGORY_SPECIFIC = ["Имоти", "Автомобили", "Авточасти", "Електроника", "Услуги"];
+const CATEGORY_SPECIFIC = ["Имоти", "Автомобили", "Авточасти", "Електроника", "Услуги", "Работа"];
 
 // ---------------------------------------------------------------------------
 // CustomDropdown
@@ -215,6 +216,13 @@ type CategoryFilterProps = {
   brand: string; onBrand: (v: string) => void;
   // Услуги
   serviceType: string; onServiceType: (v: string) => void;
+  // Работа
+  jobCategory: string; onJobCategory: (v: string) => void;
+  employmentType: string; onEmploymentType: (v: string) => void;
+  experience: string; onExperience: (v: string) => void;
+  remote: string; onRemote: (v: string) => void;
+  salaryFrom: string; onSalaryFrom: (v: string) => void;
+  salaryTo: string; onSalaryTo: (v: string) => void;
 };
 
 function CategoryFilters(p: CategoryFilterProps) {
@@ -417,6 +425,32 @@ function CategoryFilters(p: CategoryFilterProps) {
     );
   }
 
+  if (p.category === "Работа") {
+    return (
+      <div className="mt-4 space-y-3">
+        {/* Row 1 — Category + Employment type + Experience + Remote */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <SearchableSelect value={p.jobCategory} onChange={p.onJobCategory}
+            options={JOB_CATEGORIES} placeholder="Категория работа" />
+          <SearchableSelect value={p.employmentType} onChange={p.onEmploymentType}
+            options={EMPLOYMENT_TYPES} placeholder="Тип заетост" />
+          <SearchableSelect value={p.experience} onChange={p.onExperience}
+            options={EXPERIENCE_LEVELS} placeholder="Опит" />
+          <SearchableSelect value={p.remote} onChange={p.onRemote}
+            options={["Да", "Не"]} placeholder="Дистанционна" />
+        </div>
+
+        {/* Row 2 — Salary range */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <input value={p.salaryFrom} onChange={(e) => p.onSalaryFrom(e.target.value)}
+            placeholder="Заплата от (лв.)" type="number" min="0" className={field} />
+          <input value={p.salaryTo} onChange={(e) => p.onSalaryTo(e.target.value)}
+            placeholder="Заплата до (лв.)" type="number" min="0" className={field} />
+        </div>
+      </div>
+    );
+  }
+
   return null;
 }
 
@@ -519,6 +553,14 @@ function ListingsPageContent() {
   // Category-specific filters — Услуги
   const [serviceType, setServiceType] = useState(searchParams.get("serviceType") ?? "");
 
+  // Category-specific filters — Работа
+  const [jobCategory, setJobCategory] = useState(searchParams.get("jobCategory") ?? "");
+  const [employmentType, setEmploymentType] = useState(searchParams.get("employmentType") ?? "");
+  const [experience, setExperience] = useState(searchParams.get("experience") ?? "");
+  const [remote, setRemote] = useState(searchParams.get("remote") ?? "");
+  const [salaryFrom, setSalaryFrom] = useState(searchParams.get("salaryFrom") ?? "");
+  const [salaryTo, setSalaryTo] = useState(searchParams.get("salaryTo") ?? "");
+
   // Dropdown open state (tracks which key is open)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
@@ -577,6 +619,12 @@ function ListingsPageContent() {
   const urlCondition = searchParams.get("condition") ?? "";
   const urlBrand = searchParams.get("brand") ?? "";
   const urlServiceType = searchParams.get("serviceType") ?? "";
+  const urlJobCategory = searchParams.get("jobCategory") ?? "";
+  const urlEmploymentType = searchParams.get("employmentType") ?? "";
+  const urlExperience = searchParams.get("experience") ?? "";
+  const urlRemote = searchParams.get("remote") ?? "";
+  const urlSalaryFrom = searchParams.get("salaryFrom") ?? "";
+  const urlSalaryTo = searchParams.get("salaryTo") ?? "";
 
   const hasFilters =
     search.trim().length > 0 ||
@@ -626,7 +674,13 @@ function ListingsPageContent() {
     urlElectronicsSubcat.length > 0 ||
     urlCondition.length > 0 ||
     urlBrand.length > 0 ||
-    urlServiceType.length > 0;
+    urlServiceType.length > 0 ||
+    urlJobCategory.length > 0 ||
+    urlEmploymentType.length > 0 ||
+    urlExperience.length > 0 ||
+    urlRemote.length > 0 ||
+    urlSalaryFrom.length > 0 ||
+    urlSalaryTo.length > 0;
 
   const hasSpecificFilters = CATEGORY_SPECIFIC.includes(category);
 
@@ -674,6 +728,12 @@ function ListingsPageContent() {
     setCondition(searchParams.get("condition") ?? "");
     setBrand(searchParams.get("brand") ?? "");
     setServiceType(searchParams.get("serviceType") ?? "");
+    setJobCategory(searchParams.get("jobCategory") ?? "");
+    setEmploymentType(searchParams.get("employmentType") ?? "");
+    setExperience(searchParams.get("experience") ?? "");
+    setRemote(searchParams.get("remote") ?? "");
+    setSalaryFrom(searchParams.get("salaryFrom") ?? "");
+    setSalaryTo(searchParams.get("salaryTo") ?? "");
     setCategoryInput(searchParams.get("category") ?? "");
     setTypeInput(searchParams.get("type") ?? "");
     setSearchInput(searchParams.get("search") ?? "");
@@ -734,6 +794,12 @@ function ListingsPageContent() {
     if (elColor) params.set("elColor", elColor);
     if (condition) params.set("condition", condition);
     if (serviceType) params.set("serviceType", serviceType);
+    if (jobCategory) params.set("jobCategory", jobCategory);
+    if (employmentType) params.set("employmentType", employmentType);
+    if (experience) params.set("experience", experience);
+    if (remote) params.set("remote", remote);
+    if (salaryFrom.trim()) params.set("salaryFrom", salaryFrom.trim());
+    if (salaryTo.trim()) params.set("salaryTo", salaryTo.trim());
 
     router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
   };
@@ -795,6 +861,12 @@ function ListingsPageContent() {
     if (urlElColor) filters.elColor = urlElColor;
     if (urlCondition) filters.condition = urlCondition;
     if (urlServiceType) filters.serviceType = urlServiceType;
+    if (urlJobCategory) filters.jobCategory = urlJobCategory;
+    if (urlEmploymentType) filters.employmentType = urlEmploymentType;
+    if (urlExperience) filters.experience = urlExperience;
+    if (urlRemote) filters.remote = urlRemote;
+    if (urlSalaryFrom) filters.salaryFrom = urlSalaryFrom;
+    if (urlSalaryTo) filters.salaryTo = urlSalaryTo;
 
     // Check for duplicate (same user + same key params)
     const { data: existing } = await supabase
@@ -850,6 +922,8 @@ function ListingsPageContent() {
     setElStorage(""); setElRam(""); setElColor("");
     setElectronicsSubcat(""); setCondition(""); setBrand("");
     setServiceType("");
+    setJobCategory(""); setEmploymentType(""); setExperience(""); setRemote("");
+    setSalaryFrom(""); setSalaryTo("");
     setOpenDropdown(null);
     router.push("/listings");
   };
@@ -1021,6 +1095,20 @@ function ListingsPageContent() {
         // Услуги
         if (urlServiceType && l.service_type !== urlServiceType) return false;
 
+        // Работа
+        if (urlJobCategory && d.job_category !== urlJobCategory) return false;
+        if (urlEmploymentType && d.employment_type !== urlEmploymentType) return false;
+        if (urlExperience && d.experience !== urlExperience) return false;
+        if (urlRemote && d.remote !== urlRemote) return false;
+        if (urlSalaryFrom) {
+          const sf = Number(d.salary_from);
+          if (Number.isFinite(sf) && sf < Number(urlSalaryFrom)) return false;
+        }
+        if (urlSalaryTo) {
+          const st = Number(d.salary_to);
+          if (Number.isFinite(st) && st > Number(urlSalaryTo)) return false;
+        }
+
         return true;
       });
 
@@ -1039,6 +1127,7 @@ function ListingsPageContent() {
     urlElDeviceType, urlElBrand, urlElModel, urlElCondition, urlElStorage, urlElRam, urlElColor,
     urlElectronicsSubcat, urlCondition,
     urlServiceType,
+    urlJobCategory, urlEmploymentType, urlExperience, urlRemote, urlSalaryFrom, urlSalaryTo,
   ]);
 
   // -------------------------------------------------------------------------
@@ -1221,6 +1310,12 @@ function ListingsPageContent() {
                 condition={condition} onCondition={setCondition}
                 brand={brand} onBrand={setBrand}
                 serviceType={serviceType} onServiceType={setServiceType}
+                jobCategory={jobCategory} onJobCategory={setJobCategory}
+                employmentType={employmentType} onEmploymentType={setEmploymentType}
+                experience={experience} onExperience={setExperience}
+                remote={remote} onRemote={setRemote}
+                salaryFrom={salaryFrom} onSalaryFrom={setSalaryFrom}
+                salaryTo={salaryTo} onSalaryTo={setSalaryTo}
               />
             </>
           )}
@@ -1275,6 +1370,12 @@ function ListingsPageContent() {
                 { label: urlElColor, key: "elColor" },
                 { label: urlCondition, key: "condition" },
                 { label: urlServiceType, key: "serviceType" },
+                { label: urlJobCategory, key: "jobCategory" },
+                { label: urlEmploymentType, key: "employmentType" },
+                { label: urlExperience, key: "experience" },
+                { label: urlRemote ? `Дистанционна: ${urlRemote}` : "", key: "remote" },
+                { label: urlSalaryFrom ? `от ${urlSalaryFrom} лв.` : "", key: "salaryFrom" },
+                { label: urlSalaryTo ? `до ${urlSalaryTo} лв.` : "", key: "salaryTo" },
               ]
                 .filter((chip) => chip.label.trim().length > 0)
                 .map((chip) => (
