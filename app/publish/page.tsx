@@ -6,6 +6,7 @@ import UnverifiedBanner from "@/components/UnverifiedBanner";
 import { AlertTriangle, CheckCircle2, ChevronDown, ImagePlus, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { checkListingRateLimit, checkDuplicateListing } from "@/lib/security/rateLimit";
+import { getImageLimit } from "@/lib/config/imageLimits";
 import SearchableSelect from "@/components/SearchableSelect";
 import { BG_CITIES } from "@/lib/data/cities";
 import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
@@ -204,6 +205,9 @@ export default function PublishPage() {
   // Category-specific details
   const [details, setDetails] = useState<Record<string, string>>({});
 
+  // Derived image limit — updates whenever category changes
+  const imageLimit = getImageLimit(category);
+
   // Images
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
@@ -267,8 +271,8 @@ export default function PublishPage() {
       return;
     }
 
-    if (files.length > 10) {
-      showError("Твърде много снимки", "Можете да изберете максимум 10 снимки.");
+    if (files.length > imageLimit) {
+      showError("Твърде много снимки", `Можете да изберете максимум ${imageLimit} снимки за тази категория.`);
       return;
     }
 
@@ -318,8 +322,8 @@ export default function PublishPage() {
       showError("Кратко описание", "Описанието трябва да съдържа поне 10 символа.");
       return;
     }
-    if (selectedImages.length > 10) {
-      showError("Твърде много снимки", "Можете да изберете максимум 10 снимки.");
+    if (selectedImages.length > imageLimit) {
+      showError("Твърде много снимки", `Можете да изберете максимум ${imageLimit} снимки за категория ${category}.`);
       return;
     }
 
@@ -637,7 +641,7 @@ export default function PublishPage() {
             <div className="rounded-[28px] border border-dashed border-blue-200 bg-blue-50/40 p-6 text-center">
               <p className="text-base font-black text-blue-950">Снимки на обявата</p>
               <p className="mt-2 text-sm font-semibold text-slate-500">
-                JPG, JPEG, PNG, WEBP · максимум 5MB на файл · до 10 снимки
+                JPG, JPEG, PNG, WEBP · максимум 5MB на файл · до {imageLimit} снимки
               </p>
               <label className="mt-5 inline-flex cursor-pointer rounded-2xl bg-blue-950 px-6 py-3 text-sm font-black text-white shadow-lg transition hover:bg-blue-900">
                 Избери снимки
@@ -651,13 +655,18 @@ export default function PublishPage() {
               </label>
 
               {imagePreviewUrls.length > 0 ? (
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                  {imagePreviewUrls.map((url, index) => (
-                    <div key={url} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                      <img src={url} alt={`Preview ${index + 1}`} className="h-32 w-full object-cover" />
-                    </div>
-                  ))}
-                </div>
+                <>
+                  <p className={`mt-4 text-sm font-black ${selectedImages.length >= imageLimit ? "text-red-600" : "text-slate-500"}`}>
+                    {selectedImages.length} / {imageLimit} снимки
+                  </p>
+                  <div className="mt-2 grid gap-3 sm:grid-cols-3">
+                    {imagePreviewUrls.map((url, index) => (
+                      <div key={url} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                        <img src={url} alt={`Preview ${index + 1}`} className="h-32 w-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                </>
               ) : null}
 
               {uploadingImages ? (

@@ -6,6 +6,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import { ChevronDown, SlidersHorizontal, Trash2, Upload } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { getImageLimit } from "@/lib/config/imageLimits";
 import SearchableSelect from "@/components/SearchableSelect";
 import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
@@ -34,7 +35,6 @@ const categoryOptions = [
 
 const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
 const maxImageSize = 5 * 1024 * 1024;
-const maxImages = 10;
 
 // ---------------------------------------------------------------------------
 // Category details config (mirrors publish page exactly)
@@ -216,6 +216,9 @@ export default function EditListingPage() {
 
   // Category-specific details
   const [details, setDetails] = useState<Record<string, string>>({});
+
+  // Dynamic image limit based on category
+  const maxImages = getImageLimit(category);
 
   // Images
   const [currentImages, setCurrentImages] = useState<string[]>([]);
