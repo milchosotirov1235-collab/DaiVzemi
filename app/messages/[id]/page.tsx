@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import UnverifiedBanner from "@/components/UnverifiedBanner";
 import { ArrowLeft, CheckCheck, Loader2, Send } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { checkMessageRateLimit, checkDuplicateMessage } from "@/lib/security/rateLimit";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -96,6 +97,7 @@ export default function ConversationPage() {
   const [messageText, setMessageText] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -231,6 +233,22 @@ export default function ConversationPage() {
     const text = messageText.trim();
     if (!text || !userId || !conversation || sending) return;
     if (!isEmailVerified) return;
+
+    const [rateResult, dupResult] = await Promise.all([
+      checkMessageRateLimit(userId, conversation.id),
+      checkDuplicateMessage(userId, conversation.id, text),
+    ]);
+    if (!rateResult.allowed) {
+      setSendError(rateResult.reason);
+      setTimeout(() => setSendError(null), 4000);
+      return;
+    }
+    if (!dupResult.allowed) {
+      setSendError(dupResult.reason);
+      setTimeout(() => setSendError(null), 4000);
+      return;
+    }
+    setSendError(null);
 
     setSending(true);
     setMessageText("");
@@ -418,6 +436,11 @@ export default function ConversationPage() {
           </div>
         ) : (
           <>
+            {sendError && (
+              <p className="mx-auto mb-2 max-w-3xl rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-center text-sm font-semibold text-red-700">
+                {sendError}
+              </p>
+            )}
             <div className="mx-auto flex max-w-3xl items-end gap-3">
               <textarea
                 ref={inputRef}

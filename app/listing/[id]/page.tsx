@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import UnverifiedBanner from "@/components/UnverifiedBanner";
 import { ChevronLeft, ChevronRight, Heart, Loader2, MessageCircle, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { checkReportRateLimit } from "@/lib/security/rateLimit";
 
 type Listing = {
   id: string;
@@ -230,6 +231,13 @@ setNoticeMessage("Влезте в профила си, за да добавят�
     }
     setReportSubmitting(true);
     setReportError(null);
+
+    const rateResult = await checkReportRateLimit(userId);
+    if (!rateResult.allowed) {
+      setReportError(rateResult.reason);
+      setReportSubmitting(false);
+      return;
+    }
 
     const payload: Record<string, unknown> = {
       reporter_user_id: userId,

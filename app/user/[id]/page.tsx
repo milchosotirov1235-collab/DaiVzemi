@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import UnverifiedBanner from "@/components/UnverifiedBanner";
 import { Flag, Loader2, MapPin, MessageCircle, User } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { checkReportRateLimit } from "@/lib/security/rateLimit";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -228,6 +229,13 @@ export default function UserProfilePage() {
     if (!reportReason || !currentUserId) return;
     setReportSubmitting(true);
     setReportError(null);
+
+    const rateResult = await checkReportRateLimit(currentUserId);
+    if (!rateResult.allowed) {
+      setReportError(rateResult.reason);
+      setReportSubmitting(false);
+      return;
+    }
 
     const { error } = await supabase.from("reports").insert({
       reporter_user_id: currentUserId,

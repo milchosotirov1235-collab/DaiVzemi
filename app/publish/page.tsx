@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import UnverifiedBanner from "@/components/UnverifiedBanner";
 import { AlertTriangle, CheckCircle2, ChevronDown, ImagePlus, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { checkListingRateLimit, checkDuplicateListing } from "@/lib/security/rateLimit";
 import SearchableSelect from "@/components/SearchableSelect";
 import { BG_CITIES } from "@/lib/data/cities";
 import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
@@ -339,6 +340,20 @@ export default function PublishPage() {
 
     if (!user) {
       showError("Не сте влезли в профила си", "Трябва да влезете в профила си, за да публикувате обява.");
+      return;
+    }
+
+    // ── Rate limit + duplicate checks ─────────────────────────────────────
+    const [rateResult, dupResult] = await Promise.all([
+      checkListingRateLimit(user.id),
+      checkDuplicateListing(user.id, cleanTitle, cleanDescription),
+    ]);
+    if (!rateResult.allowed) {
+      showError("Лимит за обяви", rateResult.reason);
+      return;
+    }
+    if (!dupResult.allowed) {
+      showError("Дублирана обява", dupResult.reason);
       return;
     }
 
