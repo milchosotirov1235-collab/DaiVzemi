@@ -9,11 +9,45 @@ import { supabase } from "@/lib/supabaseClient";
 // Helpers
 // ---------------------------------------------------------------------------
 
-function slugFromName(fullName: string, emailPrefix: string): string {
-  const base = fullName.trim()
-    ? fullName.toLowerCase().replace(/[^a-z0-9]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "")
-    : emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, "_").replace(/_+/g, "_");
-  return base.slice(0, 30) || "user";
+/** Produce a slug from a display name or email prefix, max 30 chars. */
+function baseSlug(fullName: string, emailPrefix: string): string {
+  const src = fullName.trim() || emailPrefix;
+  return src
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "")
+    .slice(0, 30) || "user";
+}
+
+/**
+ * Find a username that is not taken by any other user.
+ * Tries base → base_2 → base_3 … up to base_99.
+ * Returns null if all candidates are exhausted (extremely unlikely).
+ */
+async function findAvailableUsername(
+  base: string,
+  ownUserId: string
+): Promise<string | null> {
+  // Truncate base so "base_99" never exceeds 30 chars (keep room for "_99" = 3 chars)
+  const safeBase = base.slice(0, 27);
+
+  const candidates = [safeBase, ...Array.from({ length: 98 }, (_, i) => `${safeBase}_${i + 2}`)];
+
+  for (const candidate of candidates) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("username", candidate)
+      .maybeSingle();
+
+    // Available if no row found, or the row belongs to this user (re-login)
+    if (!data || data.id === ownUserId) {
+      return candidate;
+    }
+  }
+
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -45,7 +79,7 @@ export default function AuthCallbackPage() {
 
       const user = session.user;
 
-      // Check whether a profile already exists
+      // Check whether a profile already exists for this user
       const { data: existing } = await supabase
         .from("profiles")
         .select("id")
@@ -59,9 +93,16 @@ export default function AuthCallbackPage() {
         const firstName = nameParts[0] ?? "";
         const lastName = nameParts.slice(1).join(" ");
         const emailPrefix = (user.email ?? "user").split("@")[0];
-        const username = slugFromName(fullName, emailPrefix);
 
-        await supabase.from("profiles").upsert({
+        const slug = baseSlug(fullName, emailPrefix);
+        const username = await findAvailableUsername(slug, user.id);
+
+        if (!username) {
+          setError("Не успяхме да създадем потребителско име. Свържете се с поддръжката.");
+          return;
+        }
+
+        const { error: upsertError } = await supabase.from("profiles").upsert({
           id: user.id,
           username,
           first_name: firstName || null,
@@ -70,6 +111,11 @@ export default function AuthCallbackPage() {
           avatar_url: user.user_metadata?.avatar_url ?? null,
           updated_at: new Date().toISOString(),
         });
+
+        if (upsertError) {
+          setError("Профилът не можа да бъде създаден. Опитайте отново или се свържете с поддръжката.");
+          return;
+        }
       }
 
       router.replace("/");
