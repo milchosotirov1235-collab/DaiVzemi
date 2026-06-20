@@ -489,6 +489,17 @@ if (id) {
   </div>
 </div>
 
+{listing.user_id && listing.user_id !== userId && (
+  <div className="mt-1">
+    <Link
+      href={`/user/${listing.user_id}`}
+      className="text-xs font-semibold text-slate-500 underline underline-offset-2 transition hover:text-blue-950"
+    >
+      Виж профила на продавача →
+    </Link>
+  </div>
+)}
+
 {noticeMessage && (
   <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
     {noticeMessage}
