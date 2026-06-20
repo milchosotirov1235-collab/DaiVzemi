@@ -77,6 +77,8 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
     const load = async () => {
       const { data: authData } = await supabase.auth.getUser();
       const user = authData?.user ?? null;
@@ -158,9 +160,68 @@ export default function MessagesPage() {
 
       setRows(result);
       setLoading(false);
+
+      // ── Realtime: keep the conversation list live ──────────────────────────
+      const uid = Math.random().toString(36).slice(2);
+      channel = supabase
+        .channel(`messages-list-${user.id}-${uid}`)
+        // New message → update last preview + unread count, bubble to top
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "messages" },
+          (payload) => {
+            const newMsg = payload.new as Message;
+            setRows((prev) => {
+              const idx = prev.findIndex(
+                (r) => r.conversation.id === newMsg.conversation_id
+              );
+              if (idx === -1) return prev; // not one of our conversations
+
+              const updated: ConversationRow = {
+                ...prev[idx],
+                lastMessage: newMsg,
+                unreadCount:
+                  newMsg.sender_id !== user.id
+                    ? prev[idx].unreadCount + 1
+                    : prev[idx].unreadCount,
+              };
+
+              // Move to top so most-recent is first
+              const next = [...prev];
+              next.splice(idx, 1);
+              return [updated, ...next];
+            });
+          }
+        )
+        // Message marked read → decrement unread count
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "messages" },
+          (payload) => {
+            const updatedMsg = payload.new as Message;
+            if (!updatedMsg.read_at) return;
+            setRows((prev) => {
+              const idx = prev.findIndex(
+                (r) => r.conversation.id === updatedMsg.conversation_id
+              );
+              if (idx === -1) return prev;
+              const next = [...prev];
+              next[idx] = {
+                ...next[idx],
+                unreadCount: Math.max(0, next[idx].unreadCount - 1),
+              };
+              return next;
+            });
+          }
+        )
+        .subscribe();
     };
 
     load();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [router]);
 
   const totalUnread = rows.reduce((sum, r) => sum + r.unreadCount, 0);
