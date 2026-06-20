@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
+import UnverifiedBanner from "@/components/UnverifiedBanner";
 import { ChevronLeft, ChevronRight, Heart, Loader2, MessageCircle, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -85,6 +86,7 @@ export default function ListingPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(null);
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
   const [contactingLoading, setContactingLoading] = useState(false);
 
@@ -156,6 +158,11 @@ setNoticeMessage("Влезте в профила си, за да добавят�
   const handleContactSeller = async () => {
     if (!userId) {
       setNoticeMessage("Влезте в профила си, за да изпратите съобщение.");
+      return;
+    }
+
+    if (!isEmailVerified) {
+      setNoticeMessage("Трябва да потвърдите имейла си, преди да изпращате съобщения.");
       return;
     }
 
@@ -246,6 +253,10 @@ setNoticeMessage("Влезте в профила си, за да добавят�
       setNoticeMessage("Влезте в профила си, за да докладвате.");
       return;
     }
+    if (!isEmailVerified) {
+      setNoticeMessage("Трябва да потвърдите имейла си, преди да докладвате.");
+      return;
+    }
     setReportTarget(target);
     setReportReason("");
     setReportDescription("");
@@ -279,6 +290,7 @@ if (id) {
   supabase.auth.getUser().then(({ data }) => {
     if (data.user) {
       setUserId(data.user.id);
+      setIsEmailVerified(!!data.user.email_confirmed_at);
     }
   });
 }
@@ -352,6 +364,7 @@ if (id) {
   return (
     <main className="min-h-screen bg-slate-50">
       <Header />
+      {isEmailVerified === false && <UnverifiedBanner />}
 
       <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-14 text-white">
         <div className="mx-auto max-w-6xl">

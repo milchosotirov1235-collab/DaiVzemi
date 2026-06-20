@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
+import UnverifiedBanner from "@/components/UnverifiedBanner";
 import { Flag, Loader2, MapPin, MessageCircle, User } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -96,6 +97,7 @@ export default function UserProfilePage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(null);
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
   const [contactingLoading, setContactingLoading] = useState(false);
 
@@ -121,6 +123,7 @@ export default function UserProfilePage() {
 
       const { data: authData } = await supabase.auth.getUser();
       setCurrentUserId(authData?.user?.id ?? null);
+      setIsEmailVerified(authData?.user ? !!authData.user.email_confirmed_at : null);
 
       const [profileRes, listingsRes] = await Promise.all([
         supabase
@@ -157,6 +160,11 @@ export default function UserProfilePage() {
   const handleMessage = async () => {
     if (!currentUserId) {
       setNoticeMessage("Влезте в профила си, за да изпратите съобщение.");
+      return;
+    }
+
+    if (!isEmailVerified) {
+      setNoticeMessage("Трябва да потвърдите имейла си, преди да изпращате съобщения.");
       return;
     }
 
@@ -204,6 +212,10 @@ export default function UserProfilePage() {
   const openReport = () => {
     if (!currentUserId) {
       setNoticeMessage("Влезте в профила си, за да докладвате.");
+      return;
+    }
+    if (!isEmailVerified) {
+      setNoticeMessage("Трябва да потвърдите имейла си, преди да докладвате.");
       return;
     }
     setReportReason("");
@@ -268,6 +280,7 @@ export default function UserProfilePage() {
   return (
     <>
       <Header />
+      {isEmailVerified === false && <UnverifiedBanner />}
 
       <main className="min-h-screen bg-slate-50">
         {/* ── Profile hero ── */}

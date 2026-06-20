@@ -235,7 +235,7 @@ export default function Header() {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setCurrentUserEmail(null);
-    setProfile({ username: null, avatar_url: null });
+    setProfile({ username: null, avatar_url: null, role: null });
     setUserMenuOpen(false);
     setMobileMenuOpen(false);
   };

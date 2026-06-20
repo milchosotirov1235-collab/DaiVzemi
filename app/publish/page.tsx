@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
+import UnverifiedBanner from "@/components/UnverifiedBanner";
 import { AlertTriangle, CheckCircle2, ChevronDown, ImagePlus, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import SearchableSelect from "@/components/SearchableSelect";
@@ -208,6 +209,16 @@ export default function PublishPage() {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // Auth
+  const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const user = data?.user ?? null;
+      setIsEmailVerified(user ? !!user.email_confirmed_at : null);
+    });
+  }, []);
+
   // Dropdown states
   const [isListingTypeOpen, setIsListingTypeOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
@@ -283,6 +294,11 @@ export default function PublishPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     resetNotice();
+
+    if (!isEmailVerified) {
+      showError("Имейлът не е потвърден", "Трябва да потвърдите имейла си, преди да публикувате обява.");
+      return;
+    }
 
     const cleanTitle = title.trim();
     const cleanDescription = description.trim();
@@ -428,6 +444,7 @@ export default function PublishPage() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <Header />
+      {isEmailVerified === false && <UnverifiedBanner />}
 
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-950 py-20 text-white">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.12),transparent_32%)]" />

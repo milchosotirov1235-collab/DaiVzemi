@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
+import UnverifiedBanner from "@/components/UnverifiedBanner";
 import { ArrowLeft, CheckCheck, Loader2, Send } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -87,6 +88,7 @@ export default function ConversationPage() {
   const conversationId = params?.id as string;
 
   const [userId, setUserId] = useState<string | null>(null);
+  const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [otherUser, setOtherUser] = useState<Profile | null>(null);
   const [listingTitle, setListingTitle] = useState<string | null>(null);
@@ -121,6 +123,7 @@ export default function ConversationPage() {
       }
 
       setUserId(user.id);
+      setIsEmailVerified(!!user.email_confirmed_at);
 
       // Conversation
       const { data: conv, error: convError } = await supabase
@@ -227,6 +230,7 @@ export default function ConversationPage() {
   const sendMessage = async () => {
     const text = messageText.trim();
     if (!text || !userId || !conversation || sending) return;
+    if (!isEmailVerified) return;
 
     setSending(true);
     setMessageText("");
@@ -307,6 +311,7 @@ export default function ConversationPage() {
   return (
     <main className="flex min-h-screen flex-col bg-slate-50">
       <Header />
+      {isEmailVerified === false && <UnverifiedBanner />}
 
       {/* ── Chat header ── */}
       <div className="sticky top-[var(--header-height,72px)] z-10 border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
@@ -404,39 +409,50 @@ export default function ConversationPage() {
 
       {/* ── Input ── */}
       <div className="border-t border-slate-200 bg-white px-4 py-4">
-        <div className="mx-auto flex max-w-3xl items-end gap-3">
-          <textarea
-            ref={inputRef}
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Напишете съобщение… (Enter за изпращане)"
-            rows={1}
-            className="flex-1 resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-            style={{ maxHeight: "140px" }}
-            onInput={(e) => {
-              const el = e.currentTarget;
-              el.style.height = "auto";
-              el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
-            }}
-          />
-          <button
-            type="button"
-            onClick={sendMessage}
-            disabled={!messageText.trim() || sending}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-950 text-white shadow-md transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-50"
-            aria-label="Изпрати"
-          >
-            {sending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </button>
-        </div>
-        <p className="mt-2 text-center text-[11px] text-slate-400">
-          Shift + Enter за нов ред
-        </p>
+        {isEmailVerified === false ? (
+          <div className="mx-auto max-w-3xl rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm font-semibold text-amber-800">
+            Потвърдете имейла си, за да изпращате съобщения.{" "}
+            <a href="/verify-email" className="font-black underline underline-offset-2 hover:text-amber-900">
+              Потвърди →
+            </a>
+          </div>
+        ) : (
+          <>
+            <div className="mx-auto flex max-w-3xl items-end gap-3">
+              <textarea
+                ref={inputRef}
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Напишете съобщение… (Enter за изпращане)"
+                rows={1}
+                className="flex-1 resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                style={{ maxHeight: "140px" }}
+                onInput={(e) => {
+                  const el = e.currentTarget;
+                  el.style.height = "auto";
+                  el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
+                }}
+              />
+              <button
+                type="button"
+                onClick={sendMessage}
+                disabled={!messageText.trim() || sending}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-950 text-white shadow-md transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Изпрати"
+              >
+                {sending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+            <p className="mt-2 text-center text-[11px] text-slate-400">
+              Shift + Enter за нов ред
+            </p>
+          </>
+        )}
       </div>
     </main>
   );
