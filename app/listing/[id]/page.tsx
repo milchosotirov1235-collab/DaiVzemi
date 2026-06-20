@@ -17,6 +17,7 @@ type Listing = {
   listing_type: string | null;
   description: string | null;
   created_at: string | null;
+  expires_at: string | null;
   image_url: string | null;
   image_urls: string[] | null;
   user_id: string | null;
@@ -156,6 +157,11 @@ setNoticeMessage("Влезте в профила си, за да добавят�
 };
 
   const handleContactSeller = async () => {
+    if (listing?.expires_at && new Date(listing.expires_at) < new Date()) {
+      setNoticeMessage("Обявата е изтекла и не може да бъде контактувана.");
+      return;
+    }
+
     if (!userId) {
       setNoticeMessage("Влезте в профила си, за да изпратите съобщение.");
       return;
@@ -269,7 +275,7 @@ setNoticeMessage("Влезте в профила си, за да добавят�
       const { data, error } = await supabase
         .from("listings")
         .select(
-          "id, title, price, category, city, listing_type, description, created_at, image_url, image_urls, user_id"
+          "id, title, price, category, city, listing_type, description, created_at, expires_at, image_url, image_urls, user_id"
         )
         .eq("id", id)
         .single<Listing>();
@@ -469,13 +475,19 @@ if (id) {
                 </h1>
 
 
+{listing.expires_at && new Date(listing.expires_at) < new Date() && (
+  <div className="mb-4 flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
+    <span className="text-sm font-black text-red-700">Обявата е изтекла</span>
+  </div>
+)}
+
 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
   <p className="text-4xl font-black text-blue-950 sm:text-5xl">
     {formatPrice(listing.price)}
   </p>
 
   <div className="flex flex-wrap gap-3">
-    {listing.user_id !== userId && (
+    {listing.user_id !== userId && !(listing.expires_at && new Date(listing.expires_at) < new Date()) && (
       <button
         type="button"
         onClick={handleContactSeller}

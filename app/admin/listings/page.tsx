@@ -16,6 +16,7 @@ type AdminListing = {
   city: string | null;
   user_id: string | null;
   created_at: string | null;
+  expires_at: string | null;
   hidden: boolean;
 };
 
@@ -48,7 +49,7 @@ export default function AdminListings() {
     setLoading(true);
     const { data } = await supabase
       .from("listings")
-      .select("id, title, category, city, user_id, created_at, hidden")
+      .select("id, title, category, city, user_id, created_at, expires_at, hidden")
       .order("created_at", { ascending: false })
       .limit(200);
     setListings((data as AdminListing[]) ?? []);
@@ -97,6 +98,7 @@ export default function AdminListings() {
                   <th className="px-4 py-3.5 text-xs font-black uppercase tracking-wider text-slate-500">Град</th>
                   <th className="px-4 py-3.5 text-xs font-black uppercase tracking-wider text-slate-500">Потребител</th>
                   <th className="px-4 py-3.5 text-xs font-black uppercase tracking-wider text-slate-500">Дата</th>
+                  <th className="px-4 py-3.5 text-xs font-black uppercase tracking-wider text-slate-500">Изтича</th>
                   <th className="px-4 py-3.5 text-xs font-black uppercase tracking-wider text-slate-500">Статус</th>
                   <th className="px-4 py-3.5 text-xs font-black uppercase tracking-wider text-slate-500">Действия</th>
                 </tr>
@@ -117,6 +119,15 @@ export default function AdminListings() {
                     <td className="px-4 py-3.5 text-slate-600">{l.city ?? "—"}</td>
                     <td className="px-4 py-3.5 font-mono text-xs text-slate-400">{shortId(l.user_id)}</td>
                     <td className="px-4 py-3.5 text-slate-500">{formatDate(l.created_at)}</td>
+                    <td className="px-4 py-3.5">
+                      {l.expires_at ? (
+                        <span className={new Date(l.expires_at) < new Date() ? "font-semibold text-red-600" : "text-slate-500"}>
+                          {formatDate(l.expires_at)}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3.5">
                       {l.hidden ? (
                         <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-black text-red-600 ring-1 ring-red-200">

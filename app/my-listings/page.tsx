@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
-import { Trash2 } from "lucide-react";
+import { RefreshCw, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 type Listing = {
@@ -14,9 +14,17 @@ type Listing = {
   category: string | null;
   listing_type: string | null;
   created_at: string | null;
+  expires_at: string | null;
   image_url: string | null;
   image_urls: string[] | null;
 };
+
+const EXPIRY_DAYS = 60;
+
+function isExpired(listing: Listing): boolean {
+  if (!listing.expires_at) return false;
+  return new Date(listing.expires_at) < new Date();
+}
 
 const fallbackImageByCategory: Record<string, string> = {
   Имоти: "🏙️",
@@ -66,6 +74,7 @@ export default function MyListingsPage() {
   const [loading, setLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [listingToDelete, setListingToDelete] = useState<string | null>(null);
+  const [renewingId, setRenewingId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadUserAndListings = async () => {
@@ -85,7 +94,7 @@ export default function MyListingsPage() {
 
       const { data, error } = await supabase
         .from("listings")
-        .select("id, title, price, city, category, listing_type, created_at, image_url, image_urls")
+        .select("id, title, price, city, category, listing_type, created_at, expires_at, image_url, image_urls")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -125,6 +134,30 @@ export default function MyListingsPage() {
     }
 
     closeDeleteModal();
+  };
+
+  const handleRenew = async (listingId: string) => {
+    if (!currentUserId) return;
+    setRenewingId(listingId);
+
+    const newExpiry = new Date();
+    newExpiry.setDate(newExpiry.getDate() + EXPIRY_DAYS);
+
+    const { error } = await supabase
+      .from("listings")
+      .update({ expires_at: newExpiry.toISOString() })
+      .eq("id", listingId)
+      .eq("user_id", currentUserId);
+
+    if (!error) {
+      setListings((prev) =>
+        prev.map((l) =>
+          l.id === listingId ? { ...l, expires_at: newExpiry.toISOString() } : l
+        )
+      );
+    }
+
+    setRenewingId(null);
   };
 
   return (
@@ -220,9 +253,20 @@ export default function MyListingsPage() {
                         </span>
                       </div>
 
-                      <p className="text-sm text-slate-500">
-                        {formatDate(listing.created_at)}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-slate-500">
+                          {formatDate(listing.created_at)}
+                        </p>
+                        {isExpired(listing) ? (
+                          <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-600 ring-1 ring-red-200">
+                            Изтекла
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-200">
+                            Активна
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </Link>
 
@@ -233,6 +277,18 @@ export default function MyListingsPage() {
                     >
                       Виж обявата
                     </Link>
+
+                    {isExpired(listing) && (
+                      <button
+                        type="button"
+                        onClick={() => handleRenew(listing.id)}
+                        disabled={renewingId === listing.id}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-green-700 px-4 py-3 text-sm font-black text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <RefreshCw className={`h-4 w-4 ${renewingId === listing.id ? "animate-spin" : ""}`} />
+                        {renewingId === listing.id ? "Подновяване..." : "Поднови обявата"}
+                      </button>
+                    )}
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Link
