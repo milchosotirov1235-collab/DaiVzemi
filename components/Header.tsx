@@ -25,6 +25,7 @@ import { supabase } from "@/lib/supabaseClient";
 type UserProfile = {
   username: string | null;
   avatar_url: string | null;
+  role: string | null;
 };
 
 function DropdownLink({
@@ -101,7 +102,7 @@ function Avatar({
 
 export default function Header() {
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
-  const [profile, setProfile] = useState<UserProfile>({ username: null, avatar_url: null });
+  const [profile, setProfile] = useState<UserProfile>({ username: null, avatar_url: null, role: null });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
@@ -112,13 +113,14 @@ export default function Header() {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("username, avatar_url")
+      .select("username, avatar_url, role")
       .eq("id", userId)
       .maybeSingle<UserProfile>();
 
     setProfile({
       username: data?.username ?? null,
       avatar_url: data?.avatar_url ?? null,
+      role: data?.role ?? null,
     });
   };
 
@@ -200,7 +202,7 @@ export default function Header() {
           await fetchProfile(session.user.id);
           await fetchUnreadCounts(session.user.id);
         } else {
-          setProfile({ username: null, avatar_url: null });
+          setProfile({ username: null, avatar_url: null, role: null });
           setUnreadNotifications(0);
           setUnreadMessages(0);
         }
@@ -239,6 +241,7 @@ export default function Header() {
   };
 
   const isLoggedIn = Boolean(currentUserEmail);
+  const isAdmin = profile.role === "admin";
   const avatarLetter = (profile.username ?? currentUserEmail ?? "P").charAt(0).toUpperCase();
   const triggerLabel = profile.username ?? "Профил";
 
@@ -328,6 +331,13 @@ export default function Header() {
                       </div>
 
                       <div className="p-2">
+                        {isAdmin && (
+                          <>
+                            <SectionLabel label="Администрация" />
+                            <DropdownLink href="/admin" icon={<Shield className="h-4 w-4" />} label="Админ панел" onClick={() => setUserMenuOpen(false)} />
+                            <div className="my-2 border-t border-slate-100" />
+                          </>
+                        )}
                         <SectionLabel label="Профил" />
                         <DropdownLink href="/profile" icon={<User className="h-4 w-4" />} label="Моят профил" onClick={() => setUserMenuOpen(false)} />
                         <DropdownLink href="/my-listings" icon={<LayoutList className="h-4 w-4" />} label="Моите обяви" onClick={() => setUserMenuOpen(false)} />
@@ -420,6 +430,9 @@ export default function Header() {
                   </div>
                 </div>
                 <Link href="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><User className="h-4 w-4 shrink-0" /> Моят профил</Link>
+                {isAdmin && (
+                  <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><Shield className="h-4 w-4 shrink-0" /> Админ панел</Link>
+                )}
                 <Link href="/my-listings" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><LayoutList className="h-4 w-4 shrink-0" /> Моите обяви</Link>
                 <Link href="/favorites" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><Heart className="h-4 w-4 shrink-0" /> Любими</Link>
                 <Link href="/messages" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><MessageSquare className="h-4 w-4 shrink-0" /> Съобщения</Link>
