@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { checkListingRateLimit, checkDuplicateListing } from "@/lib/security/rateLimit";
 import { getImageLimit } from "@/lib/config/imageLimits";
 import SearchableSelect from "@/components/SearchableSelect";
+import ListingAssistant from "@/components/ListingAssistant";
 import { BG_CITIES } from "@/lib/data/cities";
 import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
@@ -194,6 +195,15 @@ function CategoryDetailFields({
 // ---------------------------------------------------------------------------
 
 export default function PublishPage() {
+  // Published listing — set after successful submit to show assistant
+  const [publishedListing, setPublishedListing] = useState<{
+    id: number;
+    title: string;
+    description: string;
+    category: string;
+    details: Record<string, string>;
+  } | null>(null);
+
   // Core fields
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -407,7 +417,7 @@ export default function PublishPage() {
       if (value.trim()) cleanDetails[key] = value.trim();
     }
 
-    const { error: insertError } = await supabase.from("listings").insert([
+    const { data: insertData, error: insertError } = await supabase.from("listings").insert([
       {
         title: cleanTitle,
         description: cleanDescription,
@@ -421,7 +431,7 @@ export default function PublishPage() {
         details: cleanDetails,
         moderation_status: "pending",
       },
-    ]);
+    ]).select("id").single();
 
     setLoading(false);
     setUploadingImages(false);
@@ -445,7 +455,16 @@ export default function PublishPage() {
       return;
     }
 
-    showSuccess("Обявата е публикувана", "Вашата обява беше публикувана успешно.");
+    // Show assistant panel — capture current form values before reset
+    if (insertData?.id) {
+      setPublishedListing({
+        id: insertData.id,
+        title: cleanTitle,
+        description: cleanDescription,
+        category,
+        details: cleanDetails,
+      });
+    }
 
     setTitle("");
     setDescription("");
@@ -478,7 +497,18 @@ export default function PublishPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-16" onClick={(e) => e.stopPropagation()}>
-        <div className="rounded-[36px] bg-white p-8 shadow-2xl ring-1 ring-slate-200 md:p-12">
+        {publishedListing ? (
+          <div className="mx-auto max-w-2xl">
+            <ListingAssistant
+              listingId={publishedListing.id}
+              title={publishedListing.title}
+              description={publishedListing.description}
+              category={publishedListing.category}
+              details={publishedListing.details}
+            />
+          </div>
+        ) : null}
+        <div className={publishedListing ? "hidden" : "rounded-[36px] bg-white p-8 shadow-2xl ring-1 ring-slate-200 md:p-12"}>
           <div className="mb-10 flex items-start gap-4">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-950 text-white shadow-lg">
               <ImagePlus className="h-7 w-7" />
