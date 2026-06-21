@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
@@ -10,6 +10,8 @@ import { supabase } from "@/lib/supabaseClient";
 // ---------------------------------------------------------------------------
 
 type AssistantState =
+  | { phase: "checking" }
+  | { phase: "disabled" }
   | { phase: "idle" }
   | { phase: "loading" }
   | { phase: "comparison"; suggestedTitle: string; suggestedDescription: string }
@@ -39,8 +41,22 @@ export default function ListingAssistant({
   details,
 }: Props) {
   const router = useRouter();
-  const [state, setState] = useState<AssistantState>({ phase: "idle" });
+  const [state, setState] = useState<AssistantState>({ phase: "checking" });
   const [applying, setApplying] = useState(false);
+
+  // Check whether the feature is enabled before showing the offer
+  useEffect(() => {
+    fetch("/api/ai/settings")
+      .then((r) => r.json())
+      .then((s: { ai_global_enabled?: boolean; ai_listing_assistant_enabled?: boolean }) => {
+        if (s.ai_global_enabled && s.ai_listing_assistant_enabled) {
+          setState({ phase: "idle" });
+        } else {
+          setState({ phase: "disabled" });
+        }
+      })
+      .catch(() => setState({ phase: "disabled" }));
+  }, []);
 
   const handlePreview = async () => {
     setState({ phase: "loading" });
@@ -115,6 +131,11 @@ export default function ListingAssistant({
           Вашата обява беше изпратена за преглед.
         </p>
       </div>
+
+      {/* ── Checking / disabled states — show nav only, no AI offer ── */}
+      {(state.phase === "checking" || state.phase === "disabled") && (
+        <NavButtons />
+      )}
 
       {/* ── Error state ── */}
       {state.phase === "error" && (

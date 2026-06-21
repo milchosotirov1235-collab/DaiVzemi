@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { fetchAISettings, isFeatureEnabled } from "@/lib/ai/settings";
 
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
 
@@ -8,6 +9,12 @@ const client = new Anthropic({
 });
 
 export async function POST(request: Request) {
+  // Check DB settings first — env killswitch and global/feature toggles
+  const aiSettings = await fetchAISettings();
+  if (!isFeatureEnabled(aiSettings, "ai_listing_assistant_enabled")) {
+    return NextResponse.json({ error: "feature_disabled" }, { status: 503 });
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "not_configured" }, { status: 503 });

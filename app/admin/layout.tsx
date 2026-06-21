@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Flag, LayoutDashboard, List, Loader2, Users } from "lucide-react";
+import { Flag, LayoutDashboard, List, Loader2, Sparkles, Users } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 // ---------------------------------------------------------------------------
@@ -11,10 +11,11 @@ import { supabase } from "@/lib/supabaseClient";
 // ---------------------------------------------------------------------------
 
 const NAV = [
-  { href: "/admin",          label: "Табло",       icon: LayoutDashboard },
-  { href: "/admin/listings", label: "Обяви",       icon: List },
-  { href: "/admin/users",    label: "Потребители", icon: Users },
-  { href: "/admin/reports",  label: "Доклади",     icon: Flag },
+  { href: "/admin",             label: "Табло",        icon: LayoutDashboard },
+  { href: "/admin/listings",    label: "Обяви",        icon: List },
+  { href: "/admin/users",       label: "Потребители",  icon: Users },
+  { href: "/admin/reports",     label: "Доклади",      icon: Flag },
+  { href: "/admin/ai-settings", label: "AI Настройки", icon: Sparkles },
 ];
 
 // ---------------------------------------------------------------------------
