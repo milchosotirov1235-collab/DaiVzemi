@@ -129,15 +129,21 @@ export async function onAIModerationFlag(
 }
 
 /**
- * FUTURE — Fair Report System hook.
- * Call after a report is resolved as valid or dismissed as false.
- * Valid reports boost reporter_score; false reports reduce it.
+ * Fair Report System hook.
+ * Call after a report is resolved as valid or false/invalid.
+ * Valid reports boost reporter_score (+5); false reports reduce it (-8).
+ * Asymmetric to discourage abuse while rewarding accurate reporting.
  */
 export async function onReportResolved(
-  _reporterUserId: string,
-  _outcome: "valid" | "false"
+  reporterUserId: string,
+  outcome: "valid" | "false"
 ): Promise<void> {
-  // TODO: updateTrustScores(_reporterUserId, { reporter_score: applyDelta(...) })
+  const current = await fetchTrustScores(reporterUserId);
+  if (!current) return;
+  const delta = outcome === "valid" ? +5 : -8;
+  await updateTrustScores(reporterUserId, {
+    reporter_score: applyDelta(current.reporter_score, delta),
+  });
 }
 
 /**

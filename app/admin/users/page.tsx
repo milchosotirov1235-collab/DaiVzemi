@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Loader2, ShieldCheck, ShieldOff, UserX, UserCheck } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
