@@ -121,8 +121,13 @@ export default function AdminUsers() {
                   const busy = actionId === u.id;
                   return (
                     <tr key={u.id} className={`transition hover:bg-slate-50 ${u.suspended ? "opacity-60" : ""}`}>
-                      <td className="px-5 py-3.5 font-semibold text-slate-900">
-                        {u.username ?? <span className="text-slate-400 italic">Без потребителско име</span>}
+                      <td className="px-5 py-3.5">
+                        <Link
+                          href={`/admin/users/${u.id}`}
+                          className="font-semibold text-blue-950 hover:underline"
+                        >
+                          {u.username ?? <span className="italic text-slate-400">Без потребителско име</span>}
+                        </Link>
                         {isSelf && (
                           <span className="ml-2 text-xs font-normal text-slate-400">(вие)</span>
                         )}
