@@ -6,6 +6,8 @@ import Header from "@/components/Header";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
+type ModerationStatus = "pending" | "approved" | "rejected" | null;
+
 type Listing = {
   id: string;
   title: string;
@@ -17,6 +19,7 @@ type Listing = {
   expires_at: string | null;
   image_url: string | null;
   image_urls: string[] | null;
+  moderation_status: ModerationStatus;
 };
 
 const EXPIRY_DAYS = 60;
@@ -94,7 +97,7 @@ export default function MyListingsPage() {
 
       const { data, error } = await supabase
         .from("listings")
-        .select("id, title, price, city, category, listing_type, created_at, expires_at, image_url, image_urls")
+        .select("id, title, price, city, category, listing_type, created_at, expires_at, image_url, image_urls, moderation_status")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -253,19 +256,33 @@ export default function MyListingsPage() {
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <p className="text-sm text-slate-500">
                           {formatDate(listing.created_at)}
                         </p>
-                        {isExpired(listing) ? (
-                          <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-600 ring-1 ring-red-200">
-                            Изтекла
-                          </span>
-                        ) : (
-                          <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-200">
-                            Активна
-                          </span>
-                        )}
+                        <div className="flex flex-wrap justify-end gap-1.5">
+                          {listing.moderation_status === "pending" && (
+                            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700 ring-1 ring-amber-200">
+                              Очаква преглед
+                            </span>
+                          )}
+                          {listing.moderation_status === "rejected" && (
+                            <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-600 ring-1 ring-red-200">
+                              Отхвърлена
+                            </span>
+                          )}
+                          {(listing.moderation_status === "approved" || listing.moderation_status === null) && (
+                            isExpired(listing) ? (
+                              <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-600 ring-1 ring-red-200">
+                                Изтекла
+                              </span>
+                            ) : (
+                              <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-200">
+                                Активна
+                              </span>
+                            )
+                          )}
+                        </div>
                       </div>
                     </div>
                   </Link>

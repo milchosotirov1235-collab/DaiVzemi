@@ -9,6 +9,8 @@ import { ChevronLeft, ChevronRight, Heart, Loader2, MessageCircle, X } from "luc
 import { supabase } from "@/lib/supabaseClient";
 import { checkReportRateLimit } from "@/lib/security/rateLimit";
 
+type ModerationStatus = "pending" | "approved" | "rejected" | null;
+
 type Listing = {
   id: string;
   title: string;
@@ -22,6 +24,7 @@ type Listing = {
   image_url: string | null;
   image_urls: string[] | null;
   user_id: string | null;
+  moderation_status: ModerationStatus;
 };
 
 const REPORT_REASONS = [
@@ -283,7 +286,7 @@ setNoticeMessage("Влезте в профила си, за да добавят�
       const { data, error } = await supabase
         .from("listings")
         .select(
-          "id, title, price, category, city, listing_type, description, created_at, expires_at, image_url, image_urls, user_id"
+          "id, title, price, category, city, listing_type, description, created_at, expires_at, image_url, image_urls, user_id, moderation_status"
         )
         .eq("id", id)
         .single<Listing>();
@@ -364,6 +367,52 @@ if (id) {
               className="mt-6 inline-flex items-center justify-center rounded-2xl bg-blue-950 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-900"
             >
               Назад към началото
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Rejected — nobody can view
+  if (listing.moderation_status === "rejected") {
+    return (
+      <main className="min-h-screen bg-slate-50">
+        <Header />
+        <div className="mx-auto flex min-h-[70vh] max-w-4xl items-center justify-center px-6 py-16">
+          <div className="w-full rounded-3xl bg-white p-10 text-center shadow-xl ring-1 ring-slate-200">
+            <p className="text-2xl font-black text-slate-900">Обявата не е достъпна</p>
+            <p className="mt-3 text-sm font-semibold text-slate-500">
+              Тази обява е премахната от нашия екип.
+            </p>
+            <Link
+              href="/listings"
+              className="mt-6 inline-flex items-center justify-center rounded-2xl bg-blue-950 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-900"
+            >
+              Разгледай обяви
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Pending — only the owner can view
+  if (listing.moderation_status === "pending" && listing.user_id !== userId) {
+    return (
+      <main className="min-h-screen bg-slate-50">
+        <Header />
+        <div className="mx-auto flex min-h-[70vh] max-w-4xl items-center justify-center px-6 py-16">
+          <div className="w-full rounded-3xl bg-white p-10 text-center shadow-xl ring-1 ring-slate-200">
+            <p className="text-2xl font-black text-slate-900">Обявата очаква преглед</p>
+            <p className="mt-3 text-sm font-semibold text-slate-500">
+              Тази обява все още не е одобрена и не е видима за другите потребители.
+            </p>
+            <Link
+              href="/listings"
+              className="mt-6 inline-flex items-center justify-center rounded-2xl bg-blue-950 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-900"
+            >
+              Разгледай обяви
             </Link>
           </div>
         </div>

@@ -963,6 +963,7 @@ function ListingsPageContent() {
         )
         .eq("hidden", false)
         .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+        .or("moderation_status.is.null,moderation_status.eq.approved")
         .order("created_at", { ascending: false });
 
       if (search.trim()) {

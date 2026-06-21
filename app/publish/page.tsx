@@ -419,6 +419,7 @@ export default function PublishPage() {
         image_url: uploadedUrls[0] ?? null,
         image_urls: uploadedUrls,
         details: cleanDetails,
+        moderation_status: "pending",
       },
     ]);
 
