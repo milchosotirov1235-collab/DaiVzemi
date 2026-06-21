@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { BadgeCheck, Phone } from "lucide-react";
 import {
   clampScore,
   calcCompositeTrust,
@@ -27,6 +28,8 @@ type UserDetail = {
   role: string;
   suspended: boolean;
   created_at: string | null;
+  avatar_url: string | null;
+  phone: string | null;
 } & TrustScores;
 
 // ---------------------------------------------------------------------------
@@ -114,7 +117,7 @@ export default function AdminUserDetail() {
       const { data } = await supabase
         .from("profiles")
         .select(
-          "id, username, first_name, last_name, city, role, suspended, created_at, trust_score, seller_score, buyer_score, reporter_score"
+          "id, username, first_name, last_name, city, role, suspended, created_at, avatar_url, phone, trust_score, seller_score, buyer_score, reporter_score"
         )
         .eq("id", userId)
         .maybeSingle();
@@ -203,22 +206,69 @@ export default function AdminUserDetail() {
       </div>
 
       {/* ── User meta card ── */}
-      <div className="grid grid-cols-2 gap-3 rounded-[20px] bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:grid-cols-4">
-        <div>
-          <p className="text-xs font-black uppercase tracking-wider text-slate-400">Потребителско</p>
-          <p className="mt-1 text-sm font-bold text-slate-900">{user.username ?? "—"}</p>
+      <div className="rounded-[20px] bg-white p-5 shadow-sm ring-1 ring-slate-200">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-slate-400">Потребителско</p>
+            <p className="mt-1 text-sm font-bold text-slate-900">{user.username ?? "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-slate-400">Град</p>
+            <p className="mt-1 text-sm font-bold text-slate-900">{user.city ?? "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-slate-400">Роля</p>
+            <p className="mt-1 text-sm font-bold text-slate-900 capitalize">{user.role}</p>
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-slate-400">Статус</p>
+            <p className={`mt-1 text-sm font-black ${user.suspended ? "text-red-600" : "text-green-700"}`}>
+              {user.suspended ? "Спрян" : "Активен"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-slate-400">Регистрация</p>
+            <p className="mt-1 text-sm font-bold text-slate-900">{formatDate(user.created_at)}</p>
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-slate-400">Възраст на акаунта</p>
+            <p className="mt-1 text-sm font-bold text-slate-900">
+              {user.created_at
+                ? `${Math.floor((Date.now() - new Date(user.created_at).getTime()) / 86_400_000)} дни`
+                : "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-slate-400">Верификация</p>
+            <p className="mt-1 flex items-center gap-1 text-sm font-bold">
+              {user.avatar_url
+                ? <><BadgeCheck className="h-4 w-4 text-green-600" /><span className="text-green-700">Проверен (OAuth)</span></>
+                : <span className="text-slate-400">Не е проверен</span>}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-slate-400">Телефон</p>
+            <p className="mt-1 flex items-center gap-1 text-sm font-bold text-slate-900">
+              {user.phone
+                ? <><Phone className="h-3.5 w-3.5 text-slate-400" />{user.phone}</>
+                : <span className="text-slate-400">—</span>}
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs font-black uppercase tracking-wider text-slate-400">Град</p>
-          <p className="mt-1 text-sm font-bold text-slate-900">{user.city ?? "—"}</p>
-        </div>
-        <div>
-          <p className="text-xs font-black uppercase tracking-wider text-slate-400">Роля</p>
-          <p className="mt-1 text-sm font-bold text-slate-900 capitalize">{user.role}</p>
-        </div>
-        <div>
-          <p className="text-xs font-black uppercase tracking-wider text-slate-400">Регистрация</p>
-          <p className="mt-1 text-sm font-bold text-slate-900">{formatDate(user.created_at)}</p>
+
+        {/* Quick links */}
+        <div className="mt-4 border-t border-slate-100 pt-4">
+          <p className="mb-2 text-xs font-black uppercase tracking-wider text-slate-400">Бързи действия</p>
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/user/${user.id}`} target="_blank"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:border-blue-950 hover:text-blue-950">
+              Публичен профил →
+            </Link>
+            <Link href={`/admin/reports?user=${user.id}`}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:border-blue-950 hover:text-blue-950">
+              Доклади за потребителя
+            </Link>
+          </div>
         </div>
       </div>
 
