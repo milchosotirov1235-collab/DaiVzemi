@@ -961,73 +961,113 @@ function ListingsPageContent() {
     if (minPriceInput.trim()) params.set("minPrice", minPriceInput.trim());
     if (maxPriceInput.trim()) params.set("maxPrice", maxPriceInput.trim());
 
-    // Category-specific
-    if (propertyPurpose) params.set("propertyPurpose", propertyPurpose);
-    if (propertyType) params.set("propertyType", propertyType);
-    if (rooms) params.set("rooms", rooms);
-    if (floor) params.set("floor", floor);
-    if (sqmMin.trim()) params.set("sqmMin", sqmMin.trim());
-    if (sqmMax.trim()) params.set("sqmMax", sqmMax.trim());
-    if (furnished) params.set("furnished", furnished);
-    if (heating) params.set("heating", heating);
-    if (constructionType) params.set("constructionType", constructionType);
-    if (propertyCondition) params.set("propertyCondition", propertyCondition);
-    if (elevator) params.set("elevator", elevator);
-    if (parking) params.set("parking", parking);
-    if (vehicleType) params.set("vehicleType", vehicleType);
-    if (carMake) params.set("carMake", carMake);
-    if (carModel.trim()) params.set("carModel", carModel.trim());
-    if (yearFrom.trim()) params.set("yearFrom", yearFrom.trim());
-    if (yearTo.trim()) params.set("yearTo", yearTo.trim());
-    if (fuel) params.set("fuel", fuel);
-    if (transmission) params.set("transmission", transmission);
-    if (mileageFrom.trim()) params.set("mileageFrom", mileageFrom.trim());
-    if (mileageTo.trim()) params.set("mileageTo", mileageTo.trim());
-    if (engineSizeFrom.trim()) params.set("engineSizeFrom", engineSizeFrom.trim());
-    if (engineSizeTo.trim()) params.set("engineSizeTo", engineSizeTo.trim());
-    if (powerFrom.trim()) params.set("powerFrom", powerFrom.trim());
-    if (powerTo.trim()) params.set("powerTo", powerTo.trim());
-    if (euroStandard) params.set("euroStandard", euroStandard);
-    if (bodyType) params.set("bodyType", bodyType);
-    if (driveType) params.set("driveType", driveType);
-    if (carColor) params.set("carColor", carColor);
-    if (carCondition) params.set("carCondition", carCondition);
-    if (partType) params.set("partType", partType);
-    if (elDeviceType) params.set("elDeviceType", elDeviceType);
-    if (elBrand) params.set("elBrand", elBrand);
-    if (elModel.trim()) params.set("elModel", elModel.trim());
-    if (elCondition) params.set("elCondition", elCondition);
-    if (elStorage) params.set("elStorage", elStorage);
-    if (elRam) params.set("elRam", elRam);
-    if (elColor) params.set("elColor", elColor);
-    if (condition) params.set("condition", condition);
-    if (serviceCategory) params.set("serviceCategory", serviceCategory);
-    if (onlineService) params.set("onlineService", onlineService);
-    if (providerType) params.set("providerType", providerType);
-    if (jobCategory) params.set("jobCategory", jobCategory);
-    if (employmentType) params.set("employmentType", employmentType);
-    if (experience) params.set("experience", experience);
-    if (remote) params.set("remote", remote);
-    if (salaryFrom.trim()) params.set("salaryFrom", salaryFrom.trim());
-    if (salaryTo.trim()) params.set("salaryTo", salaryTo.trim());
-    if (compType) params.set("compType", compType);
-    if (compBrand) params.set("compBrand", compBrand);
-    if (compCondition) params.set("compCondition", compCondition);
-    if (kidsItemType) params.set("kidsItemType", kidsItemType);
-    if (kidsAgeGroup) params.set("kidsAgeGroup", kidsAgeGroup);
-    if (kidsGender) params.set("kidsGender", kidsGender);
-    if (kidsCondition) params.set("kidsCondition", kidsCondition);
-    if (homeSubcategory) params.set("homeSubcategory", homeSubcategory);
-    if (homeCondition) params.set("homeCondition", homeCondition);
-    if (fashionType) params.set("fashionType", fashionType);
-    if (fashionGender) params.set("fashionGender", fashionGender);
-    if (fashionSize) params.set("fashionSize", fashionSize);
-    if (fashionCondition) params.set("fashionCondition", fashionCondition);
-    if (sportCategory) params.set("sportCategory", sportCategory);
-    if (sportCondition) params.set("sportCondition", sportCondition);
-    if (bookGenre) params.set("bookGenre", bookGenre);
-    if (bookCondition) params.set("bookCondition", bookCondition);
-    if (bookLanguage) params.set("bookLanguage", bookLanguage);
+    // Category-specific — only serialize params that belong to the selected category.
+    // This prevents stale filters from a previous category contaminating results.
+    const cat = categoryInput.trim();
+
+    if (cat === "Имоти") {
+      if (propertyPurpose) params.set("propertyPurpose", propertyPurpose);
+      if (propertyType) params.set("propertyType", propertyType);
+      if (rooms) params.set("rooms", rooms);
+      if (floor) params.set("floor", floor);
+      if (sqmMin.trim()) params.set("sqmMin", sqmMin.trim());
+      if (sqmMax.trim()) params.set("sqmMax", sqmMax.trim());
+      if (furnished) params.set("furnished", furnished);
+      if (heating) params.set("heating", heating);
+      if (constructionType) params.set("constructionType", constructionType);
+      if (propertyCondition) params.set("propertyCondition", propertyCondition);
+      if (elevator) params.set("elevator", elevator);
+      if (parking) params.set("parking", parking);
+    }
+
+    if (cat === "Автомобили") {
+      if (vehicleType) params.set("vehicleType", vehicleType);
+      if (carMake) params.set("carMake", carMake);
+      if (carModel.trim()) params.set("carModel", carModel.trim());
+      if (yearFrom.trim()) params.set("yearFrom", yearFrom.trim());
+      if (yearTo.trim()) params.set("yearTo", yearTo.trim());
+      if (fuel) params.set("fuel", fuel);
+      if (transmission) params.set("transmission", transmission);
+      if (mileageFrom.trim()) params.set("mileageFrom", mileageFrom.trim());
+      if (mileageTo.trim()) params.set("mileageTo", mileageTo.trim());
+      if (engineSizeFrom.trim()) params.set("engineSizeFrom", engineSizeFrom.trim());
+      if (engineSizeTo.trim()) params.set("engineSizeTo", engineSizeTo.trim());
+      if (powerFrom.trim()) params.set("powerFrom", powerFrom.trim());
+      if (powerTo.trim()) params.set("powerTo", powerTo.trim());
+      if (euroStandard) params.set("euroStandard", euroStandard);
+      if (bodyType) params.set("bodyType", bodyType);
+      if (driveType) params.set("driveType", driveType);
+      if (carColor) params.set("carColor", carColor);
+      if (carCondition) params.set("carCondition", carCondition);
+    }
+
+    if (cat === "Авточасти") {
+      if (carMake) params.set("carMake", carMake);
+      if (carModel.trim()) params.set("carModel", carModel.trim());
+      if (partType) params.set("partType", partType);
+      if (condition) params.set("condition", condition);
+    }
+
+    if (cat === "Електроника") {
+      if (elDeviceType) params.set("elDeviceType", elDeviceType);
+      if (elBrand) params.set("elBrand", elBrand);
+      if (elModel.trim()) params.set("elModel", elModel.trim());
+      if (elCondition) params.set("elCondition", elCondition);
+      if (elStorage) params.set("elStorage", elStorage);
+      if (elRam) params.set("elRam", elRam);
+      if (elColor) params.set("elColor", elColor);
+    }
+
+    if (cat === "Услуги") {
+      if (serviceCategory) params.set("serviceCategory", serviceCategory);
+      if (onlineService) params.set("onlineService", onlineService);
+      if (providerType) params.set("providerType", providerType);
+    }
+
+    if (cat === "Работа") {
+      if (jobCategory) params.set("jobCategory", jobCategory);
+      if (employmentType) params.set("employmentType", employmentType);
+      if (experience) params.set("experience", experience);
+      if (remote) params.set("remote", remote);
+      if (salaryFrom.trim()) params.set("salaryFrom", salaryFrom.trim());
+      if (salaryTo.trim()) params.set("salaryTo", salaryTo.trim());
+    }
+
+    if (cat === "Компютри") {
+      if (compType) params.set("compType", compType);
+      if (compBrand) params.set("compBrand", compBrand);
+      if (compCondition) params.set("compCondition", compCondition);
+    }
+
+    if (cat === "Детски стоки") {
+      if (kidsItemType) params.set("kidsItemType", kidsItemType);
+      if (kidsAgeGroup) params.set("kidsAgeGroup", kidsAgeGroup);
+      if (kidsGender) params.set("kidsGender", kidsGender);
+      if (kidsCondition) params.set("kidsCondition", kidsCondition);
+    }
+
+    if (cat === "Дом и градина") {
+      if (homeSubcategory) params.set("homeSubcategory", homeSubcategory);
+      if (homeCondition) params.set("homeCondition", homeCondition);
+    }
+
+    if (cat === "Мода") {
+      if (fashionType) params.set("fashionType", fashionType);
+      if (fashionGender) params.set("fashionGender", fashionGender);
+      if (fashionSize) params.set("fashionSize", fashionSize);
+      if (fashionCondition) params.set("fashionCondition", fashionCondition);
+    }
+
+    if (cat === "Спорт и хоби") {
+      if (sportCategory) params.set("sportCategory", sportCategory);
+      if (sportCondition) params.set("sportCondition", sportCondition);
+    }
+
+    if (cat === "Книги") {
+      if (bookGenre) params.set("bookGenre", bookGenre);
+      if (bookCondition) params.set("bookCondition", bookCondition);
+      if (bookLanguage) params.set("bookLanguage", bookLanguage);
+    }
 
     router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
   };
