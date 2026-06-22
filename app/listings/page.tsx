@@ -18,6 +18,12 @@ import {
   ELECTRONICS_RAM_OPTIONS, ELECTRONICS_COLORS, ITEM_CONDITIONS,
   SERVICE_CATEGORIES, PROVIDER_TYPES, PRICE_TYPES,
   JOB_CATEGORIES, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS,
+  COMPUTER_TYPES, COMPUTER_BRANDS,
+  KIDS_AGE_GROUPS, KIDS_ITEM_TYPES, KIDS_GENDERS,
+  HOME_GARDEN_SUBCATEGORIES,
+  FASHION_TYPES, FASHION_SIZES, FASHION_GENDERS,
+  SPORT_CATEGORIES,
+  BOOK_GENRES, BOOK_CONDITIONS, BOOK_LANGUAGES,
 } from "@/lib/data/categoryData";
 import SearchableSelect from "@/components/SearchableSelect";
 
@@ -90,7 +96,7 @@ const fallbackImageByCategory: Record<string, string> = {
 };
 
 // Categories that have their own dedicated filter panel
-const CATEGORY_SPECIFIC = ["Имоти", "Автомобили", "Авточасти", "Електроника", "Услуги", "Работа"];
+const CATEGORY_SPECIFIC = ["Имоти", "Автомобили", "Авточасти", "Електроника", "Услуги", "Работа", "Компютри", "Детски стоки", "Дом и градина", "Мода", "Спорт и хоби", "Книги"];
 
 // ---------------------------------------------------------------------------
 // CustomDropdown
@@ -227,6 +233,30 @@ type CategoryFilterProps = {
   remote: string; onRemote: (v: string) => void;
   salaryFrom: string; onSalaryFrom: (v: string) => void;
   salaryTo: string; onSalaryTo: (v: string) => void;
+  // Компютри
+  compType: string; onCompType: (v: string) => void;
+  compBrand: string; onCompBrand: (v: string) => void;
+  compCondition: string; onCompCondition: (v: string) => void;
+  // Детски стоки
+  kidsItemType: string; onKidsItemType: (v: string) => void;
+  kidsAgeGroup: string; onKidsAgeGroup: (v: string) => void;
+  kidsGender: string; onKidsGender: (v: string) => void;
+  kidsCondition: string; onKidsCondition: (v: string) => void;
+  // Дом и градина
+  homeSubcategory: string; onHomeSubcategory: (v: string) => void;
+  homeCondition: string; onHomeCondition: (v: string) => void;
+  // Мода
+  fashionType: string; onFashionType: (v: string) => void;
+  fashionGender: string; onFashionGender: (v: string) => void;
+  fashionSize: string; onFashionSize: (v: string) => void;
+  fashionCondition: string; onFashionCondition: (v: string) => void;
+  // Спорт и хоби
+  sportCategory: string; onSportCategory: (v: string) => void;
+  sportCondition: string; onSportCondition: (v: string) => void;
+  // Книги
+  bookGenre: string; onBookGenre: (v: string) => void;
+  bookCondition: string; onBookCondition: (v: string) => void;
+  bookLanguage: string; onBookLanguage: (v: string) => void;
 };
 
 function CategoryFilters(p: CategoryFilterProps) {
@@ -455,6 +485,84 @@ function CategoryFilters(p: CategoryFilterProps) {
     );
   }
 
+  if (p.category === "Компютри") {
+    return (
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <SearchableSelect value={p.compType} onChange={p.onCompType}
+          options={COMPUTER_TYPES} placeholder="Тип" />
+        <SearchableSelect value={p.compBrand} onChange={p.onCompBrand}
+          options={COMPUTER_BRANDS} placeholder="Марка" />
+        <SearchableSelect value={p.compCondition} onChange={p.onCompCondition}
+          options={ITEM_CONDITIONS} placeholder="Състояние" />
+      </div>
+    );
+  }
+
+  if (p.category === "Детски стоки") {
+    return (
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SearchableSelect value={p.kidsItemType} onChange={p.onKidsItemType}
+          options={KIDS_ITEM_TYPES} placeholder="Вид" />
+        <SearchableSelect value={p.kidsAgeGroup} onChange={p.onKidsAgeGroup}
+          options={KIDS_AGE_GROUPS} placeholder="Възрастова група" />
+        <SearchableSelect value={p.kidsGender} onChange={p.onKidsGender}
+          options={KIDS_GENDERS} placeholder="За" />
+        <SearchableSelect value={p.kidsCondition} onChange={p.onKidsCondition}
+          options={ITEM_CONDITIONS} placeholder="Състояние" />
+      </div>
+    );
+  }
+
+  if (p.category === "Дом и градина") {
+    return (
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <SearchableSelect value={p.homeSubcategory} onChange={p.onHomeSubcategory}
+          options={HOME_GARDEN_SUBCATEGORIES} placeholder="Подкатегория" />
+        <SearchableSelect value={p.homeCondition} onChange={p.onHomeCondition}
+          options={ITEM_CONDITIONS} placeholder="Състояние" />
+      </div>
+    );
+  }
+
+  if (p.category === "Мода") {
+    return (
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SearchableSelect value={p.fashionType} onChange={p.onFashionType}
+          options={FASHION_TYPES} placeholder="Вид" />
+        <SearchableSelect value={p.fashionGender} onChange={p.onFashionGender}
+          options={FASHION_GENDERS} placeholder="За" />
+        <SearchableSelect value={p.fashionSize} onChange={p.onFashionSize}
+          options={FASHION_SIZES} placeholder="Размер" />
+        <SearchableSelect value={p.fashionCondition} onChange={p.onFashionCondition}
+          options={ITEM_CONDITIONS} placeholder="Състояние" />
+      </div>
+    );
+  }
+
+  if (p.category === "Спорт и хоби") {
+    return (
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <SearchableSelect value={p.sportCategory} onChange={p.onSportCategory}
+          options={SPORT_CATEGORIES} placeholder="Категория" />
+        <SearchableSelect value={p.sportCondition} onChange={p.onSportCondition}
+          options={ITEM_CONDITIONS} placeholder="Състояние" />
+      </div>
+    );
+  }
+
+  if (p.category === "Книги") {
+    return (
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <SearchableSelect value={p.bookGenre} onChange={p.onBookGenre}
+          options={BOOK_GENRES} placeholder="Жанр" />
+        <SearchableSelect value={p.bookLanguage} onChange={p.onBookLanguage}
+          options={BOOK_LANGUAGES} placeholder="Език" />
+        <SearchableSelect value={p.bookCondition} onChange={p.onBookCondition}
+          options={BOOK_CONDITIONS} placeholder="Състояние" />
+      </div>
+    );
+  }
+
   return null;
 }
 
@@ -568,6 +676,36 @@ function ListingsPageContent() {
   const [salaryFrom, setSalaryFrom] = useState(searchParams.get("salaryFrom") ?? "");
   const [salaryTo, setSalaryTo] = useState(searchParams.get("salaryTo") ?? "");
 
+  // Category-specific filters — Компютри
+  const [compType, setCompType] = useState(searchParams.get("compType") ?? "");
+  const [compBrand, setCompBrand] = useState(searchParams.get("compBrand") ?? "");
+  const [compCondition, setCompCondition] = useState(searchParams.get("compCondition") ?? "");
+
+  // Category-specific filters — Детски стоки
+  const [kidsItemType, setKidsItemType] = useState(searchParams.get("kidsItemType") ?? "");
+  const [kidsAgeGroup, setKidsAgeGroup] = useState(searchParams.get("kidsAgeGroup") ?? "");
+  const [kidsGender, setKidsGender] = useState(searchParams.get("kidsGender") ?? "");
+  const [kidsCondition, setKidsCondition] = useState(searchParams.get("kidsCondition") ?? "");
+
+  // Category-specific filters — Дом и градина
+  const [homeSubcategory, setHomeSubcategory] = useState(searchParams.get("homeSubcategory") ?? "");
+  const [homeCondition, setHomeCondition] = useState(searchParams.get("homeCondition") ?? "");
+
+  // Category-specific filters — Мода
+  const [fashionType, setFashionType] = useState(searchParams.get("fashionType") ?? "");
+  const [fashionGender, setFashionGender] = useState(searchParams.get("fashionGender") ?? "");
+  const [fashionSize, setFashionSize] = useState(searchParams.get("fashionSize") ?? "");
+  const [fashionCondition, setFashionCondition] = useState(searchParams.get("fashionCondition") ?? "");
+
+  // Category-specific filters — Спорт и хоби
+  const [sportCategory, setSportCategory] = useState(searchParams.get("sportCategory") ?? "");
+  const [sportCondition, setSportCondition] = useState(searchParams.get("sportCondition") ?? "");
+
+  // Category-specific filters — Книги
+  const [bookGenre, setBookGenre] = useState(searchParams.get("bookGenre") ?? "");
+  const [bookCondition, setBookCondition] = useState(searchParams.get("bookCondition") ?? "");
+  const [bookLanguage, setBookLanguage] = useState(searchParams.get("bookLanguage") ?? "");
+
   // Dropdown open state (tracks which key is open)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
@@ -635,6 +773,24 @@ function ListingsPageContent() {
   const urlRemote = searchParams.get("remote") ?? "";
   const urlSalaryFrom = searchParams.get("salaryFrom") ?? "";
   const urlSalaryTo = searchParams.get("salaryTo") ?? "";
+  const urlCompType = searchParams.get("compType") ?? "";
+  const urlCompBrand = searchParams.get("compBrand") ?? "";
+  const urlCompCondition = searchParams.get("compCondition") ?? "";
+  const urlKidsItemType = searchParams.get("kidsItemType") ?? "";
+  const urlKidsAgeGroup = searchParams.get("kidsAgeGroup") ?? "";
+  const urlKidsGender = searchParams.get("kidsGender") ?? "";
+  const urlKidsCondition = searchParams.get("kidsCondition") ?? "";
+  const urlHomeSubcategory = searchParams.get("homeSubcategory") ?? "";
+  const urlHomeCondition = searchParams.get("homeCondition") ?? "";
+  const urlFashionType = searchParams.get("fashionType") ?? "";
+  const urlFashionGender = searchParams.get("fashionGender") ?? "";
+  const urlFashionSize = searchParams.get("fashionSize") ?? "";
+  const urlFashionCondition = searchParams.get("fashionCondition") ?? "";
+  const urlSportCategory = searchParams.get("sportCategory") ?? "";
+  const urlSportCondition = searchParams.get("sportCondition") ?? "";
+  const urlBookGenre = searchParams.get("bookGenre") ?? "";
+  const urlBookCondition = searchParams.get("bookCondition") ?? "";
+  const urlBookLanguage = searchParams.get("bookLanguage") ?? "";
 
   const hasFilters =
     search.trim().length > 0 ||
@@ -693,7 +849,25 @@ function ListingsPageContent() {
     urlExperience.length > 0 ||
     urlRemote.length > 0 ||
     urlSalaryFrom.length > 0 ||
-    urlSalaryTo.length > 0;
+    urlSalaryTo.length > 0 ||
+    urlCompType.length > 0 ||
+    urlCompBrand.length > 0 ||
+    urlCompCondition.length > 0 ||
+    urlKidsItemType.length > 0 ||
+    urlKidsAgeGroup.length > 0 ||
+    urlKidsGender.length > 0 ||
+    urlKidsCondition.length > 0 ||
+    urlHomeSubcategory.length > 0 ||
+    urlHomeCondition.length > 0 ||
+    urlFashionType.length > 0 ||
+    urlFashionGender.length > 0 ||
+    urlFashionSize.length > 0 ||
+    urlFashionCondition.length > 0 ||
+    urlSportCategory.length > 0 ||
+    urlSportCondition.length > 0 ||
+    urlBookGenre.length > 0 ||
+    urlBookCondition.length > 0 ||
+    urlBookLanguage.length > 0;
 
   const hasSpecificFilters = CATEGORY_SPECIFIC.includes(category);
 
@@ -750,6 +924,24 @@ function ListingsPageContent() {
     setRemote(searchParams.get("remote") ?? "");
     setSalaryFrom(searchParams.get("salaryFrom") ?? "");
     setSalaryTo(searchParams.get("salaryTo") ?? "");
+    setCompType(searchParams.get("compType") ?? "");
+    setCompBrand(searchParams.get("compBrand") ?? "");
+    setCompCondition(searchParams.get("compCondition") ?? "");
+    setKidsItemType(searchParams.get("kidsItemType") ?? "");
+    setKidsAgeGroup(searchParams.get("kidsAgeGroup") ?? "");
+    setKidsGender(searchParams.get("kidsGender") ?? "");
+    setKidsCondition(searchParams.get("kidsCondition") ?? "");
+    setHomeSubcategory(searchParams.get("homeSubcategory") ?? "");
+    setHomeCondition(searchParams.get("homeCondition") ?? "");
+    setFashionType(searchParams.get("fashionType") ?? "");
+    setFashionGender(searchParams.get("fashionGender") ?? "");
+    setFashionSize(searchParams.get("fashionSize") ?? "");
+    setFashionCondition(searchParams.get("fashionCondition") ?? "");
+    setSportCategory(searchParams.get("sportCategory") ?? "");
+    setSportCondition(searchParams.get("sportCondition") ?? "");
+    setBookGenre(searchParams.get("bookGenre") ?? "");
+    setBookCondition(searchParams.get("bookCondition") ?? "");
+    setBookLanguage(searchParams.get("bookLanguage") ?? "");
     setCategoryInput(searchParams.get("category") ?? "");
     setTypeInput(searchParams.get("type") ?? "");
     setSearchInput(searchParams.get("search") ?? "");
@@ -818,6 +1010,24 @@ function ListingsPageContent() {
     if (remote) params.set("remote", remote);
     if (salaryFrom.trim()) params.set("salaryFrom", salaryFrom.trim());
     if (salaryTo.trim()) params.set("salaryTo", salaryTo.trim());
+    if (compType) params.set("compType", compType);
+    if (compBrand) params.set("compBrand", compBrand);
+    if (compCondition) params.set("compCondition", compCondition);
+    if (kidsItemType) params.set("kidsItemType", kidsItemType);
+    if (kidsAgeGroup) params.set("kidsAgeGroup", kidsAgeGroup);
+    if (kidsGender) params.set("kidsGender", kidsGender);
+    if (kidsCondition) params.set("kidsCondition", kidsCondition);
+    if (homeSubcategory) params.set("homeSubcategory", homeSubcategory);
+    if (homeCondition) params.set("homeCondition", homeCondition);
+    if (fashionType) params.set("fashionType", fashionType);
+    if (fashionGender) params.set("fashionGender", fashionGender);
+    if (fashionSize) params.set("fashionSize", fashionSize);
+    if (fashionCondition) params.set("fashionCondition", fashionCondition);
+    if (sportCategory) params.set("sportCategory", sportCategory);
+    if (sportCondition) params.set("sportCondition", sportCondition);
+    if (bookGenre) params.set("bookGenre", bookGenre);
+    if (bookCondition) params.set("bookCondition", bookCondition);
+    if (bookLanguage) params.set("bookLanguage", bookLanguage);
 
     router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
   };
@@ -887,6 +1097,24 @@ function ListingsPageContent() {
     if (urlRemote) filters.remote = urlRemote;
     if (urlSalaryFrom) filters.salaryFrom = urlSalaryFrom;
     if (urlSalaryTo) filters.salaryTo = urlSalaryTo;
+    if (urlCompType) filters.compType = urlCompType;
+    if (urlCompBrand) filters.compBrand = urlCompBrand;
+    if (urlCompCondition) filters.compCondition = urlCompCondition;
+    if (urlKidsItemType) filters.kidsItemType = urlKidsItemType;
+    if (urlKidsAgeGroup) filters.kidsAgeGroup = urlKidsAgeGroup;
+    if (urlKidsGender) filters.kidsGender = urlKidsGender;
+    if (urlKidsCondition) filters.kidsCondition = urlKidsCondition;
+    if (urlHomeSubcategory) filters.homeSubcategory = urlHomeSubcategory;
+    if (urlHomeCondition) filters.homeCondition = urlHomeCondition;
+    if (urlFashionType) filters.fashionType = urlFashionType;
+    if (urlFashionGender) filters.fashionGender = urlFashionGender;
+    if (urlFashionSize) filters.fashionSize = urlFashionSize;
+    if (urlFashionCondition) filters.fashionCondition = urlFashionCondition;
+    if (urlSportCategory) filters.sportCategory = urlSportCategory;
+    if (urlSportCondition) filters.sportCondition = urlSportCondition;
+    if (urlBookGenre) filters.bookGenre = urlBookGenre;
+    if (urlBookCondition) filters.bookCondition = urlBookCondition;
+    if (urlBookLanguage) filters.bookLanguage = urlBookLanguage;
 
     // Check for duplicate (same user + same key params)
     const { data: existing } = await supabase
@@ -944,6 +1172,12 @@ function ListingsPageContent() {
     setServiceType(""); setServiceCategory(""); setOnlineService(""); setProviderType("");
     setJobCategory(""); setEmploymentType(""); setExperience(""); setRemote("");
     setSalaryFrom(""); setSalaryTo("");
+    setCompType(""); setCompBrand(""); setCompCondition("");
+    setKidsItemType(""); setKidsAgeGroup(""); setKidsGender(""); setKidsCondition("");
+    setHomeSubcategory(""); setHomeCondition("");
+    setFashionType(""); setFashionGender(""); setFashionSize(""); setFashionCondition("");
+    setSportCategory(""); setSportCondition("");
+    setBookGenre(""); setBookCondition(""); setBookLanguage("");
     setOpenDropdown(null);
     router.push("/listings");
   };
@@ -1138,6 +1372,36 @@ function ListingsPageContent() {
           if (Number.isFinite(st) && st > Number(urlSalaryTo)) return false;
         }
 
+        // Компютри
+        if (urlCompType && d.computer_type !== urlCompType) return false;
+        if (urlCompBrand && d.brand !== urlCompBrand) return false;
+        if (urlCompCondition && d.condition !== urlCompCondition) return false;
+
+        // Детски стоки
+        if (urlKidsItemType && d.item_type !== urlKidsItemType) return false;
+        if (urlKidsAgeGroup && d.age_group !== urlKidsAgeGroup) return false;
+        if (urlKidsGender && d.gender !== urlKidsGender) return false;
+        if (urlKidsCondition && d.condition !== urlKidsCondition) return false;
+
+        // Дом и градина
+        if (urlHomeSubcategory && d.subcategory !== urlHomeSubcategory) return false;
+        if (urlHomeCondition && d.condition !== urlHomeCondition) return false;
+
+        // Мода
+        if (urlFashionType && d.clothing_type !== urlFashionType) return false;
+        if (urlFashionGender && d.gender !== urlFashionGender) return false;
+        if (urlFashionSize && d.size !== urlFashionSize) return false;
+        if (urlFashionCondition && d.condition !== urlFashionCondition) return false;
+
+        // Спорт и хоби
+        if (urlSportCategory && d.sport_category !== urlSportCategory) return false;
+        if (urlSportCondition && d.condition !== urlSportCondition) return false;
+
+        // Книги
+        if (urlBookGenre && d.genre !== urlBookGenre) return false;
+        if (urlBookCondition && d.condition !== urlBookCondition) return false;
+        if (urlBookLanguage && d.language !== urlBookLanguage) return false;
+
         return true;
       });
 
@@ -1157,6 +1421,12 @@ function ListingsPageContent() {
     urlElectronicsSubcat, urlCondition,
     urlServiceType, urlServiceCategory, urlOnlineService, urlProviderType,
     urlJobCategory, urlEmploymentType, urlExperience, urlRemote, urlSalaryFrom, urlSalaryTo,
+    urlCompType, urlCompBrand, urlCompCondition,
+    urlKidsItemType, urlKidsAgeGroup, urlKidsGender, urlKidsCondition,
+    urlHomeSubcategory, urlHomeCondition,
+    urlFashionType, urlFashionGender, urlFashionSize, urlFashionCondition,
+    urlSportCategory, urlSportCondition,
+    urlBookGenre, urlBookCondition, urlBookLanguage,
   ]);
 
   // -------------------------------------------------------------------------
@@ -1348,6 +1618,24 @@ function ListingsPageContent() {
                 remote={remote} onRemote={setRemote}
                 salaryFrom={salaryFrom} onSalaryFrom={setSalaryFrom}
                 salaryTo={salaryTo} onSalaryTo={setSalaryTo}
+                compType={compType} onCompType={setCompType}
+                compBrand={compBrand} onCompBrand={setCompBrand}
+                compCondition={compCondition} onCompCondition={setCompCondition}
+                kidsItemType={kidsItemType} onKidsItemType={setKidsItemType}
+                kidsAgeGroup={kidsAgeGroup} onKidsAgeGroup={setKidsAgeGroup}
+                kidsGender={kidsGender} onKidsGender={setKidsGender}
+                kidsCondition={kidsCondition} onKidsCondition={setKidsCondition}
+                homeSubcategory={homeSubcategory} onHomeSubcategory={setHomeSubcategory}
+                homeCondition={homeCondition} onHomeCondition={setHomeCondition}
+                fashionType={fashionType} onFashionType={setFashionType}
+                fashionGender={fashionGender} onFashionGender={setFashionGender}
+                fashionSize={fashionSize} onFashionSize={setFashionSize}
+                fashionCondition={fashionCondition} onFashionCondition={setFashionCondition}
+                sportCategory={sportCategory} onSportCategory={setSportCategory}
+                sportCondition={sportCondition} onSportCondition={setSportCondition}
+                bookGenre={bookGenre} onBookGenre={setBookGenre}
+                bookCondition={bookCondition} onBookCondition={setBookCondition}
+                bookLanguage={bookLanguage} onBookLanguage={setBookLanguage}
               />
             </>
           )}
@@ -1410,6 +1698,24 @@ function ListingsPageContent() {
                 { label: urlRemote ? `Дистанционна: ${urlRemote}` : "", key: "remote" },
                 { label: urlSalaryFrom ? `от ${urlSalaryFrom} лв.` : "", key: "salaryFrom" },
                 { label: urlSalaryTo ? `до ${urlSalaryTo} лв.` : "", key: "salaryTo" },
+                { label: urlCompType, key: "compType" },
+                { label: urlCompBrand, key: "compBrand" },
+                { label: urlCompCondition, key: "compCondition" },
+                { label: urlKidsItemType, key: "kidsItemType" },
+                { label: urlKidsAgeGroup, key: "kidsAgeGroup" },
+                { label: urlKidsGender, key: "kidsGender" },
+                { label: urlKidsCondition, key: "kidsCondition" },
+                { label: urlHomeSubcategory, key: "homeSubcategory" },
+                { label: urlHomeCondition, key: "homeCondition" },
+                { label: urlFashionType, key: "fashionType" },
+                { label: urlFashionGender, key: "fashionGender" },
+                { label: urlFashionSize ? `Размер: ${urlFashionSize}` : "", key: "fashionSize" },
+                { label: urlFashionCondition, key: "fashionCondition" },
+                { label: urlSportCategory, key: "sportCategory" },
+                { label: urlSportCondition, key: "sportCondition" },
+                { label: urlBookGenre, key: "bookGenre" },
+                { label: urlBookCondition, key: "bookCondition" },
+                { label: urlBookLanguage, key: "bookLanguage" },
               ]
                 .filter((chip) => chip.label.trim().length > 0)
                 .map((chip) => (

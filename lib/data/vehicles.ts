@@ -17,25 +17,31 @@ export const CAR_BRANDS: string[] = [
   "Alfa Romeo",
   "Audi",
   "BMW",
+  "BYD",
+  "Chery",
   "Chevrolet",
   "Chrysler",
   "Citroën",
   "Dacia",
+  "Daewoo",
   "Dodge",
   "Fiat",
   "Ford",
+  "Geely",
   "Honda",
   "Hyundai",
   "Infiniti",
   "Jaguar",
   "Jeep",
   "Kia",
+  "Lada",
   "Land Rover",
   "Lexus",
   "Lincoln",
   "Maserati",
   "Mazda",
   "Mercedes-Benz",
+  "MG",
   "Mini",
   "Mitsubishi",
   "Nissan",
@@ -127,6 +133,14 @@ export const CAR_MODELS: Record<string, string[]> = {
     "300C", "Grand Voyager", "Pacifica", "PT Cruiser", "Sebring", "Voyager",
   ],
 
+  "BYD": [
+    "Atto 3", "Dolphin", "Han", "Seal", "Tang", "Yuan Plus",
+  ],
+
+  "Chery": [
+    "Arrizo 5", "Arrizo 6", "Tiggo 4", "Tiggo 7", "Tiggo 8",
+  ],
+
   "Citroën": [
     "Berlingo", "C1", "C2", "C3", "C3 Aircross", "C3 Picasso",
     "C4", "C4 Cactus", "C4 Grand Picasso", "C4 Picasso", "C4 Spacetourer",
@@ -135,6 +149,10 @@ export const CAR_MODELS: Record<string, string[]> = {
     "Jumper", "Jumpy", "Nemo", "Saxo",
     "Spacetourer", "Xantia", "Xsara", "Xsara Picasso",
     "ë-C4",
+  ],
+
+  "Daewoo": [
+    "Espero", "Kalos", "Lanos", "Matiz", "Nexia", "Nubira",
   ],
 
   "Dacia": [
@@ -184,6 +202,10 @@ export const CAR_MODELS: Record<string, string[]> = {
     "S-Max",
     "Tourneo Connect", "Tourneo Custom", "Tourneo Courier",
     "Transit", "Transit Connect", "Transit Courier", "Transit Custom",
+  ],
+
+  "Geely": [
+    "Atlas", "Coolray", "Emgrand", "Okavango", "Tugella",
   ],
 
   "Honda": [
@@ -272,6 +294,10 @@ export const CAR_MODELS: Record<string, string[]> = {
     "XCeed",
   ],
 
+  "Lada": [
+    "2101", "2103", "2105", "2106", "2107", "Granta", "Largus", "Niva", "Vesta", "XRAY",
+  ],
+
   "Land Rover": [
     "Defender",
     "Discovery", "Discovery Sport",
@@ -356,6 +382,10 @@ export const CAR_MODELS: Record<string, string[]> = {
     "SLC 180", "SLC 200", "SLC 300", "SLC 43 AMG",
     // Vans
     "Sprinter", "Viano", "Vito", "V-Класа",
+  ],
+
+  "MG": [
+    "MG3", "MG4", "MG5", "MG6", "HS", "Marvel R", "ZS", "ZS EV",
   ],
 
   "Mini": [
