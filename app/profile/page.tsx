@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
+import SellerTips from "@/components/SellerTips";
 import { AlertTriangle, Camera, CheckCircle2, Loader2, Lock, User } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -48,6 +49,9 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
 
+  // Google identity
+  const [hasGoogleLogin, setHasGoogleLogin] = useState(false);
+
   // Change password
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -74,6 +78,10 @@ export default function ProfilePage() {
 
       setUserId(user.id);
       setEmail(user.email ?? null);
+      setHasGoogleLogin(
+        Array.isArray(user.identities) &&
+          user.identities.some((i: { provider: string }) => i.provider === "google")
+      );
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -410,6 +418,14 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
+
+              {/* Seller tips */}
+              <SellerTips
+                avatarUrl={avatarUrl}
+                phone={phone}
+                city={city}
+                hasGoogleLogin={hasGoogleLogin}
+              />
             </div>
 
             {/* ── Right: Form ── */}
