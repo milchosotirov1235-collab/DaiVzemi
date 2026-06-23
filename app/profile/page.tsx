@@ -51,6 +51,7 @@ export default function ProfilePage() {
 
   // Google identity
   const [hasGoogleLogin, setHasGoogleLogin] = useState(false);
+  const [hasEmailLogin, setHasEmailLogin] = useState(false);
 
   // Change password
   const [currentPassword, setCurrentPassword] = useState("");
@@ -81,6 +82,10 @@ export default function ProfilePage() {
       setHasGoogleLogin(
         Array.isArray(user.identities) &&
           user.identities.some((i: { provider: string }) => i.provider === "google")
+      );
+      setHasEmailLogin(
+        Array.isArray(user.identities) &&
+          user.identities.some((i: { provider: string }) => i.provider === "email")
       );
 
       const { data: profile } = await supabase
@@ -527,79 +532,97 @@ export default function ProfilePage() {
             </div>
 
             {/* ── Change Password card (spans full width under the two columns) ── */}
-            <div className="rounded-[28px] bg-white p-8 shadow-sm ring-1 ring-slate-200 md:p-10 lg:col-span-2">
-              <div className="mb-8 flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
-                  <Lock className="h-5 w-5 text-blue-950" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-black text-blue-950">Смяна на парола</h2>
-                  <p className="text-sm text-slate-500">Минимум 8 символа за новата парола.</p>
+            {hasGoogleLogin && !hasEmailLogin ? (
+              <div className="rounded-[28px] bg-white p-8 shadow-sm ring-1 ring-slate-200 md:p-10 lg:col-span-2">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                    <Lock className="h-5 w-5 text-blue-950" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-blue-950">Смяна на парола</h2>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Влизате чрез Google. Смяна на парола не е необходима за този профил.
+                    </p>
+                  </div>
                 </div>
               </div>
-
-              {passwordNotice && (
-                <div
-                  className={`mb-6 flex items-start gap-3 rounded-2xl border p-4 text-sm font-semibold ${
-                    passwordNotice.type === "error"
-                      ? "border-red-200 bg-red-50 text-red-700"
-                      : "border-green-200 bg-green-50 text-green-800"
-                  }`}
-                >
-                  {passwordNotice.type === "error" ? (
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                  ) : (
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-                  )}
-                  {passwordNotice.message}
-                </div>
-              )}
-
-              <div className="grid gap-5 sm:grid-cols-3">
-                <label className="space-y-2">
-                  <span className="block text-sm font-black text-blue-950">Текуща парола</span>
-                  <input
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    type="password"
-                    placeholder="••••••••"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-                  />
-                </label>
-
-                <label className="space-y-2">
-                  <span className="block text-sm font-black text-blue-950">Нова парола</span>
-                  <input
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    type="password"
-                    placeholder="Минимум 8 символа"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-                  />
-                </label>
-
-                <label className="space-y-2">
-                  <span className="block text-sm font-black text-blue-950">Потвърди новата парола</span>
-                  <input
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    type="password"
-                    placeholder="Повтори паролата"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-                  />
-                </label>
-              </div>
-
-              <button
-                type="button"
-                onClick={changePassword}
-                disabled={savingPassword}
-                className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-blue-950 px-8 py-4 font-black text-white shadow-lg transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
+            ) : (
+              <form
+                onSubmit={(e) => { e.preventDefault(); changePassword(); }}
+                className="rounded-[28px] bg-white p-8 shadow-sm ring-1 ring-slate-200 md:p-10 lg:col-span-2"
               >
-                {savingPassword && <Loader2 className="h-4 w-4 animate-spin" />}
-                {savingPassword ? "Запазване..." : "Смени паролата"}
-              </button>
-            </div>
+                <div className="mb-8 flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                    <Lock className="h-5 w-5 text-blue-950" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-blue-950">Смяна на парола</h2>
+                    <p className="text-sm text-slate-500">Минимум 8 символа за новата парола.</p>
+                  </div>
+                </div>
+
+                {passwordNotice && (
+                  <div
+                    className={`mb-6 flex items-start gap-3 rounded-2xl border p-4 text-sm font-semibold ${
+                      passwordNotice.type === "error"
+                        ? "border-red-200 bg-red-50 text-red-700"
+                        : "border-green-200 bg-green-50 text-green-800"
+                    }`}
+                  >
+                    {passwordNotice.type === "error" ? (
+                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                    ) : (
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                    )}
+                    {passwordNotice.message}
+                  </div>
+                )}
+
+                <div className="grid gap-5 sm:grid-cols-3">
+                  <label className="space-y-2">
+                    <span className="block text-sm font-black text-blue-950">Текуща парола</span>
+                    <input
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      type="password"
+                      placeholder="••••••••"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                    />
+                  </label>
+
+                  <label className="space-y-2">
+                    <span className="block text-sm font-black text-blue-950">Нова парола</span>
+                    <input
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      type="password"
+                      placeholder="Минимум 8 символа"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                    />
+                  </label>
+
+                  <label className="space-y-2">
+                    <span className="block text-sm font-black text-blue-950">Потвърди новата парола</span>
+                    <input
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      type="password"
+                      placeholder="Повтори паролата"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                    />
+                  </label>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={savingPassword}
+                  className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-blue-950 px-8 py-4 font-black text-white shadow-lg transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {savingPassword && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {savingPassword ? "Запазване..." : "Смени паролата"}
+                </button>
+              </form>
+            )}
           </div>
         )}
       </section>
