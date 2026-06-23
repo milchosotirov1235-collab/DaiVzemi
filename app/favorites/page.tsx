@@ -45,10 +45,14 @@ export default function FavoritesPage() {
 
       const listingIds = favorites.map((f) => f.listing_id);
 
+      const now = new Date().toISOString();
       const { data: listingsData } = await supabase
         .from("listings")
-        .select("*")
+        .select("id, title, price, city, category, image_url, image_urls")
         .in("id", listingIds)
+        .eq("hidden", false)
+        .eq("moderation_status", "approved")
+        .or(`expires_at.is.null,expires_at.gt.${now}`)
         .order("created_at", { ascending: false });
 
       setListings((listingsData as Listing[]) || []);
