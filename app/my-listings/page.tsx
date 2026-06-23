@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import { RefreshCw, Trash2 } from "lucide-react";
@@ -71,6 +72,7 @@ const formatDate = (value: string | null) => {
 };
 
 export default function MyListingsPage() {
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
@@ -89,6 +91,7 @@ export default function MyListingsPage() {
         setIsLoggedIn(false);
         setCurrentUserId(null);
         setLoading(false);
+        router.push("/login");
         return;
       }
 

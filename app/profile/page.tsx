@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import SellerTips from "@/components/SellerTips";
 import { AlertTriangle, Camera, CheckCircle2, Loader2, Lock, User } from "lucide-react";
@@ -27,6 +28,8 @@ type Notice = {
 // ---------------------------------------------------------------------------
 
 export default function ProfilePage() {
+  const router = useRouter();
+
   // Auth
   const [userId, setUserId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
@@ -74,6 +77,7 @@ export default function ProfilePage() {
 
       if (!user) {
         setLoading(false);
+        router.push("/login");
         return;
       }
 

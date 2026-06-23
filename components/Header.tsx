@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -108,6 +109,7 @@ export default function Header() {
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
 
+  const router = useRouter();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const fetchProfile = async (userId: string) => {
@@ -236,8 +238,11 @@ export default function Header() {
     await supabase.auth.signOut();
     setCurrentUserEmail(null);
     setProfile({ username: null, avatar_url: null, role: null });
+    setUnreadNotifications(0);
+    setUnreadMessages(0);
     setUserMenuOpen(false);
     setMobileMenuOpen(false);
+    router.push("/");
   };
 
   const isLoggedIn = Boolean(currentUserEmail);

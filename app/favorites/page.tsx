@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import { supabase } from "@/lib/supabaseClient";
@@ -16,6 +17,7 @@ type Listing = {
 };
 
 export default function FavoritesPage() {
+  const router = useRouter();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,6 +29,7 @@ export default function FavoritesPage() {
 
       if (!user) {
         setLoading(false);
+        router.push("/login");
         return;
       }
 

@@ -52,9 +52,13 @@ export default function Home() {
 
   useEffect(() => {
     const loadLatestListings = async () => {
+      const now = new Date().toISOString();
       const { data, error } = await supabase
         .from("listings")
         .select("id, title, price, city, category, listing_type, image_url, image_urls")
+        .eq("hidden", false)
+        .eq("moderation_status", "approved")
+        .or(`expires_at.is.null,expires_at.gt.${now}`)
         .order("created_at", { ascending: false })
         .limit(8);
 
