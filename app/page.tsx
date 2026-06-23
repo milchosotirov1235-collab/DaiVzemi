@@ -49,13 +49,15 @@ const fallbackImageByCategory: Record<string, string> = {
 export default function Home() {
   const router = useRouter();
   const [latestListings, setLatestListings] = useState<Listing[]>([]);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [cityTerm, setCityTerm] = useState("");
 
   useEffect(() => {
-    const loadLatestListings = async () => {
+    const loadData = async () => {
       const now = new Date().toISOString();
-      const { data, error } = await supabase
+      // Latest listings
+      const { data: listingsData, error } = await supabase
         .from("listings")
         .select("id, title, price, city, category, listing_type, image_url, image_urls")
         .eq("hidden", false)
@@ -64,14 +66,24 @@ export default function Home() {
         .order("created_at", { ascending: false })
         .limit(8);
 
-      if (!error && data) {
-        setLatestListings(data as Listing[]);
-      } else {
-        setLatestListings([]);
+      setLatestListings(!error && listingsData ? (listingsData as Listing[]) : []);
+
+      // Category counts — single query, count in JS
+      const { data: catRows } = await supabase
+        .from("listings")
+        .select("category")
+        .eq("hidden", false)
+        .eq("moderation_status", "approved")
+        .or(`expires_at.is.null,expires_at.gt.${now}`);
+
+      const counts: Record<string, number> = {};
+      for (const row of catRows ?? []) {
+        if (row.category) counts[row.category] = (counts[row.category] ?? 0) + 1;
       }
+      setCategoryCounts(counts);
     };
 
-    loadLatestListings();
+    loadData();
   }, []);
 
   const handleSearch = () => {
@@ -199,6 +211,9 @@ export default function Home() {
               <div className="mt-5 text-[20px] font-extrabold text-slate-950">
                 {label}
               </div>
+              <div className="mt-1.5 text-sm font-semibold text-slate-500">
+                {categoryCounts[label] ?? 0} обяви
+              </div>
             </Link>
           ))}
         </div>
@@ -219,8 +234,14 @@ export default function Home() {
           <div className="mt-10 rounded-[28px] border border-dashed border-slate-300 bg-white px-8 py-16 text-center shadow-sm">
             <p className="text-2xl font-black text-slate-900">Все още няма обяви</p>
             <p className="mt-2 text-sm text-slate-600">
-              Първата публикация ще се появи тук скоро.
+              Бъдете първи — публикувайте безплатна обява сега.
             </p>
+            <Link
+              href="/publish"
+              className="mt-6 inline-flex items-center justify-center rounded-2xl bg-blue-950 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-900"
+            >
+              Публикувай обява
+            </Link>
           </div>
         ) : (
           <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">

@@ -81,10 +81,19 @@ export default function FavoritesPage() {
             Зареждане...
           </p>
         ) : listings.length === 0 ? (
-          <div className="rounded-3xl bg-white p-10 text-center shadow-sm">
-            <p className="text-xl font-black">
-              Нямате запазени обяви.
+          <div className="rounded-3xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200">
+            <p className="text-xl font-black text-slate-900">
+              Все още нямате запазени обяви.
             </p>
+            <p className="mt-2 text-sm text-slate-500">
+              Разгледайте обявите и натиснете сърцето, за да запазите любимите си.
+            </p>
+            <Link
+              href="/listings"
+              className="mt-6 inline-flex items-center justify-center rounded-2xl bg-blue-950 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-900"
+            >
+              Разгледай обявите
+            </Link>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">

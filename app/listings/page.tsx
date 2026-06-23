@@ -1789,6 +1789,24 @@ function ListingsPageContent() {
             <p className="text-xl font-black text-slate-900">
               Няма намерени обяви по това търсене.
             </p>
+            <p className="mt-2 text-sm text-slate-500">
+              Опитайте с по-широки критерии или публикувайте нова обява.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+              >
+                Изчисти филтрите
+              </button>
+              <Link
+                href="/publish"
+                className="inline-flex items-center justify-center rounded-2xl bg-blue-950 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-900"
+              >
+                Публикувай обява
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">

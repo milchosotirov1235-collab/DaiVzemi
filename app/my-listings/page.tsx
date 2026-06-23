@@ -195,6 +195,9 @@ export default function MyListingsPage() {
             <p className="text-xl font-black text-slate-900">
               Все още нямате публикувани обяви.
             </p>
+            <p className="mt-2 text-sm text-slate-500">
+              Публикуването е безплатно и отнема под 2 минути.
+            </p>
             <Link
               href="/publish"
               className="mt-6 inline-flex items-center justify-center rounded-2xl bg-blue-950 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-900"
