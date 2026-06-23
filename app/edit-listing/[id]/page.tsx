@@ -11,7 +11,7 @@ import SearchableSelect from "@/components/SearchableSelect";
 import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
   PROPERTY_PURPOSES, PROPERTY_TYPES, ROOM_OPTIONS, FURNISHING_OPTIONS, HEATING_OPTIONS,
-  CONSTRUCTION_TYPES, PROPERTY_CONDITIONS, FLOOR_OPTIONS, PARKING_OPTIONS,
+  CONSTRUCTION_TYPES, PROPERTY_CONDITIONS, FLOOR_OPTIONS, PARKING_OPTIONS, TOTAL_FLOORS_OPTIONS,
   FUEL_TYPES, TRANSMISSION_TYPES, CAR_BODY_TYPES, EURO_STANDARDS,
   DRIVE_TYPES, CAR_COLORS, CAR_CONDITIONS, VEHICLE_TYPES,
   AUTO_PART_CATEGORIES, PART_CONDITIONS,
@@ -19,6 +19,12 @@ import {
   JOB_CATEGORIES, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS,
   ELECTRONICS_DEVICE_TYPES, ELECTRONICS_BRANDS, ELECTRONICS_STORAGE_OPTIONS,
   ELECTRONICS_RAM_OPTIONS, ELECTRONICS_COLORS, ITEM_CONDITIONS,
+  COMPUTER_TYPES, COMPUTER_BRANDS, COMPUTER_OS_OPTIONS,
+  KIDS_AGE_GROUPS, KIDS_ITEM_TYPES, KIDS_GENDERS,
+  HOME_GARDEN_SUBCATEGORIES,
+  FASHION_TYPES, FASHION_SIZES, FASHION_GENDERS,
+  SPORT_CATEGORIES,
+  BOOK_GENRES, BOOK_CONDITIONS, BOOK_LANGUAGES,
 } from "@/lib/data/categoryData";
 
 // ---------------------------------------------------------------------------
@@ -76,6 +82,7 @@ const CATEGORY_DETAILS: Record<string, FieldDef[]> = {
     { key: "area",               label: "Площ (кв.м.)",     type: "number", placeholder: "напр. 80" },
     { key: "rooms",              label: "Стаи",             type: "select", options: ROOM_OPTIONS },
     { key: "floor",              label: "Етаж",             type: "select", options: FLOOR_OPTIONS },
+    { key: "total_floors",       label: "Брой етажи",       type: "select", options: TOTAL_FLOORS_OPTIONS },
     { key: "furnished",          label: "Обзавеждане",      type: "select", options: FURNISHING_OPTIONS },
     { key: "heating",            label: "Отопление",        type: "select", options: HEATING_OPTIONS },
     { key: "construction_type",  label: "Строителство",     type: "select", options: CONSTRUCTION_TYPES },
@@ -111,6 +118,40 @@ const CATEGORY_DETAILS: Record<string, FieldDef[]> = {
     { key: "remote",          label: "Дистанционна",     type: "select", options: ["Да", "Не"] },
     { key: "salary_from",     label: "Заплата от (лв.)", type: "number", placeholder: "напр. 1500" },
     { key: "salary_to",       label: "Заплата до (лв.)", type: "number", placeholder: "напр. 3000" },
+  ],
+  Компютри: [
+    { key: "computer_type", label: "Тип",                      type: "select", options: COMPUTER_TYPES, required: true },
+    { key: "brand",         label: "Марка",                    type: "select", options: COMPUTER_BRANDS },
+    { key: "model",         label: "Модел",                    type: "text",   placeholder: "напр. MacBook Pro 14" },
+    { key: "condition",     label: "Състояние",                type: "select", options: ITEM_CONDITIONS },
+    { key: "storage",       label: "Памет",                    type: "select", options: ELECTRONICS_STORAGE_OPTIONS },
+    { key: "ram",           label: "RAM",                      type: "select", options: ELECTRONICS_RAM_OPTIONS },
+    { key: "os",            label: "Операционна система",      type: "select", options: COMPUTER_OS_OPTIONS },
+  ],
+  "Детски стоки": [
+    { key: "item_type",  label: "Вид",              type: "select", options: KIDS_ITEM_TYPES, required: true },
+    { key: "age_group",  label: "Възрастова група", type: "select", options: KIDS_AGE_GROUPS },
+    { key: "gender",     label: "За",               type: "select", options: KIDS_GENDERS },
+    { key: "condition",  label: "Състояние",        type: "select", options: ITEM_CONDITIONS },
+  ],
+  "Дом и градина": [
+    { key: "subcategory", label: "Подкатегория", type: "select", options: HOME_GARDEN_SUBCATEGORIES, required: true },
+    { key: "condition",   label: "Състояние",    type: "select", options: ITEM_CONDITIONS },
+  ],
+  Мода: [
+    { key: "clothing_type", label: "Вид",      type: "select", options: FASHION_TYPES, required: true },
+    { key: "gender",        label: "За",       type: "select", options: FASHION_GENDERS },
+    { key: "size",          label: "Размер",   type: "select", options: FASHION_SIZES },
+    { key: "condition",     label: "Състояние",type: "select", options: ITEM_CONDITIONS },
+  ],
+  "Спорт и хоби": [
+    { key: "sport_category", label: "Категория", type: "select", options: SPORT_CATEGORIES, required: true },
+    { key: "condition",      label: "Състояние", type: "select", options: ITEM_CONDITIONS },
+  ],
+  Книги: [
+    { key: "genre",     label: "Жанр",     type: "select", options: BOOK_GENRES },
+    { key: "language",  label: "Език",     type: "select", options: BOOK_LANGUAGES },
+    { key: "condition", label: "Състояние",type: "select", options: BOOK_CONDITIONS },
   ],
 };
 
