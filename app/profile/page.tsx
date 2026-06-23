@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Header from "@/components/Header";
 import SellerTips from "@/components/SellerTips";
 import { AlertTriangle, Camera, CheckCircle2, Loader2, Lock, User } from "lucide-react";
@@ -427,6 +428,16 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
+
+              {/* Public profile link */}
+              {userId && (
+                <Link
+                  href={`/user/${userId}`}
+                  className="flex items-center justify-center gap-2 rounded-[28px] bg-white px-6 py-4 text-sm font-black text-blue-950 shadow-sm ring-1 ring-slate-200 transition hover:bg-blue-50"
+                >
+                  Виж публичния профил →
+                </Link>
+              )}
 
               {/* Seller tips */}
               <SellerTips

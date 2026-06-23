@@ -15,7 +15,6 @@ import {
   LogOut,
   Menu,
   MessageSquare,
-  Phone,
   Settings,
   Shield,
   User,
@@ -355,14 +354,8 @@ export default function Header() {
                         <DropdownLink href="/notifications" icon={<Bell className="h-4 w-4" />} label="Известия" badge={unreadNotifications} onClick={() => setUserMenuOpen(false)} />
 
                         <div className="my-2 border-t border-slate-100" />
-                        <SectionLabel label="Настройки" />
-                        <DropdownLink href="/profile" icon={<Settings className="h-4 w-4" />} label="Настройки на акаунта" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="/profile" icon={<Shield className="h-4 w-4" />} label="Настройки за поверителност" onClick={() => setUserMenuOpen(false)} />
-
-                        <div className="my-2 border-t border-slate-100" />
                         <SectionLabel label="Поддръжка" />
                         <DropdownLink href="/help" icon={<HelpCircle className="h-4 w-4" />} label="Помощен център" onClick={() => setUserMenuOpen(false)} />
-                        <DropdownLink href="/listings" icon={<Phone className="h-4 w-4" />} label="Свържете се с нас" onClick={() => setUserMenuOpen(false)} />
                         <DropdownLink href="/terms" icon={<FileText className="h-4 w-4" />} label="Общи условия" onClick={() => setUserMenuOpen(false)} />
 
                         <div className="my-2 border-t border-slate-100" />

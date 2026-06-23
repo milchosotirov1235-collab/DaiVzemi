@@ -869,7 +869,7 @@ function ListingsPageContent() {
     urlBookCondition.length > 0 ||
     urlBookLanguage.length > 0;
 
-  const hasSpecificFilters = CATEGORY_SPECIFIC.includes(category);
+  const hasSpecificFilters = CATEGORY_SPECIFIC.includes(categoryInput);
 
   // Sync local state when category changes (clear category-specific fields)
   useEffect(() => {
@@ -1602,11 +1602,11 @@ function ListingsPageContent() {
               <div className="mt-5 flex items-center gap-2 border-t border-slate-100 pt-5">
                 <SlidersHorizontal className="h-4 w-4 text-blue-950" />
                 <span className="text-sm font-black text-blue-950">
-                  Филтри за {category}
+                  Филтри за {categoryInput}
                 </span>
               </div>
               <CategoryFilters
-                category={category}
+                category={categoryInput}
                 propertyPurpose={propertyPurpose} onPropertyPurpose={setPropertyPurpose}
                 propertyType={propertyType} onPropertyType={setPropertyType}
                 rooms={rooms} onRooms={setRooms}

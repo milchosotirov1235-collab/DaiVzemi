@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import {
@@ -46,6 +47,7 @@ const fallbackImageByCategory: Record<string, string> = {
 };
 
 export default function Home() {
+  const router = useRouter();
   const [latestListings, setLatestListings] = useState<Listing[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [cityTerm, setCityTerm] = useState("");
@@ -84,7 +86,7 @@ export default function Home() {
     }
 
     const queryString = params.toString();
-    window.location.href = `/listings${queryString ? `?${queryString}` : ""}`;
+    router.push(`/listings${queryString ? `?${queryString}` : ""}`);
   };
 
   const formatPrice = (value: string | number | null) => {

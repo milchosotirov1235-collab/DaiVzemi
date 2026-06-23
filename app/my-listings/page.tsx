@@ -298,6 +298,12 @@ export default function MyListingsPage() {
                       Виж обявата
                     </Link>
 
+                    {listing.moderation_status === "pending" && (
+                      <p className="text-center text-xs font-semibold text-amber-700">
+                        Обявата ще бъде видима след одобрение от екипа.
+                      </p>
+                    )}
+
                     {isExpired(listing) && (
                       <button
                         type="button"
@@ -367,7 +373,7 @@ export default function MyListingsPage() {
               <button
                 type="button"
                 onClick={handleDelete}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-950 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-900"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700"
               >
                 <Trash2 className="h-4 w-4" />
                 Изтрий
