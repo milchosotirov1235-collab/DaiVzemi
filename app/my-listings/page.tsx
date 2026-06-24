@@ -30,6 +30,23 @@ function isExpired(listing: Listing): boolean {
   return new Date(listing.expires_at) < new Date();
 }
 
+function daysUntilExpiry(listing: Listing): number | null {
+  if (!listing.expires_at) return null;
+  const ms = new Date(listing.expires_at).getTime() - Date.now();
+  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+}
+
+function isExpiringSoon(listing: Listing): boolean {
+  const days = daysUntilExpiry(listing);
+  return days !== null && days > 0 && days <= 7;
+}
+
+function canRenewEarly(listing: Listing): boolean {
+  const days = daysUntilExpiry(listing);
+  // Allow renewal from 14 days before expiry, or after expiry
+  return days !== null && days <= 14;
+}
+
 const fallbackImageByCategory: Record<string, string> = {
   Имоти: "🏙️",
   Автомобили: "🚗",
@@ -262,33 +279,46 @@ export default function MyListingsPage() {
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm text-slate-500">
-                          {formatDate(listing.created_at)}
-                        </p>
-                        <div className="flex flex-wrap justify-end gap-1.5">
-                          {listing.moderation_status === "pending" && (
-                            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700 ring-1 ring-amber-200">
-                              Очаква преглед
-                            </span>
-                          )}
-                          {listing.moderation_status === "rejected" && (
-                            <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-600 ring-1 ring-red-200">
-                              Отхвърлена
-                            </span>
-                          )}
-                          {(listing.moderation_status === "approved" || listing.moderation_status === null) && (
-                            isExpired(listing) ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm text-slate-500">
+                            Публикувана: {formatDate(listing.created_at)}
+                          </p>
+                          <div className="flex flex-wrap justify-end gap-1.5">
+                            {listing.moderation_status === "pending" && (
+                              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700 ring-1 ring-amber-200">
+                                Очаква преглед
+                              </span>
+                            )}
+                            {listing.moderation_status === "rejected" && (
                               <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-600 ring-1 ring-red-200">
-                                Изтекла
+                                Отхвърлена
                               </span>
-                            ) : (
-                              <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-200">
-                                Активна
-                              </span>
-                            )
-                          )}
+                            )}
+                            {(listing.moderation_status === "approved" || listing.moderation_status === null) && (
+                              isExpired(listing) ? (
+                                <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-600 ring-1 ring-red-200">
+                                  Изтекла
+                                </span>
+                              ) : isExpiringSoon(listing) ? (
+                                <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700 ring-1 ring-amber-200">
+                                  Изтича скоро
+                                </span>
+                              ) : (
+                                <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-200">
+                                  Активна
+                                </span>
+                              )
+                            )}
+                          </div>
                         </div>
+                        {listing.expires_at && (
+                          <p className="text-xs font-semibold text-slate-500">
+                            {isExpired(listing)
+                              ? `Изтекла на: ${formatDate(listing.expires_at)}`
+                              : `Активна до: ${formatDate(listing.expires_at)}`}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </Link>
@@ -324,7 +354,7 @@ export default function MyListingsPage() {
                       </div>
                     )}
 
-                    {isExpired(listing) && (
+                    {canRenewEarly(listing) && (
                       <button
                         type="button"
                         onClick={() => handleRenew(listing.id)}
@@ -332,7 +362,11 @@ export default function MyListingsPage() {
                         className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-green-700 px-4 py-3 text-sm font-black text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <RefreshCw className={`h-4 w-4 ${renewingId === listing.id ? "animate-spin" : ""}`} />
-                        {renewingId === listing.id ? "Подновяване..." : "Поднови обявата"}
+                        {renewingId === listing.id
+                          ? "Подновяване..."
+                          : isExpired(listing)
+                            ? "Поднови обявата"
+                            : "Поднови за още 60 дни"}
                       </button>
                     )}
 
