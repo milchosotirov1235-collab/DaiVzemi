@@ -1427,6 +1427,7 @@ function ListingsPageContent() {
           if (d.condition !== urlCondition && l.condition !== urlCondition) return false;
         }
 
+
         // Електроника — check details JSONB for new listings, old columns for legacy
         if (urlElDeviceType) {
           if (d.device_type !== urlElDeviceType && l.electronics_subcategory !== urlElDeviceType) return false;
@@ -1439,7 +1440,12 @@ function ListingsPageContent() {
         if (urlElColor && d.color !== urlElColor) return false;
         // Legacy params (old saved searches)
         if (urlElectronicsSubcat && l.electronics_subcategory !== urlElectronicsSubcat) return false;
-        if (urlCondition && l.condition !== urlCondition) return false;
+        // Cross-category condition filter — d.condition covers all JSONB-based categories.
+        // If a listing has no condition field (services, jobs, etc.), it passes through.
+        if (urlCondition && category !== "Авточасти") {
+          const c = d.condition || (l.condition as string | undefined);
+          if (c && c !== urlCondition) return false;
+        }
 
         // Услуги — check details JSONB (new) and old column (legacy)
         if (urlServiceCategory) {
@@ -1626,7 +1632,7 @@ function ListingsPageContent() {
             </button>
           </div>
 
-          {/* Row 2: price range + clear */}
+          {/* Row 2: price range + condition + clear */}
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <input
               value={minPriceInput}
@@ -1640,10 +1646,18 @@ function ListingsPageContent() {
               placeholder="Цена до"
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
             />
+            <CustomDropdown
+              value={condition}
+              placeholder="Всяко състояние"
+              options={["Ново", "Употребявано"]}
+              isOpen={openDropdown === "condition"}
+              onToggle={() => setOpenDropdown(openDropdown === "condition" ? null : "condition")}
+              onSelect={(v) => { setCondition(v); setOpenDropdown(null); }}
+            />
             <button
               type="button"
               onClick={clearFilters}
-              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 lg:col-span-2"
+              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50"
             >
               Изчисти филтрите
             </button>

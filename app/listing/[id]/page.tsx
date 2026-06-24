@@ -45,6 +45,7 @@ type Listing = {
   user_id: string | null;
   moderation_status: ModerationStatus;
   details: Record<string, unknown> | null;
+  view_count?: number | null;
 };
 
 type SellerProfile = {
@@ -360,19 +361,51 @@ export default function ListingPage() {
       }
 
       // Listing
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("listings")
         .select(
-          "id, title, price, category, city, listing_type, description, created_at, expires_at, image_url, image_urls, user_id, moderation_status, details"
+          "id, title, price, category, city, listing_type, description, created_at, expires_at, image_url, image_urls, user_id, moderation_status, details, view_count"
         )
         .eq("id", id)
         .single<Listing>();
+
+      // If view_count column doesn't exist yet, retry without it
+      if (error?.message?.includes("view_count")) {
+        const retry = await supabase
+          .from("listings")
+          .select("id, title, price, category, city, listing_type, description, created_at, expires_at, image_url, image_urls, user_id, moderation_status, details")
+          .eq("id", id)
+          .single<Listing>();
+        data = retry.data;
+        error = retry.error;
+      }
 
       if (error || !data) { setListing(null); setLoading(false); return; }
 
       setListing(data);
       setSelectedImageIndex(0);
       setLoading(false);
+
+      // Increment view counter (only for non-owners; fire-and-forget)
+      if (user?.id !== data.user_id) {
+        supabase.rpc("increment_view_count", { p_listing_id: Number(id) }).then(() => {});
+      }
+
+      // Track recently viewed in localStorage (max 6 entries, FIFO)
+      try {
+        const key = "dv_recently_viewed";
+        const entry = {
+          id: data.id,
+          title: data.title,
+          price: data.price,
+          category: data.category,
+          city: data.city,
+          image_url: (data.image_urls?.find(Boolean) ?? data.image_url) || null,
+        };
+        const existing: typeof entry[] = JSON.parse(localStorage.getItem(key) ?? "[]");
+        const filtered = existing.filter((e) => String(e.id) !== String(data.id));
+        localStorage.setItem(key, JSON.stringify([entry, ...filtered].slice(0, 6)));
+      } catch { /* localStorage unavailable — ignore */ }
 
       // Parallel: seller + favorites + similar
       const parallelTasks: Promise<void>[] = [];
@@ -755,6 +788,11 @@ export default function ListingPage() {
                   <span className="flex items-center gap-1.5">
                     <CalendarDays className="h-3.5 w-3.5" />
                     {formatDate(listing.created_at)}
+                  </span>
+                )}
+                {listing.view_count != null && listing.view_count > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    👁 {listing.view_count} {listing.view_count === 1 ? "преглед" : "прегледа"}
                   </span>
                 )}
               </div>
