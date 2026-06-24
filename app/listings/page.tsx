@@ -606,6 +606,9 @@ function ListingsPageContent() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Sort
+  const [sort, setSort] = useState(searchParams.get("sort") ?? "newest");
+
   // Generic filters
   const [searchInput, setSearchInput] = useState(searchParams.get("search") ?? "");
   const [cityInput, setCityInput] = useState(searchParams.get("city") ?? "");
@@ -948,12 +951,14 @@ function ListingsPageContent() {
     setCityInput(searchParams.get("city") ?? "");
     setMinPriceInput(searchParams.get("minPrice") ?? "");
     setMaxPriceInput(searchParams.get("maxPrice") ?? "");
+    setSort(searchParams.get("sort") ?? "newest");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams.toString()]);
 
   const applyFilters = () => {
     const params = new URLSearchParams();
 
+    if (sort && sort !== "newest") params.set("sort", sort);
     if (searchInput.trim()) params.set("search", searchInput.trim());
     if (cityInput.trim()) params.set("city", cityInput.trim());
     if (categoryInput.trim()) params.set("category", categoryInput.trim());
@@ -1456,6 +1461,24 @@ function ListingsPageContent() {
         return true;
       });
 
+      const urlSort = searchParams.get("sort") ?? "newest";
+      if (urlSort === "cheapest" || urlSort === "priciest") {
+        const parsePrice = (v: string | number | null): number => {
+          if (v === null || v === "") return -1;
+          const n = parseFloat(String(v).replace(/[^\d.]/g, ""));
+          return Number.isFinite(n) ? n : -1;
+        };
+        filtered.sort((a, b) => {
+          const pa = parsePrice(a.price);
+          const pb = parsePrice(b.price);
+          // Push unpriceable listings (По договаряне / null) to the end
+          if (pa < 0 && pb < 0) return 0;
+          if (pa < 0) return 1;
+          if (pb < 0) return -1;
+          return urlSort === "cheapest" ? pa - pb : pb - pa;
+        });
+      }
+
       setListings(filtered);
       setLoading(false);
     };
@@ -1798,6 +1821,34 @@ function ListingsPageContent() {
                 ))}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* ── Sort bar ── */}
+      <section className="mx-auto max-w-7xl px-6 pb-4">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm font-semibold text-slate-500">
+            {listings.length > 0 && !loading ? `${listings.length} обяви` : ""}
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-slate-500">Сортиране:</span>
+            <select
+              value={sort}
+              onChange={(e) => {
+                const newSort = e.target.value;
+                setSort(newSort);
+                const params = new URLSearchParams(searchParams.toString());
+                if (newSort === "newest") params.delete("sort");
+                else params.set("sort", newSort);
+                router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
+              }}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+            >
+              <option value="newest">Най-нови</option>
+              <option value="cheapest">Най-евтини</option>
+              <option value="priciest">Най-скъпи</option>
+            </select>
+          </div>
         </div>
       </section>
 
