@@ -127,32 +127,25 @@ export default function Header() {
   };
 
   const fetchUnreadCounts = async (userId: string) => {
-    const [notifRes, convsRes] = await Promise.all([
+    // Two parallel count-only queries — no row data returned, no intermediate
+    // conversation-ID fetch required. Messages are joined to conversations via
+    // !inner so we only count messages from convos the user participates in.
+    const [notifRes, msgRes] = await Promise.all([
       supabase
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
         .is("read_at", null),
       supabase
-        .from("conversations")
-        .select("id")
-        .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
+        .from("messages")
+        .select("id, conversations!inner(buyer_id, seller_id)", { count: "exact", head: true })
+        .neq("sender_id", userId)
+        .is("read_at", null)
+        .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`, { foreignTable: "conversations" }),
     ]);
 
     setUnreadNotifications(notifRes.count ?? 0);
-
-    if (convsRes.data && convsRes.data.length > 0) {
-      const convIds = convsRes.data.map((c) => c.id);
-      const { count } = await supabase
-        .from("messages")
-        .select("id", { count: "exact", head: true })
-        .in("conversation_id", convIds)
-        .neq("sender_id", userId)
-        .is("read_at", null);
-      setUnreadMessages(count ?? 0);
-    } else {
-      setUnreadMessages(0);
-    }
+    setUnreadMessages(msgRes.count ?? 0);
   };
 
   const teardownChannels = () => {
