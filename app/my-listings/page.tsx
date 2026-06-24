@@ -294,17 +294,34 @@ export default function MyListingsPage() {
                   </Link>
 
                   <div className="space-y-3 px-6 pb-6">
-                    <Link
-                      href={`/listing/${listing.id}`}
-                      className="inline-flex w-full items-center justify-center rounded-2xl bg-blue-950 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-900"
-                    >
-                      Виж обявата
-                    </Link>
+                    {listing.moderation_status !== "rejected" && (
+                      <Link
+                        href={`/listing/${listing.id}`}
+                        className="inline-flex w-full items-center justify-center rounded-2xl bg-blue-950 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-900"
+                      >
+                        Виж обявата
+                      </Link>
+                    )}
 
                     {listing.moderation_status === "pending" && (
                       <p className="text-center text-xs font-semibold text-amber-700">
                         Обявата ще бъде видима след одобрение от екипа.
                       </p>
+                    )}
+
+                    {listing.moderation_status === "rejected" && (
+                      <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
+                        <p className="text-xs font-black text-red-700">Обявата е отхвърлена</p>
+                        <p className="mt-1 text-xs font-semibold text-red-600">
+                          Не се показва публично. Редактирайте я и я изпратете отново за преглед.
+                        </p>
+                        <Link
+                          href={`/edit-listing/${listing.id}`}
+                          className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-xs font-black text-white transition hover:bg-red-700"
+                        >
+                          Редактирай и подай отново
+                        </Link>
+                      </div>
                     )}
 
                     {isExpired(listing) && (
