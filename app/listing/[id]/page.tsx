@@ -6,15 +6,16 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import UnverifiedBanner from "@/components/UnverifiedBanner";
 import {
-
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  Check,
   Heart,
   Loader2,
   MapPin,
   MessageCircle,
   Phone,
+  Share2,
   X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
@@ -226,6 +227,8 @@ export default function ListingPage() {
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [phoneRevealed, setPhoneRevealed] = useState(false);
   const [similar, setSimilar] = useState<SimilarListing[]>([]);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Report state
   const [reportOpen, setReportOpen] = useState(false);
@@ -639,18 +642,77 @@ export default function ListingPage() {
 
             {/* TITLE + PRICE */}
             <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-              {/* Type / category chips */}
-              <div className="mb-4 flex flex-wrap gap-2">
-                {listing.listing_type && (
-                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700 ring-1 ring-blue-100">
-                    {listing.listing_type}
-                  </span>
-                )}
-                {listing.category && (
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
-                    {listing.category}
-                  </span>
-                )}
+              {/* Type / category chips + share */}
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {listing.listing_type && (
+                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700 ring-1 ring-blue-100">
+                      {listing.listing_type}
+                    </span>
+                  )}
+                  {listing.category && (
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
+                      {listing.category}
+                    </span>
+                  )}
+                </div>
+
+                {/* Share button */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShareOpen((o) => !o)}
+                    className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50"
+                  >
+                    <Share2 className="h-3.5 w-3.5" />
+                    Сподели
+                  </button>
+
+                  {shareOpen && (
+                    <>
+                      {/* Backdrop */}
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setShareOpen(false)}
+                      />
+                      {/* Panel */}
+                      <div className="absolute right-0 top-full z-20 mt-2 w-52 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(window.location.href);
+                            setCopied(true);
+                            setTimeout(() => { setCopied(false); setShareOpen(false); }, 1800);
+                          }}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                        >
+                          {copied ? <Check className="h-4 w-4 text-green-600" /> : <Share2 className="h-4 w-4 text-slate-400" />}
+                          {copied ? "Копирано!" : "Копирай връзка"}
+                        </button>
+                        <a
+                          href={`https://wa.me/?text=${encodeURIComponent(listing.title + " — " + (typeof window !== "undefined" ? window.location.href : ""))}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setShareOpen(false)}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                        >
+                          <span className="text-base">💬</span>
+                          WhatsApp
+                        </a>
+                        <a
+                          href={`viber://forward?text=${encodeURIComponent(listing.title + " — " + (typeof window !== "undefined" ? window.location.href : ""))}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setShareOpen(false)}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                        >
+                          <span className="text-base">📲</span>
+                          Viber
+                        </a>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
               <h1 className="text-2xl font-black leading-tight text-slate-900 sm:text-3xl">
