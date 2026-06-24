@@ -15,7 +15,6 @@ import {
   LogOut,
   Menu,
   MessageSquare,
-  Settings,
   Shield,
   User,
   X,
@@ -262,7 +261,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-blue-950 text-white shadow-xl shadow-blue-950/40 ring-1 ring-white/5">
-      <div className="mx-auto flex max-w-7xl items-center gap-6 py-5 pl-4 pr-8" style={{ marginLeft: "calc(50% - 640px - 135px)", marginRight: "auto" }}>
+      <div className="mx-auto flex max-w-7xl items-center gap-4 py-4 pl-4 pr-4 lg:gap-6 lg:py-5 lg:pr-8">
 
         {/* Logo */}
         <Link href="/" className="mr-6 flex shrink-0 items-center">
@@ -272,7 +271,7 @@ export default function Header() {
             width={320}
             height={90}
             priority
-            className="h-auto w-[230px] md:w-[260px] lg:w-[290px]"
+            className="h-auto w-[160px] sm:w-[210px] md:w-[250px] lg:w-[290px]"
           />
         </Link>
 
@@ -388,15 +387,15 @@ export default function Header() {
           </div>
 
           {/* Mobile */}
-          <div className="flex items-center gap-3 lg:hidden">
-            <Link href="/publish" className="rounded-xl bg-white px-3 py-2 text-sm font-black text-blue-950 shadow-sm transition hover:bg-blue-50">
+          <div className="flex items-center gap-2 lg:hidden">
+            <Link href="/publish" className="rounded-xl bg-white px-3 py-2.5 text-sm font-black text-blue-950 shadow-sm transition hover:bg-blue-50">
               Публикувай
             </Link>
             <button
               type="button"
               onClick={() => setMobileMenuOpen((v) => !v)}
               aria-label="Меню"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 transition hover:bg-white/20"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 transition hover:bg-white/20"
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -420,6 +419,7 @@ export default function Header() {
           <div className="mt-4 border-t border-white/10 pt-4">
             {isLoggedIn ? (
               <div className="space-y-0.5">
+                {/* Identity row */}
                 <div className="flex items-center gap-3 rounded-xl px-4 py-3">
                   <Avatar avatarUrl={profile.avatar_url} letter={avatarLetter} size="md" />
                   <div className="min-w-0">
@@ -427,15 +427,41 @@ export default function Header() {
                     <p className="truncate text-xs text-blue-200">{currentUserEmail}</p>
                   </div>
                 </div>
-                <Link href="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><User className="h-4 w-4 shrink-0" /> Моят профил</Link>
+
+                {/* Profile */}
                 {isAdmin && (
                   <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><Shield className="h-4 w-4 shrink-0" /> Админ панел</Link>
                 )}
+                <Link href="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><User className="h-4 w-4 shrink-0" /> Моят профил</Link>
                 <Link href="/my-listings" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><LayoutList className="h-4 w-4 shrink-0" /> Моите обяви</Link>
                 <Link href="/favorites" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><Heart className="h-4 w-4 shrink-0" /> Любими</Link>
-                <Link href="/messages" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><MessageSquare className="h-4 w-4 shrink-0" /> Съобщения</Link>
-                <Link href="/notifications" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><Bell className="h-4 w-4 shrink-0" /> Известия</Link>
-                <Link href="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><Settings className="h-4 w-4 shrink-0" /> Настройки</Link>
+                <Link href="/saved-searches" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><BookMarked className="h-4 w-4 shrink-0" /> Запазени търсения</Link>
+
+                {/* Communication — with unread badges */}
+                <Link href="/messages" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10">
+                  <MessageSquare className="h-4 w-4 shrink-0" />
+                  <span className="flex-1">Съобщения</span>
+                  {unreadMessages > 0 && (
+                    <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white px-1.5 text-[11px] font-black text-blue-950">
+                      {unreadMessages > 99 ? "99+" : unreadMessages}
+                    </span>
+                  )}
+                </Link>
+                <Link href="/notifications" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10">
+                  <Bell className="h-4 w-4 shrink-0" />
+                  <span className="flex-1">Известия</span>
+                  {unreadNotifications > 0 && (
+                    <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white px-1.5 text-[11px] font-black text-blue-950">
+                      {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                    </span>
+                  )}
+                </Link>
+
+                {/* Support */}
+                <Link href="/help" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><HelpCircle className="h-4 w-4 shrink-0" /> Помощен център</Link>
+                <Link href="/terms" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10"><FileText className="h-4 w-4 shrink-0" /> Общи условия</Link>
+
+                {/* Sign out */}
                 <div className="pt-1">
                   <button type="button" onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-red-300 transition hover:bg-white/10">
                     <LogOut className="h-4 w-4 shrink-0" /> Изход
