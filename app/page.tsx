@@ -130,6 +130,12 @@ export default function Home() {
             Продавай, подарявай, разменяй и търси на едно място.
           </p>
 
+          {Object.keys(categoryCounts).length > 0 && (
+            <p className="mt-3 text-sm font-semibold text-blue-300">
+              {Object.values(categoryCounts).reduce((a, b) => a + b, 0)} активни обяви в момента
+            </p>
+          )}
+
           <div className="mx-auto mt-10 flex max-w-4xl flex-col gap-3 rounded-3xl bg-white p-3 shadow-2xl md:flex-row">
             <input
               type="text"
@@ -154,6 +160,26 @@ export default function Home() {
             >
               Търси
             </button>
+          </div>
+
+          {/* Popular search chips */}
+          <div className="mt-5 flex flex-wrap justify-center gap-2">
+            {(Object.keys(categoryCounts).length > 0
+              ? Object.entries(categoryCounts)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 6)
+                  .map(([cat]) => cat)
+              : ["Автомобили", "Имоти", "Електроника", "Мода", "Услуги", "Книги"]
+            ).map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => router.push(`/listings?category=${encodeURIComponent(cat)}`)}
+                className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20"
+              >
+                {cat}
+              </button>
+            ))}
           </div>
         </div>
       </section>
