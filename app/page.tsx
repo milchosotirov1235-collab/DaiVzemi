@@ -19,6 +19,8 @@ import {
   Wrench,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import SearchableSelect from "@/components/SearchableSelect";
+import { BG_CITIES } from "@/lib/data/cities";
 
 type Listing = {
   id: string;
@@ -145,13 +147,15 @@ export default function Home() {
               className="flex-1 rounded-2xl bg-white px-5 py-4 text-lg font-bold text-slate-950 caret-blue-950 outline-none placeholder:text-slate-400"
             />
 
-            <input
-              type="text"
-              value={cityTerm}
-              onChange={(e) => setCityTerm(e.target.value)}
-              placeholder="Град"
-              className="rounded-2xl bg-white px-5 py-4 text-lg font-bold text-slate-950 caret-blue-950 outline-none placeholder:text-slate-400 md:w-60"
-            />
+            <div className="md:w-60">
+              <SearchableSelect
+                value={cityTerm}
+                onChange={setCityTerm}
+                options={BG_CITIES}
+                placeholder="Град"
+                size="md"
+              />
+            </div>
 
             <button
               type="button"

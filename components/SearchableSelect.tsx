@@ -57,8 +57,35 @@ export default function SearchableSelect({
     if (open) setTimeout(() => searchRef.current?.focus(), 40);
   }, [open]);
 
+  // Convert a Cyrillic string to its Latin transliteration so users can
+  // type "Varna" and match "Варна" without switching keyboard layout.
+  const cyrillicToLatin = (text: string): string => {
+    const pairs: [string, string][] = [
+      ["щ", "sht"], ["ш", "sh"], ["ж", "zh"], ["ч", "ch"],
+      ["ю", "yu"], ["я", "ya"], ["ц", "ts"],
+      ["а", "a"], ["б", "b"], ["в", "v"], ["г", "g"], ["д", "d"],
+      ["е", "e"], ["з", "z"], ["и", "i"], ["й", "y"],
+      ["к", "k"], ["л", "l"], ["м", "m"], ["н", "n"],
+      ["о", "o"], ["п", "p"], ["р", "r"], ["с", "s"],
+      ["т", "t"], ["у", "u"], ["ф", "f"], ["х", "h"],
+      ["ъ", "a"], ["ь", ""],
+    ];
+    let s = text.toLowerCase();
+    for (const [cyr, lat] of pairs) s = s.split(cyr).join(lat);
+    return s;
+  };
+
+  const matchesQuery = (option: string, q: string): boolean => {
+    if (!q) return true;
+    const ql = q.toLowerCase();
+    if (option.toLowerCase().includes(ql)) return true;
+    // If query is Latin-only, compare against the transliterated option
+    if (/^[a-z\s'-]+$/i.test(ql)) return cyrillicToLatin(option).includes(ql);
+    return false;
+  };
+
   const filtered = query.trim()
-    ? options.filter((o) => o.toLowerCase().includes(query.toLowerCase()))
+    ? options.filter((o) => matchesQuery(o, query))
     : options;
 
   const handleSelect = (opt: string) => {

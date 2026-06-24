@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { getImageLimit } from "@/lib/config/imageLimits";
 import SearchableSelect from "@/components/SearchableSelect";
 import { CATEGORY_DETAILS, categoryOptions, listingTypeOptions, type FieldDef } from "@/lib/categories";
+import { BG_CITIES } from "@/lib/data/cities";
 
 const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
 const maxImageSize = 5 * 1024 * 1024;
@@ -580,15 +581,16 @@ export default function EditListingPage() {
               </div>
 
               {/* ── City ── */}
-              <label className="block space-y-2.5">
+              <div className="space-y-2.5">
                 <span className="block text-sm font-semibold text-slate-800">Град</span>
-                <input
+                <SearchableSelect
                   value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  type="text"
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base text-slate-900 shadow-sm outline-none transition focus:border-blue-900 focus:ring-4 focus:ring-blue-100"
+                  onChange={setCity}
+                  options={BG_CITIES}
+                  placeholder="Например: София"
+                  size="md"
                 />
-              </label>
+              </div>
 
               {/* ── Category-specific detail fields ── */}
               {hasDetailFields && (
