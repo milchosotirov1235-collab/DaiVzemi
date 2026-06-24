@@ -26,6 +26,7 @@ import {
   BOOK_GENRES, BOOK_CONDITIONS, BOOK_LANGUAGES,
 } from "@/lib/data/categoryData";
 import SearchableSelect from "@/components/SearchableSelect";
+import { formatDualPrice } from "@/lib/formatPrice";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -569,13 +570,6 @@ function CategoryFilters(p: CategoryFilterProps) {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-const formatPrice = (value: string | number | null) => {
-  if (value === null || value === undefined || value === "") return "По договаряне";
-  const formatted = String(value).trim();
-  if (/€|EUR|\$|USD|лв|BGN/i.test(formatted)) return formatted;
-  return `${formatted} €`;
-};
 
 const getNumericPrice = (value: string | number | null) => {
   if (value === null || value === undefined) return null;
@@ -1934,7 +1928,7 @@ function ListingsPageContent() {
                       <div>
                         <h2 className="text-2xl font-black text-slate-950">{listing.title}</h2>
                         <p className="mt-2 text-2xl font-black text-blue-950">
-                          {formatPrice(listing.price)}
+                          {formatDualPrice(listing.price)}
                         </p>
                       </div>
 

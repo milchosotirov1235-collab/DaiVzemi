@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { checkReportRateLimit } from "@/lib/security/rateLimit";
+import { formatDualPrice } from "@/lib/formatPrice";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -140,13 +141,6 @@ const DETAIL_LABELS: Record<string, string> = {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const formatPrice = (value: string | number | null) => {
-  if (value === null || value === undefined || value === "") return "По договаряне";
-  const formatted = String(value).trim();
-  if (/€|EUR|\$|USD|лв|BGN/i.test(formatted)) return formatted;
-  return `${formatted} €`;
-};
-
 const formatDate = (value: string | null) => {
   if (!value) return "—";
   const date = new Date(value);
@@ -196,7 +190,7 @@ function SimilarCard({ listing }: { listing: SimilarListing }) {
         <p className="line-clamp-2 text-sm font-bold text-slate-900 group-hover:text-blue-950">
           {listing.title}
         </p>
-        <p className="mt-1 text-sm font-black text-blue-950">{formatPrice(listing.price)}</p>
+        <p className="mt-1 text-sm font-black text-blue-950">{formatDualPrice(listing.price)}</p>
         {listing.city && (
           <p className="mt-0.5 text-xs font-semibold text-slate-500">{listing.city}</p>
         )}
@@ -720,7 +714,7 @@ export default function ListingPage() {
               </h1>
 
               <p className="mt-4 text-3xl font-black text-blue-950 sm:text-4xl">
-                {formatPrice(listing.price)}
+                {formatDualPrice(listing.price)}
               </p>
 
               <div className="mt-4 flex flex-wrap gap-4 text-xs font-semibold text-slate-500">

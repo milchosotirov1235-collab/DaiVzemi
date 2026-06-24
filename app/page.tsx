@@ -21,6 +21,7 @@ import {
 import { supabase } from "@/lib/supabaseClient";
 import SearchableSelect from "@/components/SearchableSelect";
 import { BG_CITIES } from "@/lib/data/cities";
+import { formatDualPrice } from "@/lib/formatPrice";
 
 type Listing = {
   id: string;
@@ -101,19 +102,6 @@ export default function Home() {
 
     const queryString = params.toString();
     router.push(`/listings${queryString ? `?${queryString}` : ""}`);
-  };
-
-  const formatPrice = (value: string | number | null) => {
-    if (value === null || value === undefined || value === "") {
-      return "По договаряне";
-    }
-
-    const formatted = String(value).trim();
-    if (/€|EUR|\$|USD|лв|BGN/i.test(formatted)) {
-      return formatted;
-    }
-
-    return `${formatted} €`;
   };
 
   return (
@@ -307,7 +295,7 @@ export default function Home() {
                         {listing.title}
                       </h3>
                       <p className="text-lg font-extrabold text-blue-950">
-                        {formatPrice(listing.price)}
+                        {formatDualPrice(listing.price)}
                       </p>
                     </div>
 

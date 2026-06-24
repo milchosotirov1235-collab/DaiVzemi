@@ -5,13 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import { supabase } from "@/lib/supabaseClient";
-
-const formatPrice = (value: string | number | null) => {
-  if (value === null || value === undefined || value === "") return "По договаряне";
-  const formatted = String(value).trim();
-  if (/€|EUR|\$|USD|лв|BGN/i.test(formatted)) return formatted;
-  return `${formatted} €`;
-};
+import { formatDualPrice } from "@/lib/formatPrice";
 
 type Listing = {
   id: number;
@@ -132,7 +126,7 @@ export default function FavoritesPage() {
                     </h2>
 
                     <p className="mt-2 text-xl font-black text-blue-950">
-                      {formatPrice(listing.price)}
+                      {formatDualPrice(listing.price)}
                     </p>
 
                     <p className="mt-2 text-sm text-slate-500">
