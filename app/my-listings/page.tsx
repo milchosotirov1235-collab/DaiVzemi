@@ -304,9 +304,13 @@ export default function MyListingsPage() {
                                 <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700 ring-1 ring-amber-200">
                                   Изтича скоро
                                 </span>
-                              ) : (
+                              ) : listing.moderation_status === "approved" ? (
                                 <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-200">
                                   Активна
+                                </span>
+                              ) : (
+                                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600 ring-1 ring-slate-200">
+                                  Публикувана
                                 </span>
                               )
                             )}
