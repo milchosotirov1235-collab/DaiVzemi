@@ -513,7 +513,7 @@ export default function ListingPage() {
   // ── Main render ──────────────────────────────────────────────────────────
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-slate-50 pb-20 lg:pb-0">
       <Header />
       {isEmailVerified === false && <UnverifiedBanner />}
 
@@ -924,6 +924,52 @@ export default function ListingPage() {
           </section>
         )}
       </div>
+
+      {/* MOBILE STICKY CONTACT BAR */}
+      {!isOwner && seller && !isExpired && (
+        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-2xl backdrop-blur-sm lg:hidden">
+          <div className="mx-auto flex max-w-lg gap-3">
+            <button
+              type="button"
+              onClick={handleContactSeller}
+              disabled={contactingLoading}
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-blue-950 px-4 py-3.5 text-sm font-black text-white transition hover:bg-blue-900 disabled:opacity-60"
+            >
+              {contactingLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MessageCircle className="h-4 w-4" />
+              )}
+              Изпрати съобщение
+            </button>
+            {phoneRevealed ? (
+              seller.phone ? (
+                <a
+                  href={`tel:${seller.phone}`}
+                  className="flex shrink-0 items-center justify-center gap-2 rounded-2xl border border-blue-950 bg-white px-4 py-3.5 text-sm font-black text-blue-950 transition hover:bg-blue-50"
+                >
+                  <Phone className="h-4 w-4" />
+                  <span className="max-w-[130px] truncate">{seller.phone}</span>
+                </a>
+              ) : null
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!userId) {
+                    setNoticeMessage("Влезте в профила си, за да видите телефона.");
+                    return;
+                  }
+                  setPhoneRevealed(true);
+                }}
+                className="flex shrink-0 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-black text-slate-700 transition hover:border-blue-950 hover:text-blue-950"
+              >
+                <Phone className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* LIGHTBOX */}
       {isModalOpen && mainImage && (
