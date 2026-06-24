@@ -84,7 +84,7 @@ export default function MessagesPage() {
       const user = authData?.user ?? null;
 
       if (!user) {
-        router.push("/login");
+        router.push("/login?redirect=/messages");
         return;
       }
 

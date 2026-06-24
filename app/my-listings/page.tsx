@@ -91,7 +91,7 @@ export default function MyListingsPage() {
         setIsLoggedIn(false);
         setCurrentUserId(null);
         setLoading(false);
-        router.push("/login");
+        router.push("/login?redirect=/my-listings");
         return;
       }
 

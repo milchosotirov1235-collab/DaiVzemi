@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
@@ -25,11 +25,22 @@ export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [redirectPath, setRedirectPath] = useState("/");
   const router = useRouter();
+
+  useEffect(() => {
+    const raw = new URLSearchParams(window.location.search).get("redirect") ?? "/";
+    // Reject external URLs — only allow internal paths.
+    const safe = raw.startsWith("/") && !raw.startsWith("//") ? raw : "/";
+    setRedirectPath(safe);
+  }, []);
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     setError("");
+    if (redirectPath !== "/") {
+      sessionStorage.setItem("loginRedirect", redirectPath);
+    }
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -60,8 +71,8 @@ export default function LoginPage() {
       return;
     }
 
-    setSuccess("Входът е успешен! Пренасочване към началната страница...");
-    router.push("/");
+    setSuccess("Входът е успешен! Пренасочване...");
+    router.push(redirectPath);
   };
 
   return (

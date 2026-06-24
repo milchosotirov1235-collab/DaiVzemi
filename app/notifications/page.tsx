@@ -80,7 +80,7 @@ export default function NotificationsPage() {
       const user = authData?.user ?? null;
 
       if (!user) {
-        router.push("/login");
+        router.push("/login?redirect=/notifications");
         return;
       }
 

@@ -79,7 +79,7 @@ export default function ProfilePage() {
 
       if (!user) {
         setLoading(false);
-        router.push("/login");
+        router.push("/login?redirect=/profile");
         return;
       }
 

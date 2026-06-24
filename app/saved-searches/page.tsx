@@ -62,7 +62,7 @@ export default function SavedSearchesPage() {
       const user = authData?.user ?? null;
 
       if (!user) {
-        router.push("/login");
+        router.push("/login?redirect=/saved-searches");
         return;
       }
 

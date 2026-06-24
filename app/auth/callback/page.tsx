@@ -118,7 +118,11 @@ export default function AuthCallbackPage() {
         }
       }
 
-      router.replace("/");
+      const stored = sessionStorage.getItem("loginRedirect") ?? "/";
+      sessionStorage.removeItem("loginRedirect");
+      const destination =
+        stored.startsWith("/") && !stored.startsWith("//") ? stored : "/";
+      router.replace(destination);
     };
 
     handle();

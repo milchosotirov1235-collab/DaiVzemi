@@ -29,7 +29,7 @@ export default function FavoritesPage() {
 
       if (!user) {
         setLoading(false);
-        router.push("/login");
+        router.push("/login?redirect=/favorites");
         return;
       }
 
