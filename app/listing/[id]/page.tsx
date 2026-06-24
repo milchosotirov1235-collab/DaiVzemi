@@ -228,6 +228,8 @@ export default function ListingPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const [descExpanded, setDescExpanded] = useState(false);
+
   // Report state
   const [reportOpen, setReportOpen] = useState(false);
   const [reportTarget, setReportTarget] = useState<"listing" | "user">("listing");
@@ -801,9 +803,27 @@ export default function ListingPage() {
             {/* DESCRIPTION */}
             <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
               <h2 className="mb-3 text-base font-black text-slate-900">Описание</h2>
-              <p className="whitespace-pre-wrap text-sm leading-7 text-slate-600">
-                {listing.description || "Продавачът не е добавил описание."}
-              </p>
+              {(() => {
+                const text = listing.description || "";
+                const LIMIT = 500;
+                const isLong = text.length > LIMIT;
+                return (
+                  <>
+                    <p className="whitespace-pre-wrap text-sm leading-7 text-slate-600">
+                      {isLong && !descExpanded ? text.slice(0, LIMIT) + "…" : (text || "Продавачът не е добавил описание.")}
+                    </p>
+                    {isLong && (
+                      <button
+                        type="button"
+                        onClick={() => setDescExpanded((v) => !v)}
+                        className="mt-3 text-sm font-black text-blue-950 hover:underline"
+                      >
+                        {descExpanded ? "Скрий ↑" : "Виж повече ↓"}
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             {/* DETAILS — JSONB */}

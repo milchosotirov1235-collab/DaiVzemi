@@ -607,7 +607,9 @@ function ListingsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const PAGE_SIZE = 24;
   const [listings, setListings] = useState<Listing[]>([]);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [userId, setUserId] = useState<string | null>(null);
@@ -1522,6 +1524,7 @@ function ListingsPageContent() {
       }
 
       setListings(filtered);
+      setVisibleCount(PAGE_SIZE);
       setLoading(false);
     };
 
@@ -1951,8 +1954,9 @@ function ListingsPageContent() {
             </div>
           </div>
         ) : (
+          <>
           <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-4"}>
-            {listings.map((listing) => {
+            {listings.slice(0, visibleCount).map((listing) => {
               const cardImage = listing.image_urls?.find(Boolean) ?? listing.image_url;
               const d = (listing.details ?? {}) as Record<string, string>;
               const sqmArea = Number(d.area);
@@ -2110,6 +2114,19 @@ function ListingsPageContent() {
               );
             })}
           </div>
+
+          {visibleCount < listings.length && (
+            <div className="mt-10 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+                className="rounded-2xl border border-blue-950 px-8 py-3.5 text-sm font-black text-blue-950 transition hover:bg-blue-50"
+              >
+                Зареди повече ({listings.length - visibleCount} останали)
+              </button>
+            </div>
+          )}
+          </>
         )}
       </section>
     </main>
