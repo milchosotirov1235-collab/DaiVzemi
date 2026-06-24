@@ -11,11 +11,13 @@ import {
   ChevronRight,
   Check,
   Heart,
+  LayoutList,
   Loader2,
   MapPin,
   MessageCircle,
   Phone,
   Share2,
+  Shield,
   X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
@@ -219,6 +221,7 @@ export default function ListingPage() {
   const [contactingLoading, setContactingLoading] = useState(false);
 
   const [seller, setSeller] = useState<SellerProfile | null>(null);
+  const [sellerListingCount, setSellerListingCount] = useState<number | null>(null);
   const [phoneRevealed, setPhoneRevealed] = useState(false);
   const [similar, setSimilar] = useState<SimilarListing[]>([]);
   const [shareOpen, setShareOpen] = useState(false);
@@ -383,6 +386,19 @@ export default function ListingPage() {
               .eq("id", data.user_id)
               .maybeSingle()
           ).then(({ data: profile }) => { if (profile) setSeller(profile as SellerProfile); })
+        );
+
+        const nowIso = new Date().toISOString();
+        parallelTasks.push(
+          Promise.resolve(
+            supabase
+              .from("listings")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", data.user_id)
+              .or("hidden.is.null,hidden.eq.false")
+              .or("moderation_status.is.null,moderation_status.eq.approved")
+              .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+          ).then(({ count }) => { if (count !== null) setSellerListingCount(count); })
         );
       }
 
@@ -716,6 +732,17 @@ export default function ListingPage() {
               <p className="mt-4 text-3xl font-black text-blue-950 sm:text-4xl">
                 {formatDualPrice(listing.price)}
               </p>
+              {(() => {
+                if (listing.category !== "Имоти") return null;
+                const area = Number((listing.details as Record<string, string> | null)?.area);
+                const price = Number(String(listing.price ?? "").replace(",", ".").replace(/[^\d.]/g, ""));
+                if (!area || area <= 0 || !price || price <= 0) return null;
+                return (
+                  <p className="mt-1 text-sm font-semibold text-slate-500">
+                    {Math.round(price / area).toLocaleString("bg-BG")} € / кв.м.
+                  </p>
+                );
+              })()}
 
               <div className="mt-4 flex flex-wrap gap-4 text-xs font-semibold text-slate-500">
                 {listing.city && (
@@ -870,6 +897,12 @@ export default function ListingPage() {
                       Активен от {formatMonthYear(seller.created_at)}
                     </div>
                   )}
+                  {sellerListingCount !== null && (
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                      <LayoutList className="h-4 w-4 shrink-0" />
+                      {sellerListingCount} активни обяви
+                    </div>
+                  )}
                 </div>
 
                 <div className="my-5 border-t border-slate-100" />
@@ -997,6 +1030,24 @@ export default function ListingPage() {
             </div>
           </section>
         )}
+
+        {/* SAFETY TIPS */}
+        <section className="mt-10">
+          <div className="rounded-[28px] bg-amber-50 p-6 ring-1 ring-amber-200">
+            <div className="mb-4 flex items-center gap-3">
+              <Shield className="h-5 w-5 shrink-0 text-amber-600" />
+              <h2 className="text-sm font-black text-amber-800">Съвети за безопасна сделка</h2>
+            </div>
+            <ul className="space-y-2 text-sm font-semibold text-amber-700">
+              <li>• Никога не плащайте предварително, без да сте видели стоката.</li>
+              <li>• Срещайте се на обществено и оживено място.</li>
+              <li>• Проверете стоката внимателно преди плащане.</li>
+              <li>• Внимавайте за прекалено ниски или нереални цени.</li>
+              <li>• Не споделяйте лични данни или банкова информация.</li>
+              <li>• При съмнение — докладвайте обявата.</li>
+            </ul>
+          </div>
+        </section>
       </div>
 
       {/* MOBILE STICKY CONTACT BAR */}

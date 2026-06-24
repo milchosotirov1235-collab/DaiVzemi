@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
-import { BookMarked, ChevronDown, Loader2, SlidersHorizontal, X } from "lucide-react";
+import { BookMarked, ChevronDown, LayoutGrid, LayoutList, Loader2, SlidersHorizontal, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
@@ -609,6 +609,7 @@ function ListingsPageContent() {
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Sort
   const [sort, setSort] = useState(searchParams.get("sort") ?? "newest");
@@ -1834,7 +1835,7 @@ function ListingsPageContent() {
           <p className="text-sm font-semibold text-slate-500">
             {listings.length > 0 && !loading ? `${listings.length} обяви` : ""}
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="text-sm font-semibold text-slate-500">Сортиране:</span>
             <select
               value={sort}
@@ -1852,6 +1853,24 @@ function ListingsPageContent() {
               <option value="cheapest">Най-евтини</option>
               <option value="priciest">Най-скъпи</option>
             </select>
+            <div className="flex items-center rounded-xl border border-slate-200 bg-white p-1">
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                title="Плочки"
+                className={`flex items-center justify-center rounded-lg p-1.5 transition ${viewMode === "grid" ? "bg-blue-950 text-white" : "text-slate-500 hover:bg-slate-100"}`}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("list")}
+                title="Списък"
+                className={`flex items-center justify-center rounded-lg p-1.5 transition ${viewMode === "list" ? "bg-blue-950 text-white" : "text-slate-500 hover:bg-slate-100"}`}
+              >
+                <LayoutList className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -1887,9 +1906,71 @@ function ListingsPageContent() {
             </div>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-4"}>
             {listings.map((listing) => {
               const cardImage = listing.image_urls?.find(Boolean) ?? listing.image_url;
+              const d = (listing.details ?? {}) as Record<string, string>;
+              const sqmArea = Number(d.area);
+              const numPrice = Number(String(listing.price ?? "").replace(",", ".").replace(/[^\d.]/g, ""));
+              const sqmPrice = listing.category === "Имоти" && sqmArea > 0 && numPrice > 0
+                ? `${Math.round(numPrice / sqmArea).toLocaleString("bg-BG")} € / кв.м.`
+                : null;
+
+              if (viewMode === "list") {
+                return (
+                  <article
+                    key={listing.id}
+                    className="group cursor-pointer overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+                  >
+                    <Link href={`/listing/${listing.id}`} className="flex gap-0">
+                      <div className="w-36 shrink-0 sm:w-48">
+                        {cardImage ? (
+                          <img
+                            src={cardImage}
+                            alt={listing.title}
+                            className="h-full w-full object-cover"
+                            style={{ minHeight: "120px", maxHeight: "160px" }}
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-blue-950 text-3xl text-white" style={{ minHeight: "120px" }}>
+                            {listing.category ? fallbackImageByCategory[listing.category] ?? "📦" : "📦"}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-1 flex-col justify-between gap-2 p-4">
+                        <div>
+                          <div className="mb-2 flex flex-wrap items-center gap-2">
+                            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-[0.15em] text-blue-950">
+                              {listing.listing_type ?? "Обява"}
+                            </span>
+                            {(() => {
+                              const badge = conditionBadge(listing.condition);
+                              if (!badge) return null;
+                              return (
+                                <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${badge.cls}`}>
+                                  {badge.label}
+                                </span>
+                              );
+                            })()}
+                          </div>
+                          <h2 className="text-base font-black text-slate-950 leading-snug">{listing.title}</h2>
+                        </div>
+                        <div>
+                          <p className="text-lg font-black text-blue-950">{formatDualPrice(listing.price)}</p>
+                          {sqmPrice && <p className="text-xs font-semibold text-slate-400">{sqmPrice}</p>}
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+                          <span>{listing.city ?? "Без град"}</span>
+                          <span>·</span>
+                          <span>{listing.category ?? "Без категория"}</span>
+                          <span>·</span>
+                          <span>{formatDate(listing.created_at)}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  </article>
+                );
+              }
 
               return (
                 <article
@@ -1930,6 +2011,7 @@ function ListingsPageContent() {
                         <p className="mt-2 text-2xl font-black text-blue-950">
                           {formatDualPrice(listing.price)}
                         </p>
+                        {sqmPrice && <p className="mt-0.5 text-sm font-semibold text-slate-400">{sqmPrice}</p>}
                       </div>
 
                       <div className="flex flex-wrap gap-2 text-sm text-slate-600">
