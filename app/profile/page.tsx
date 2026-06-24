@@ -52,6 +52,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [profileMissing, setProfileMissing] = useState(false);
 
   // Google identity
   const [hasGoogleLogin, setHasGoogleLogin] = useState(false);
@@ -106,6 +107,15 @@ export default function ProfilePage() {
         setPhone(profile.phone ?? "");
         setCity(profile.city ?? "");
         setAvatarUrl(profile.avatar_url ?? null);
+      } else {
+        // No profile row — try to recover from auth metadata (set during signUp).
+        setProfileMissing(true);
+        const meta = user.user_metadata ?? {};
+        if (meta.username) setUsername(String(meta.username));
+        if (meta.firstName) setFirstName(String(meta.firstName));
+        if (meta.lastName) setLastName(String(meta.lastName));
+        if (meta.phone) setPhone(String(meta.phone));
+        if (meta.city) setCity(String(meta.city));
       }
 
       setLoading(false);
@@ -339,6 +349,21 @@ export default function ProfilePage() {
           </div>
         ) : (
           <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
+
+            {/* Recovery notice for orphaned accounts (auth user exists, no profile row) */}
+            {profileMissing && (
+              <div className="col-span-full rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
+                <p className="text-sm font-black text-amber-800">Профилът ви не е завършен</p>
+                <p className="mt-1 text-sm font-semibold text-amber-700">
+                  Попълнете данните по-долу и натиснете „Запази", за да активирате профила си напълно.
+                  Ако имате проблем, свържете се с нас на{" "}
+                  <a href="mailto:support@daivzemi.bg" className="underline underline-offset-2">
+                    support@daivzemi.bg
+                  </a>
+                  .
+                </p>
+              </div>
+            )}
 
             {/* ── Left: Avatar card ── */}
             <div className="flex flex-col gap-4">

@@ -89,11 +89,17 @@ export default function RegisterPage() {
   const handleGoogleRegister = async () => {
     setGoogleLoading(true);
     setServerNotice(null);
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (oauthError) {
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+      if (oauthError) {
+        setServerNotice({ type: "error", title: "Грешка", message: "Грешка при регистрация с Google. Опитайте отново." });
+        setGoogleLoading(false);
+      }
+      // On success the browser navigates away — no state reset needed.
+    } catch {
       setServerNotice({ type: "error", title: "Грешка", message: "Грешка при регистрация с Google. Опитайте отново." });
       setGoogleLoading(false);
     }
@@ -187,6 +193,22 @@ export default function RegisterPage() {
 
     setLoading(true);
 
+    // Pre-check: username uniqueness before creating the auth account.
+    // Prevents an orphaned auth user when the profile insert would fail.
+    const { data: existingUsername } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("username", cleanUsername)
+      .maybeSingle();
+
+    if (existingUsername) {
+      setLoading(false);
+      setFieldErrors({ username: "Това потребителско име вече е заето. Изберете друго." });
+      usernameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      usernameRef.current?.focus();
+      return;
+    }
+
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
@@ -229,13 +251,12 @@ export default function RegisterPage() {
 
       if (profileError) {
         setLoading(false);
-        if (profileError.message.toLowerCase().includes("duplicate")) {
-          setFieldErrors({ username: "Това потребителско име вече е заето. Изберете друго." });
-          usernameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-          usernameRef.current?.focus();
-        } else {
-          setServerNotice({ type: "error", title: "Профилът не беше създаден", message: "Акаунтът е създаден, но профилът не се записа коректно." });
-        }
+        setServerNotice({
+          type: "error",
+          title: "Профилът не беше запазен",
+          message:
+            "Акаунтът ви е създаден, но профилните данни не се записаха. Влезте в системата от страницата за вход — там ще можете да попълните профила си. Ако проблемът продължи, свържете се с нас на support@daivzemi.bg.",
+        });
         return;
       }
     }
