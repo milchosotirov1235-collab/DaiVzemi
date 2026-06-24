@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
-import { BookMarked, ChevronDown, LayoutGrid, LayoutList, Loader2, SlidersHorizontal, X } from "lucide-react";
+import { BookMarked, ChevronDown, Heart, LayoutGrid, LayoutList, Loader2, SlidersHorizontal, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
@@ -610,6 +610,37 @@ function ListingsPageContent() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      const user = data.user;
+      if (!user) return;
+      setUserId(user.id);
+      const { data: favs } = await supabase
+        .from("favorites")
+        .select("listing_id")
+        .eq("user_id", user.id);
+      if (favs) setFavoriteIds(new Set(favs.map((f: { listing_id: number }) => String(f.listing_id))));
+    };
+    loadUser();
+  }, []);
+
+  const toggleFavorite = async (e: React.MouseEvent, listingId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!userId) { router.push("/login"); return; }
+    const isFav = favoriteIds.has(listingId);
+    if (isFav) {
+      await supabase.from("favorites").delete().eq("user_id", userId).eq("listing_id", Number(listingId));
+      setFavoriteIds((prev) => { const n = new Set(prev); n.delete(listingId); return n; });
+    } else {
+      await supabase.from("favorites").insert({ user_id: userId, listing_id: Number(listingId) });
+      setFavoriteIds((prev) => new Set([...prev, listingId]));
+    }
+  };
 
   // Sort
   const [sort, setSort] = useState(searchParams.get("sort") ?? "newest");
@@ -1923,7 +1954,7 @@ function ListingsPageContent() {
                     className="group cursor-pointer overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
                   >
                     <Link href={`/listing/${listing.id}`} className="flex gap-0">
-                      <div className="w-36 shrink-0 sm:w-48">
+                      <div className="relative w-36 shrink-0 sm:w-48">
                         {cardImage ? (
                           <img
                             src={cardImage}
@@ -1936,6 +1967,18 @@ function ListingsPageContent() {
                             {listing.category ? fallbackImageByCategory[listing.category] ?? "📦" : "📦"}
                           </div>
                         )}
+                        <button
+                          type="button"
+                          onClick={(e) => toggleFavorite(e, listing.id)}
+                          aria-label={favoriteIds.has(listing.id) ? "Премахни от любими" : "Добави в любими"}
+                          className={`absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full shadow-md transition ${
+                            favoriteIds.has(listing.id)
+                              ? "bg-red-500 text-white"
+                              : "bg-white/85 text-slate-400 hover:text-red-500"
+                          }`}
+                        >
+                          <Heart className={`h-4 w-4 ${favoriteIds.has(listing.id) ? "fill-current" : ""}`} />
+                        </button>
                       </div>
                       <div className="flex flex-1 flex-col justify-between gap-2 p-4">
                         <div>
@@ -1978,17 +2021,31 @@ function ListingsPageContent() {
                   className="group cursor-pointer overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
                 >
                   <Link href={`/listing/${listing.id}`} className="block">
-                    {cardImage ? (
-                      <img
-                        src={cardImage}
-                        alt={listing.title}
-                        className="h-52 w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-                      />
-                    ) : (
-                      <div className="flex h-52 items-center justify-center bg-blue-950 text-5xl text-white transition duration-300 group-hover:bg-blue-900">
-                        {listing.category ? fallbackImageByCategory[listing.category] ?? "📦" : "📦"}
-                      </div>
-                    )}
+                    <div className="relative">
+                      {cardImage ? (
+                        <img
+                          src={cardImage}
+                          alt={listing.title}
+                          className="h-52 w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                        />
+                      ) : (
+                        <div className="flex h-52 items-center justify-center bg-blue-950 text-5xl text-white transition duration-300 group-hover:bg-blue-900">
+                          {listing.category ? fallbackImageByCategory[listing.category] ?? "📦" : "📦"}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => toggleFavorite(e, listing.id)}
+                        aria-label={favoriteIds.has(listing.id) ? "Премахни от любими" : "Добави в любими"}
+                        className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full shadow-md transition ${
+                          favoriteIds.has(listing.id)
+                            ? "bg-red-500 text-white"
+                            : "bg-white/85 text-slate-400 hover:text-red-500"
+                        }`}
+                      >
+                        <Heart className={`h-4 w-4 ${favoriteIds.has(listing.id) ? "fill-current" : ""}`} />
+                      </button>
+                    </div>
 
                     <div className="space-y-4 p-6">
                       <div className="flex flex-wrap items-center gap-2">

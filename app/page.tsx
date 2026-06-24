@@ -10,6 +10,7 @@ import {
   Briefcase,
   Car,
   Hammer,
+  Heart,
   Home as HomeIcon,
   Monitor,
   Shirt,
@@ -52,6 +53,37 @@ export default function Home() {
   const [latestListings, setLatestListings] = useState<Listing[]>([]);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [searchTerm, setSearchTerm] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      const user = data.user;
+      if (!user) return;
+      setUserId(user.id);
+      const { data: favs } = await supabase
+        .from("favorites")
+        .select("listing_id")
+        .eq("user_id", user.id);
+      if (favs) setFavoriteIds(new Set(favs.map((f: { listing_id: number }) => String(f.listing_id))));
+    };
+    loadUser();
+  }, []);
+
+  const toggleFavorite = async (e: React.MouseEvent, listingId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!userId) { router.push("/login"); return; }
+    const isFav = favoriteIds.has(listingId);
+    if (isFav) {
+      await supabase.from("favorites").delete().eq("user_id", userId).eq("listing_id", Number(listingId));
+      setFavoriteIds((prev) => { const n = new Set(prev); n.delete(listingId); return n; });
+    } else {
+      await supabase.from("favorites").insert({ user_id: userId, listing_id: Number(listingId) });
+      setFavoriteIds((prev) => new Set([...prev, listingId]));
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -270,6 +302,18 @@ export default function Home() {
                     <span className="absolute left-5 top-5 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950 shadow-sm">
                       {listing.listing_type ?? "Обява"}
                     </span>
+                    <button
+                      type="button"
+                      onClick={(e) => toggleFavorite(e, listing.id)}
+                      aria-label={favoriteIds.has(listing.id) ? "Премахни от любими" : "Добави в любими"}
+                      className={`absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full shadow-md transition ${
+                        favoriteIds.has(listing.id)
+                          ? "bg-red-500 text-white"
+                          : "bg-white/85 text-slate-400 hover:text-red-500"
+                      }`}
+                    >
+                      <Heart className={`h-4 w-4 ${favoriteIds.has(listing.id) ? "fill-current" : ""}`} />
+                    </button>
                   </div>
 
                   <div className="space-y-4 p-6">
