@@ -19,8 +19,6 @@ import {
   Wrench,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import SearchableSelect from "@/components/SearchableSelect";
-import { BG_CITIES } from "@/lib/data/cities";
 import { formatDualPrice } from "@/lib/formatPrice";
 
 type Listing = {
@@ -54,7 +52,6 @@ export default function Home() {
   const [latestListings, setLatestListings] = useState<Listing[]>([]);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [searchTerm, setSearchTerm] = useState("");
-  const [cityTerm, setCityTerm] = useState("");
 
   useEffect(() => {
     const loadData = async () => {
@@ -96,10 +93,6 @@ export default function Home() {
       params.set("search", searchTerm.trim());
     }
 
-    if (cityTerm.trim()) {
-      params.set("city", cityTerm.trim());
-    }
-
     const queryString = params.toString();
     router.push(`/listings${queryString ? `?${queryString}` : ""}`);
   };
@@ -134,16 +127,6 @@ export default function Home() {
               placeholder="Какво търсите?"
               className="flex-1 rounded-2xl bg-white px-5 py-4 text-lg font-bold text-slate-950 caret-blue-950 outline-none placeholder:text-slate-400"
             />
-
-            <div className="md:w-60">
-              <SearchableSelect
-                value={cityTerm}
-                onChange={setCityTerm}
-                options={BG_CITIES}
-                placeholder="Град"
-                size="md"
-              />
-            </div>
 
             <button
               type="button"
