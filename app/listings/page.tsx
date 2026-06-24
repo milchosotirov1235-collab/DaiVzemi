@@ -1259,7 +1259,7 @@ function ListingsPageContent() {
       let query = supabase
         .from("listings")
         .select(
-          "id, title, description, price, city, category, listing_type, created_at, image_url, image_urls, property_type, rooms, area_sqm, car_make, car_model, car_year, fuel_type, transmission, mileage, part_type, electronics_subcategory, condition, service_type, details"
+          "id, title, description, price, city, category, listing_type, created_at, image_url, image_urls, details"
         )
         .or("hidden.is.null,hidden.eq.false")
         .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
