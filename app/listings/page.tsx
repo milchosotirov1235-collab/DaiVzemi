@@ -1156,16 +1156,27 @@ function ListingsPageContent() {
     if (urlBookCondition) filters.bookCondition = urlBookCondition;
     if (urlBookLanguage) filters.bookLanguage = urlBookLanguage;
 
-    // Check for duplicate (same user + same key params)
-    const { data: existing } = await supabase
+    // Check for duplicate (same user + same key params).
+    // Fields are stored as null when empty, so we must use .is() for null
+    // and .eq() for non-empty — .eq("category", "") never matches a null row.
+    let dupQuery = supabase
       .from("saved_searches")
       .select("id")
-      .eq("user_id", user.id)
-      .eq("category", category || "")
-      .eq("listing_type", type || "")
-      .eq("city", city || "")
-      .eq("search", search || "")
-      .maybeSingle();
+      .eq("user_id", user.id);
+
+    if (category) dupQuery = dupQuery.eq("category", category);
+    else dupQuery = dupQuery.is("category", null);
+
+    if (type) dupQuery = dupQuery.eq("listing_type", type);
+    else dupQuery = dupQuery.is("listing_type", null);
+
+    if (city) dupQuery = dupQuery.eq("city", city);
+    else dupQuery = dupQuery.is("city", null);
+
+    if (search) dupQuery = dupQuery.eq("search", search);
+    else dupQuery = dupQuery.is("search", null);
+
+    const { data: existing } = await dupQuery.maybeSingle();
 
     if (existing) {
       setSavingSearch(false);
