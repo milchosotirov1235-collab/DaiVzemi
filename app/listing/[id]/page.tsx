@@ -6,7 +6,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import UnverifiedBanner from "@/components/UnverifiedBanner";
 import {
-  BadgeCheck,
+
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -508,7 +508,6 @@ export default function ListingPage() {
     "Продавач";
   const sellerAvatarLetter = sellerDisplayName.charAt(0).toUpperCase();
   // Google OAuth sets avatar_url; use as proxy for verified status
-  const isSellerVerified = !!(seller?.avatar_url);
 
   // ── Main render ──────────────────────────────────────────────────────────
 
@@ -795,14 +794,8 @@ export default function ListingPage() {
                   </div>
                 </div>
 
-                {/* Positive trust signals */}
+                {/* Seller info signals */}
                 <div className="mt-4 space-y-2">
-                  {isSellerVerified && (
-                    <div className="flex items-center gap-2 text-xs font-semibold text-green-700">
-                      <BadgeCheck className="h-4 w-4 shrink-0" />
-                      Проверен профил
-                    </div>
-                  )}
                   {seller.city && (
                     <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
                       <MapPin className="h-4 w-4 shrink-0" />
