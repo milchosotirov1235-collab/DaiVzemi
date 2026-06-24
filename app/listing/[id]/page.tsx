@@ -62,6 +62,7 @@ type SimilarListing = {
   image_url: string | null;
   image_urls: string[] | null;
   category: string | null;
+  listing_type: string | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -186,6 +187,11 @@ function SimilarCard({ listing }: { listing: SimilarListing }) {
         </div>
       )}
       <div className="p-3">
+        {listing.listing_type && (
+          <span className="mb-1.5 inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-blue-950">
+            {listing.listing_type}
+          </span>
+        )}
         <p className="line-clamp-2 text-sm font-bold text-slate-900 group-hover:text-blue-950">
           {listing.title}
         </p>
@@ -401,13 +407,13 @@ export default function ListingPage() {
           Promise.resolve(
             supabase
               .from("listings")
-              .select("id, title, price, city, image_url, image_urls, category")
+              .select("id, title, price, city, image_url, image_urls, category, listing_type")
               .eq("category", data.category)
               .eq("hidden", false)
               .neq("id", id)
               .or("moderation_status.is.null,moderation_status.eq.approved")
               .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
-              .limit(4)
+              .limit(6)
           ).then(({ data: sim }) => setSimilar((sim as SimilarListing[]) ?? []))
         );
       }
@@ -910,8 +916,18 @@ export default function ListingPage() {
         {/* SIMILAR LISTINGS */}
         {similar.length > 0 && (
           <section className="mt-14">
-            <h2 className="mb-5 text-lg font-black text-slate-900">Подобни обяви</h2>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <h2 className="text-lg font-black text-slate-900">Подобни обяви</h2>
+              {listing.category && (
+                <Link
+                  href={`/listings?category=${encodeURIComponent(listing.category)}`}
+                  className="text-sm font-bold text-blue-950 hover:underline"
+                >
+                  Виж всички →
+                </Link>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               {similar.map((s) => <SimilarCard key={s.id} listing={s} />)}
             </div>
           </section>
