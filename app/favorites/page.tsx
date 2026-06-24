@@ -57,7 +57,7 @@ export default function FavoritesPage() {
         .from("listings")
         .select("id, title, price, city, category, image_url, image_urls")
         .in("id", listingIds)
-        .eq("hidden", false)
+        .or("hidden.is.null,hidden.eq.false")
         .or("moderation_status.is.null,moderation_status.eq.approved")
         .or(`expires_at.is.null,expires_at.gt.${now}`)
         .order("created_at", { ascending: false });

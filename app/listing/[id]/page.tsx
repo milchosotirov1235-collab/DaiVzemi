@@ -412,7 +412,7 @@ export default function ListingPage() {
               .from("listings")
               .select("id, title, price, city, image_url, image_urls, category, listing_type")
               .eq("category", data.category)
-              .eq("hidden", false)
+              .or("hidden.is.null,hidden.eq.false")
               .neq("id", id)
               .or("moderation_status.is.null,moderation_status.eq.approved")
               .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)

@@ -60,7 +60,7 @@ export default function Home() {
       const { data: listingsData, error } = await supabase
         .from("listings")
         .select("id, title, price, city, category, listing_type, image_url, image_urls")
-        .eq("hidden", false)
+        .or("hidden.is.null,hidden.eq.false")
         .or("moderation_status.is.null,moderation_status.eq.approved")
         .or(`expires_at.is.null,expires_at.gt.${now}`)
         .order("created_at", { ascending: false })
@@ -72,7 +72,7 @@ export default function Home() {
       const { data: catRows } = await supabase
         .from("listings")
         .select("category")
-        .eq("hidden", false)
+        .or("hidden.is.null,hidden.eq.false")
         .or("moderation_status.is.null,moderation_status.eq.approved")
         .or(`expires_at.is.null,expires_at.gt.${now}`);
 
