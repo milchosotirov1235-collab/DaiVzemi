@@ -595,6 +595,16 @@ const formatDate = (value: string | null) => {
   }).format(date);
 };
 
+const conditionBadge = (condition: string | null | undefined) => {
+  if (!condition) return null;
+  const c = condition.trim();
+  if (c.startsWith("Ново")) return { label: c, cls: "bg-green-50 text-green-700 ring-green-200" };
+  if (c === "Като ново" || c === "Отлично") return { label: c, cls: "bg-teal-50 text-teal-700 ring-teal-200" };
+  if (c === "Добро" || c === "Употребявано") return { label: c, cls: "bg-slate-100 text-slate-600 ring-slate-200" };
+  if (c.startsWith("За ремонт")) return { label: c, cls: "bg-amber-50 text-amber-700 ring-amber-200" };
+  return { label: c, cls: "bg-slate-100 text-slate-600 ring-slate-200" };
+};
+
 // ---------------------------------------------------------------------------
 // Main page content
 // ---------------------------------------------------------------------------
@@ -1906,9 +1916,20 @@ function ListingsPageContent() {
                     )}
 
                     <div className="space-y-4 p-6">
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950">
-                        {listing.listing_type ?? "Обява"}
-                      </span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950">
+                          {listing.listing_type ?? "Обява"}
+                        </span>
+                        {(() => {
+                          const badge = conditionBadge(listing.condition);
+                          if (!badge) return null;
+                          return (
+                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${badge.cls}`}>
+                              {badge.label}
+                            </span>
+                          );
+                        })()}
+                      </div>
 
                       <div>
                         <h2 className="text-2xl font-black text-slate-950">{listing.title}</h2>
