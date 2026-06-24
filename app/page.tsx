@@ -61,7 +61,7 @@ export default function Home() {
         .from("listings")
         .select("id, title, price, city, category, listing_type, image_url, image_urls")
         .eq("hidden", false)
-        .eq("moderation_status", "approved")
+        .or("moderation_status.is.null,moderation_status.eq.approved")
         .or(`expires_at.is.null,expires_at.gt.${now}`)
         .order("created_at", { ascending: false })
         .limit(8);
@@ -73,7 +73,7 @@ export default function Home() {
         .from("listings")
         .select("category")
         .eq("hidden", false)
-        .eq("moderation_status", "approved")
+        .or("moderation_status.is.null,moderation_status.eq.approved")
         .or(`expires_at.is.null,expires_at.gt.${now}`);
 
       const counts: Record<string, number> = {};

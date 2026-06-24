@@ -137,6 +137,8 @@ export default function UserProfilePage() {
           .select("id, title, price, city, category, listing_type, created_at, image_url, image_urls")
           .eq("user_id", profileId)
           .eq("hidden", false)
+          .or("moderation_status.is.null,moderation_status.eq.approved")
+          .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
           .order("created_at", { ascending: false }),
       ]);
 

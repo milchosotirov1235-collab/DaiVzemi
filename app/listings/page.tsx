@@ -1525,7 +1525,19 @@ function ListingsPageContent() {
               options={categories}
               isOpen={openDropdown === "category"}
               onToggle={() => setOpenDropdown(openDropdown === "category" ? null : "category")}
-              onSelect={(v) => { setCategoryInput(v); setOpenDropdown(null); }}
+              onSelect={(v) => {
+                if (v !== categoryInput) {
+                  setCarMake("");
+                  setCarModel("");
+                  setPropertyType("");
+                  setPartType("");
+                  setCondition("");
+                  setServiceType("");
+                  setEmploymentType("");
+                }
+                setCategoryInput(v);
+                setOpenDropdown(null);
+              }}
             />
             <CustomDropdown
               value={typeInput}
