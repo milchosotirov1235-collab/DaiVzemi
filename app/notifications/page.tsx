@@ -251,12 +251,12 @@ export default function NotificationsPage() {
                         <div className="flex flex-wrap items-baseline justify-between gap-2">
                           <span
                             className={`text-xs font-black uppercase tracking-widest ${
-                              isUnread ? "text-blue-950" : "text-slate-400"
+                              isUnread ? "text-blue-950" : "text-slate-500"
                             }`}
                           >
                             {typeLabel(n.type)}
                           </span>
-                          <span className="text-xs font-semibold text-slate-400">
+                          <span className="text-xs font-semibold text-slate-500">
                             {formatDate(n.created_at)}
                           </span>
                         </div>
@@ -286,7 +286,7 @@ export default function NotificationsPage() {
                             <button
                               type="button"
                               onClick={() => markOneRead(n.id)}
-                              className="flex items-center gap-1.5 text-sm font-semibold text-slate-400 transition hover:text-slate-600"
+                              className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition hover:text-slate-700"
                             >
                               <CheckCheck className="h-3.5 w-3.5" />
                               Маркирай като прочетено

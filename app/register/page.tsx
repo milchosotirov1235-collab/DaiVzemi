@@ -493,7 +493,7 @@ export default function RegisterPage() {
 
             <div className="flex items-center gap-4">
               <div className="h-px flex-1 bg-slate-200" />
-              <span className="text-xs font-semibold text-slate-400">или</span>
+              <span className="text-xs font-semibold text-slate-500">или</span>
               <div className="h-px flex-1 bg-slate-200" />
             </div>
 

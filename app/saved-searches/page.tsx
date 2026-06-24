@@ -176,7 +176,7 @@ export default function SavedSearchesPage() {
 
                 {/* Footer */}
                 <div className="mt-5 flex items-center justify-between gap-3">
-                  <p className="text-xs font-semibold text-slate-400">
+                  <p className="text-xs font-semibold text-slate-500">
                     {formatDate(s.created_at)}
                   </p>
                   <Link

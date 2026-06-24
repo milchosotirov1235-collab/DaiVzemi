@@ -404,7 +404,7 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                <p className="mt-4 text-center text-xs text-slate-400">
+                <p className="mt-4 text-center text-xs text-slate-600">
                   JPG, PNG или WEBP · макс. 5 MB
                 </p>
 
@@ -483,7 +483,7 @@ export default function ProfilePage() {
                     placeholder="milcho123"
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
                   />
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600">
                     Видимо публично. Само букви, цифри, _, . и -
                   </p>
                 </label>

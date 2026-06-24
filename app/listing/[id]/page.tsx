@@ -191,7 +191,7 @@ function SimilarCard({ listing }: { listing: SimilarListing }) {
         </p>
         <p className="mt-1 text-sm font-black text-blue-950">{formatPrice(listing.price)}</p>
         {listing.city && (
-          <p className="mt-0.5 text-xs font-semibold text-slate-400">{listing.city}</p>
+          <p className="mt-0.5 text-xs font-semibold text-slate-500">{listing.city}</p>
         )}
       </div>
     </Link>
@@ -687,7 +687,7 @@ export default function ListingPage() {
                 <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
                   {detailEntries.map(([label, value]) => (
                     <div key={label} className="rounded-xl bg-slate-50 px-4 py-3">
-                      <dt className="text-[10px] font-black uppercase tracking-wider text-slate-400">{label}</dt>
+                      <dt className="text-[10px] font-black uppercase tracking-wider text-slate-500">{label}</dt>
                       <dd className="mt-1 text-sm font-bold text-slate-900">{value}</dd>
                     </div>
                   ))}
@@ -704,7 +704,7 @@ export default function ListingPage() {
                   </p>
                 ) : (
                   <>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-500">
                       Забелязахте проблем?{" "}
                       <button
                         type="button"
@@ -729,7 +729,7 @@ export default function ListingPage() {
                           <p className="text-sm font-black text-slate-900">
                             {reportTarget === "listing" ? "Докладвай обявата" : "Докладвай потребителя"}
                           </p>
-                          <button type="button" onClick={() => setReportOpen(false)} className="rounded-lg p-1 text-slate-400 hover:text-slate-700">
+                          <button type="button" onClick={() => setReportOpen(false)} className="rounded-lg p-1 text-slate-500 hover:text-slate-700">
                             <X className="h-4 w-4" />
                           </button>
                         </div>
@@ -790,7 +790,7 @@ export default function ListingPage() {
                   <div className="min-w-0">
                     <p className="truncate text-base font-black text-slate-900">{sellerDisplayName}</p>
                     {seller.username && (
-                      <p className="text-xs font-semibold text-slate-400">@{seller.username}</p>
+                      <p className="text-xs font-semibold text-slate-500">@{seller.username}</p>
                     )}
                   </div>
                 </div>
@@ -822,7 +822,7 @@ export default function ListingPage() {
                 {/* Contact actions */}
                 {!isOwner ? (
                   isExpired ? (
-                    <p className="text-center text-xs font-semibold text-slate-400">
+                    <p className="text-center text-xs font-semibold text-slate-600">
                       Обявата е изтекла.
                     </p>
                   ) : (
@@ -850,7 +850,7 @@ export default function ListingPage() {
                             {seller.phone}
                           </a>
                         ) : (
-                          <p className="text-center text-xs font-semibold text-slate-400">
+                          <p className="text-center text-xs font-semibold text-slate-600">
                             Продавачът не е посочил телефон.
                           </p>
                         )
@@ -870,7 +870,7 @@ export default function ListingPage() {
                     </div>
                   )
                 ) : (
-                  <p className="text-center text-xs font-semibold text-slate-400">
+                  <p className="text-center text-xs font-semibold text-slate-600">
                     Това е вашата обява.
                   </p>
                 )}
@@ -880,7 +880,7 @@ export default function ListingPage() {
                   <div className="mt-5 text-center">
                     <Link
                       href={`/user/${seller.id}`}
-                      className="text-xs font-semibold text-slate-400 underline underline-offset-2 hover:text-blue-950"
+                      className="text-xs font-semibold text-slate-500 underline underline-offset-2 hover:text-blue-950"
                     >
                       Виж профила на продавача →
                     </Link>
@@ -906,7 +906,7 @@ export default function ListingPage() {
             <div className="text-center">
               <Link
                 href="/listings"
-                className="text-xs font-semibold text-slate-400 underline underline-offset-2 hover:text-blue-950"
+                className="text-xs font-semibold text-slate-500 underline underline-offset-2 hover:text-blue-950"
               >
                 ← Назад към обявите
               </Link>

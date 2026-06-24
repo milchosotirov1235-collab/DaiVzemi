@@ -256,7 +256,7 @@ export default function MessagesPage() {
           </div>
         ) : rows.length === 0 ? (
           <div className="rounded-3xl bg-white p-12 text-center shadow-sm ring-1 ring-slate-200">
-            <MessageCircle className="mx-auto h-12 w-12 text-slate-300" />
+            <MessageCircle className="mx-auto h-12 w-12 text-slate-400" />
             <p className="mt-5 text-xl font-black text-slate-900">Нямате съобщения</p>
             <p className="mt-2 text-sm text-slate-500">
               Отворете обява и натиснете „Изпрати съобщение", за да започнете разговор.
@@ -303,7 +303,7 @@ export default function MessagesPage() {
                       {otherUser?.username ?? "Потребител"}
                     </p>
                     {lastMessage && (
-                      <span className="shrink-0 text-xs text-slate-400">
+                      <span className="shrink-0 text-xs text-slate-500">
                         {timeAgo(lastMessage.created_at)}
                       </span>
                     )}
