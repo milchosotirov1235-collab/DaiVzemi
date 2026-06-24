@@ -109,6 +109,8 @@ export default function Header() {
 
   const router = useRouter();
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const notifChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const msgChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
@@ -153,11 +155,41 @@ export default function Header() {
     }
   };
 
-  useEffect(() => {
-    // Channels are created once and stored here for cleanup
-    let notifChannel: ReturnType<typeof supabase.channel> | null = null;
-    let msgChannel: ReturnType<typeof supabase.channel> | null = null;
+  const teardownChannels = () => {
+    if (notifChannelRef.current) {
+      supabase.removeChannel(notifChannelRef.current);
+      notifChannelRef.current = null;
+    }
+    if (msgChannelRef.current) {
+      supabase.removeChannel(msgChannelRef.current);
+      msgChannelRef.current = null;
+    }
+  };
 
+  const setupChannels = (userId: string) => {
+    teardownChannels();
+    const uid = Math.random().toString(36).slice(2);
+
+    notifChannelRef.current = supabase
+      .channel(`header-notif-${userId}-${uid}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
+        () => fetchUnreadCounts(userId)
+      )
+      .subscribe();
+
+    msgChannelRef.current = supabase
+      .channel(`header-msg-${userId}-${uid}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "messages" },
+        () => fetchUnreadCounts(userId)
+      )
+      .subscribe();
+  };
+
+  useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
       const user = data?.user ?? null;
@@ -168,40 +200,23 @@ export default function Header() {
 
       await fetchProfile(user.id);
       await fetchUnreadCounts(user.id);
-
-      // Unique suffix prevents channel name collisions when React StrictMode
-      // mounts the component twice before the first cleanup completes.
-      const uid = Math.random().toString(36).slice(2);
-
-      notifChannel = supabase
-        .channel(`header-notif-${user.id}-${uid}`)
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-          () => fetchUnreadCounts(user.id)
-        )
-        .subscribe();
-
-      msgChannel = supabase
-        .channel(`header-msg-${user.id}-${uid}`)
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "messages" },
-          () => fetchUnreadCounts(user.id)
-        )
-        .subscribe();
+      setupChannels(user.id);
     };
 
     loadUser();
 
-    // onAuthStateChange only refreshes profile/counts — never touches channels
     const { data: subscription } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         setCurrentUserEmail(session?.user?.email ?? null);
         if (session?.user) {
           await fetchProfile(session.user.id);
           await fetchUnreadCounts(session.user.id);
+          // Rebuild channels for the newly signed-in user
+          setupChannels(session.user.id);
         } else {
+          // Tear down channels immediately on sign-out so the old
+          // user's subscription doesn't linger or leak to a new session
+          teardownChannels();
           setProfile({ username: null, avatar_url: null, role: null });
           setUnreadNotifications(0);
           setUnreadMessages(0);
@@ -211,9 +226,9 @@ export default function Header() {
 
     return () => {
       subscription?.subscription.unsubscribe();
-      if (notifChannel) supabase.removeChannel(notifChannel);
-      if (msgChannel) supabase.removeChannel(msgChannel);
+      teardownChannels();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
