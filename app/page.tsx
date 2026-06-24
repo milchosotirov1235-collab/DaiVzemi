@@ -8,6 +8,7 @@ import {
   Baby,
   BookOpen,
   Briefcase,
+  Camera,
   Car,
   Hammer,
   Heart,
@@ -51,6 +52,7 @@ const fallbackImageByCategory: Record<string, string> = {
 export default function Home() {
   const router = useRouter();
   const [latestListings, setLatestListings] = useState<Listing[]>([]);
+  const [listingsLoading, setListingsLoading] = useState(true);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
@@ -110,6 +112,7 @@ export default function Home() {
         .limit(8);
 
       setLatestListings(!error && listingsData ? (listingsData as Listing[]) : []);
+      setListingsLoading(false);
 
       // Category counts — single query, count in JS
       const { data: catRows } = await supabase
@@ -302,7 +305,26 @@ export default function Home() {
           </div>
         </div>
 
-        {latestListings.length === 0 ? (
+        {listingsLoading ? (
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+                <div className="h-56 w-full animate-pulse bg-slate-200" />
+                <div className="space-y-4 p-6">
+                  <div className="h-5 w-16 animate-pulse rounded-full bg-slate-200" />
+                  <div className="space-y-2">
+                    <div className="h-6 w-4/5 animate-pulse rounded-full bg-slate-200" />
+                    <div className="h-6 w-2/5 animate-pulse rounded-full bg-slate-200" />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-6 w-16 animate-pulse rounded-full bg-slate-200" />
+                    <div className="h-6 w-24 animate-pulse rounded-full bg-slate-200" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : latestListings.length === 0 ? (
           <div className="mt-10 rounded-[28px] border border-dashed border-slate-300 bg-white px-8 py-16 text-center shadow-sm">
             <p className="text-2xl font-black text-slate-900">Все още няма обяви</p>
             <p className="mt-2 text-sm text-slate-600">
@@ -353,6 +375,12 @@ export default function Home() {
                     >
                       <Heart className={`h-4 w-4 ${favoriteIds.has(listing.id) ? "fill-current" : ""}`} />
                     </button>
+                    {(listing.image_urls?.filter(Boolean).length ?? 0) > 1 && (
+                      <span className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-slate-950/60 px-2 py-1 text-xs font-bold text-white backdrop-blur">
+                        <Camera className="h-3 w-3" />
+                        {listing.image_urls!.filter(Boolean).length}
+                      </span>
+                    )}
                   </div>
 
                   <div className="space-y-4 p-6">

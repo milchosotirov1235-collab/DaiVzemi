@@ -492,8 +492,39 @@ export default function ListingPage() {
     return (
       <main className="min-h-screen bg-slate-50">
         <Header />
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-950" />
+        <div className="mx-auto max-w-7xl px-6 py-10">
+          <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+            <div className="space-y-5">
+              <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
+                <div className="h-[420px] w-full animate-pulse bg-slate-200" />
+              </div>
+              <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 space-y-4">
+                <div className="h-5 w-1/4 animate-pulse rounded-full bg-slate-200" />
+                <div className="h-9 w-3/4 animate-pulse rounded-full bg-slate-200" />
+                <div className="h-8 w-2/5 animate-pulse rounded-full bg-slate-200" />
+                <div className="flex gap-3 pt-2">
+                  <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+                  <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+                </div>
+              </div>
+              <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 space-y-3">
+                <div className="h-4 w-full animate-pulse rounded-full bg-slate-200" />
+                <div className="h-4 w-full animate-pulse rounded-full bg-slate-200" />
+                <div className="h-4 w-4/5 animate-pulse rounded-full bg-slate-200" />
+              </div>
+            </div>
+            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-14 w-14 animate-pulse rounded-full bg-slate-200 shrink-0" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-5 w-3/4 animate-pulse rounded-full bg-slate-200" />
+                  <div className="h-4 w-1/2 animate-pulse rounded-full bg-slate-200" />
+                </div>
+              </div>
+              <div className="h-12 w-full animate-pulse rounded-2xl bg-slate-200" />
+              <div className="h-12 w-full animate-pulse rounded-2xl bg-slate-200" />
+            </div>
+          </div>
         </div>
       </main>
     );
@@ -690,6 +721,11 @@ export default function ListingPage() {
               {/* Type / category chips + share */}
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap gap-2">
+                  {(listing.details as Record<string, string> | null)?.urgent === "yes" && (
+                    <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-600 ring-1 ring-red-200">
+                      Спешно
+                    </span>
+                  )}
                   {listing.listing_type && (
                     <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700 ring-1 ring-blue-100">
                       {listing.listing_type}
@@ -764,9 +800,16 @@ export default function ListingPage() {
                 {listing.title}
               </h1>
 
-              <p className="mt-4 text-3xl font-black text-blue-950 sm:text-4xl">
-                {formatDualPrice(listing.price)}
-              </p>
+              <div className="mt-4 flex flex-wrap items-baseline gap-3">
+                <p className="text-3xl font-black text-blue-950 sm:text-4xl">
+                  {formatDualPrice(listing.price)}
+                </p>
+                {(listing.details as Record<string, string> | null)?.negotiable === "yes" && (
+                  <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-200">
+                    По договаряне
+                  </span>
+                )}
+              </div>
               {(() => {
                 if (listing.category !== "Имоти") return null;
                 const area = Number((listing.details as Record<string, string> | null)?.area);
@@ -962,6 +1005,24 @@ export default function ListingPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Trust badges */}
+                {(seller.phone || seller.avatar_url) && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {seller.phone && (
+                      <span className="flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-xs font-bold text-green-700 ring-1 ring-green-200">
+                        <Check className="h-3 w-3" />
+                        Телефон
+                      </span>
+                    )}
+                    {seller.avatar_url && (
+                      <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-200">
+                        <Check className="h-3 w-3" />
+                        Google акаунт
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 <div className="my-5 border-t border-slate-100" />
 
@@ -1165,29 +1226,34 @@ export default function ListingPage() {
       {/* LIGHTBOX */}
       {isModalOpen && mainImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex flex-col bg-slate-950/95 backdrop-blur-sm"
           onClick={() => setIsModalOpen(false)}
         >
-          <div
-            className="relative flex max-h-[92vh] w-full max-w-6xl items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
-          >
+          {/* Top bar */}
+          <div className="flex shrink-0 items-center justify-between px-4 py-3">
+            <span className="rounded-full bg-white/10 px-3 py-1 text-sm font-bold text-white">
+              {selectedImageIndex + 1} / {images.length}
+            </span>
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="absolute right-3 top-3 z-20 rounded-full bg-slate-900/75 p-2 text-white transition hover:bg-slate-900"
+              className="rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
             >
               <X className="h-5 w-5" />
             </button>
-            <div className="absolute left-3 top-3 z-20 rounded-full bg-slate-900/75 px-3 py-1.5 text-sm font-bold text-white">
-              {selectedImageIndex + 1} / {images.length}
-            </div>
+          </div>
+
+          {/* Main image area */}
+          <div
+            className="relative flex flex-1 items-center justify-center overflow-hidden px-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             {hasMultipleImages && (
               <>
                 <button
                   type="button"
                   onClick={goToPreviousImage}
-                  className="absolute left-3 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/60 text-white backdrop-blur transition hover:bg-slate-950/80"
+                  className="absolute left-4 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20"
                   aria-label="Предишна снимка"
                 >
                   <ChevronLeft className="h-6 w-6" />
@@ -1195,7 +1261,7 @@ export default function ListingPage() {
                 <button
                   type="button"
                   onClick={goToNextImage}
-                  className="absolute right-3 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/60 text-white backdrop-blur transition hover:bg-slate-950/80"
+                  className="absolute right-4 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20"
                   aria-label="Следваща снимка"
                 >
                   <ChevronRight className="h-6 w-6" />
@@ -1205,9 +1271,32 @@ export default function ListingPage() {
             <img
               src={mainImage}
               alt={listing.title}
-              className="max-h-[92vh] max-w-full rounded-3xl object-contain shadow-2xl"
+              className="max-h-full max-w-full object-contain"
             />
           </div>
+
+          {/* Thumbnail strip */}
+          {hasMultipleImages && (
+            <div
+              className="flex shrink-0 justify-center gap-2 overflow-x-auto px-4 pb-4 pt-3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {images.map((img, idx) => (
+                <button
+                  key={`lb-${img}-${idx}`}
+                  type="button"
+                  onClick={() => setSelectedImageIndex(idx)}
+                  className={`shrink-0 overflow-hidden rounded-xl transition ${
+                    selectedImageIndex === idx
+                      ? "ring-2 ring-white ring-offset-2 ring-offset-slate-950"
+                      : "opacity-50 hover:opacity-80"
+                  }`}
+                >
+                  <img src={img} alt="" className="h-14 w-14 object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </main>

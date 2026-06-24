@@ -110,6 +110,8 @@ export default function EditListingPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [negotiable, setNegotiable] = useState(false);
+  const [urgent, setUrgent] = useState(false);
   const [city, setCity] = useState("");
   const [category, setCategory] = useState("Имоти");
   const [listingType, setListingType] = useState("Продавам");
@@ -198,6 +200,8 @@ export default function EditListingPage() {
         stringDetails[k] = v != null ? String(v) : "";
       }
       setDetails(stringDetails);
+      if (rawDetails.negotiable === "yes") setNegotiable(true);
+      if (rawDetails.urgent === "yes") setUrgent(true);
 
       setLoading(false);
     };
@@ -346,6 +350,8 @@ export default function EditListingPage() {
       const val = (details[field.key] ?? "").trim();
       if (val) cleanDetails[field.key] = val;
     }
+    if (negotiable) cleanDetails.negotiable = "yes";
+    if (urgent) cleanDetails.urgent = "yes";
 
     const { error: updateError } = await supabase
       .from("listings")
@@ -566,18 +572,37 @@ export default function EditListingPage() {
                   </div>
                 </div>
 
-                <label className="space-y-2.5">
+                <div className="space-y-2.5">
                   <span className="block text-sm font-semibold text-slate-800">Цена</span>
                   <div className="flex items-center rounded-2xl border border-slate-200 bg-white shadow-sm transition focus-within:border-blue-900 focus-within:ring-4 focus-within:ring-blue-100">
                     <input
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                       type="text"
-                      className="w-full rounded-2xl bg-transparent px-4 py-3.5 text-base text-slate-900 outline-none"
+                      disabled={negotiable}
+                      className="w-full rounded-2xl bg-transparent px-4 py-3.5 text-base text-slate-900 outline-none disabled:opacity-40"
                     />
                     <span className="mr-3 inline-flex items-center rounded-xl bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700">€</span>
                   </div>
-                </label>
+                  <label className="flex cursor-pointer items-center gap-2.5">
+                    <input
+                      type="checkbox"
+                      checked={negotiable}
+                      onChange={(e) => { setNegotiable(e.target.checked); if (e.target.checked) setPrice(""); }}
+                      className="h-4 w-4 rounded accent-blue-950"
+                    />
+                    <span className="text-sm font-semibold text-slate-700">Цената е договаряема</span>
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2.5">
+                    <input
+                      type="checkbox"
+                      checked={urgent}
+                      onChange={(e) => setUrgent(e.target.checked)}
+                      className="h-4 w-4 rounded accent-red-600"
+                    />
+                    <span className="text-sm font-semibold text-slate-700">Спешна продажба</span>
+                  </label>
+                </div>
               </div>
 
               {/* ── City ── */}

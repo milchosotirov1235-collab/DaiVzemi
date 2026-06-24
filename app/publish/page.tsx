@@ -98,6 +98,8 @@ export default function PublishPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [negotiable, setNegotiable] = useState(false);
+  const [urgent, setUrgent] = useState(false);
   const [city, setCity] = useState("");
   const [category, setCategory] = useState("Имоти");
   const [listingType, setListingType] = useState("Продавам");
@@ -306,6 +308,8 @@ export default function PublishPage() {
     for (const [key, value] of Object.entries(details)) {
       if (value.trim()) cleanDetails[key] = value.trim();
     }
+    if (negotiable) cleanDetails.negotiable = "yes";
+    if (urgent) cleanDetails.urgent = "yes";
 
     const { data: insertData, error: insertError } = await supabase.from("listings").insert([
       {
@@ -510,7 +514,7 @@ export default function PublishPage() {
                 </div>
               </div>
 
-              <label className="space-y-2.5">
+              <div className="space-y-2.5">
                 <span className="block text-sm font-black text-blue-950">Цена</span>
                 <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 shadow-sm transition focus-within:border-blue-950 focus-within:ring-4 focus-within:ring-blue-100">
                   <input
@@ -518,11 +522,30 @@ export default function PublishPage() {
                     onChange={(e) => setPrice(e.target.value)}
                     type="text"
                     placeholder="500"
-                    className="w-full rounded-2xl bg-transparent px-5 py-4 font-bold text-slate-900 outline-none placeholder:text-slate-400"
+                    disabled={negotiable}
+                    className="w-full rounded-2xl bg-transparent px-5 py-4 font-bold text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-40"
                   />
                   <span className="mr-3 inline-flex items-center rounded-xl bg-white px-3 py-1.5 text-sm font-black text-blue-950">€</span>
                 </div>
-              </label>
+                <label className="flex cursor-pointer items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={negotiable}
+                    onChange={(e) => { setNegotiable(e.target.checked); if (e.target.checked) setPrice(""); }}
+                    className="h-4 w-4 rounded accent-blue-950"
+                  />
+                  <span className="text-sm font-semibold text-slate-700">Цената е договаряема</span>
+                </label>
+                <label className="flex cursor-pointer items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={urgent}
+                    onChange={(e) => setUrgent(e.target.checked)}
+                    className="h-4 w-4 rounded accent-red-600"
+                  />
+                  <span className="text-sm font-semibold text-slate-700">Спешна продажба</span>
+                </label>
+              </div>
             </div>
 
             {/* City */}
