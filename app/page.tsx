@@ -30,6 +30,7 @@ type Listing = {
   city: string | null;
   category: string | null;
   listing_type: string | null;
+  created_at: string | null;
   image_url: string | null;
   image_urls: string[] | null;
 };
@@ -104,7 +105,7 @@ export default function Home() {
       // Latest listings
       const { data: listingsData, error } = await supabase
         .from("listings")
-        .select("id, title, price, city, category, listing_type, image_url, image_urls")
+        .select("id, title, price, city, category, listing_type, created_at, image_url, image_urls")
         .or("hidden.is.null,hidden.eq.false")
         .or("moderation_status.is.null,moderation_status.eq.approved")
         .or(`expires_at.is.null,expires_at.gt.${now}`)
@@ -339,7 +340,9 @@ export default function Home() {
           </div>
         ) : (
           <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {latestListings.map((listing, index) => (
+            {latestListings.map((listing, index) => {
+              const isNew = !!listing.created_at && (Date.now() - new Date(listing.created_at).getTime()) < 86_400_000;
+              return (
               <article
                 key={listing.id ?? `${listing.title}-${index}`}
                 className="group cursor-pointer overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
@@ -360,9 +363,16 @@ export default function Home() {
                         </div>
                       );
                     })()}
-                    <span className="absolute left-5 top-5 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950 shadow-sm">
-                      {listing.listing_type ?? "Обява"}
-                    </span>
+                    {isNew && (
+                      <span className="absolute left-5 top-5 rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-white shadow-sm">
+                        Нов
+                      </span>
+                    )}
+                    {!isNew && (
+                      <span className="absolute left-5 top-5 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950 shadow-sm">
+                        {listing.listing_type ?? "Обява"}
+                      </span>
+                    )}
                     <button
                       type="button"
                       onClick={(e) => toggleFavorite(e, listing.id)}
@@ -413,7 +423,8 @@ export default function Home() {
                   </Link>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

@@ -1966,7 +1966,7 @@ function ListingsPageContent() {
             {listings.length > 0 && !loading ? `${listings.length} обяви` : ""}
           </p>
           <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-slate-500">Сортиране:</span>
+            <span className="hidden sm:inline text-sm font-semibold text-slate-500">Сортиране:</span>
             <select
               value={sort}
               onChange={(e) => {
@@ -2078,6 +2078,7 @@ function ListingsPageContent() {
               const sqmPrice = listing.category === "Имоти" && sqmArea > 0 && numPrice > 0
                 ? `${Math.round(numPrice / sqmArea).toLocaleString("bg-BG")} € / кв.м.`
                 : null;
+              const isNew = !!listing.created_at && (Date.now() - new Date(listing.created_at).getTime()) < 86_400_000;
 
               if (viewMode === "list") {
                 return (
@@ -2121,6 +2122,11 @@ function ListingsPageContent() {
                       <div className="flex flex-1 flex-col justify-between gap-2 p-4">
                         <div>
                           <div className="mb-2 flex flex-wrap items-center gap-2">
+                            {isNew && (
+                              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
+                                Нов
+                              </span>
+                            )}
                             {d.urgent === "yes" && (
                               <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-bold text-red-600 ring-1 ring-red-200">
                                 Спешно
@@ -2205,6 +2211,11 @@ function ListingsPageContent() {
 
                     <div className="space-y-4 p-6">
                       <div className="flex flex-wrap items-center gap-2">
+                        {isNew && (
+                          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
+                            Нов
+                          </span>
+                        )}
                         {d.urgent === "yes" && (
                           <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-600 ring-1 ring-red-200">
                             Спешно

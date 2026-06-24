@@ -742,7 +742,16 @@ export default function ListingPage() {
                 <div className="relative">
                   <button
                     type="button"
-                    onClick={() => setShareOpen((o) => !o)}
+                    onClick={async () => {
+                      const url = window.location.href;
+                      if (navigator.share) {
+                        try {
+                          await navigator.share({ title: listing.title, text: `${listing.title} — DaiVzemi`, url });
+                          return;
+                        } catch {}
+                      }
+                      setShareOpen((o) => !o);
+                    }}
                     className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50"
                   >
                     <Share2 className="h-3.5 w-3.5" />
