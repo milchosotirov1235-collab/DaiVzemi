@@ -903,13 +903,22 @@ export default function ListingPage() {
                       {/* Phone reveal */}
                       {phoneRevealed ? (
                         seller.phone ? (
-                          <a
-                            href={`tel:${seller.phone}`}
-                            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-950 bg-white px-5 py-3.5 text-sm font-black text-blue-950 transition hover:bg-blue-50"
-                          >
-                            <Phone className="h-4 w-4" />
-                            {seller.phone}
-                          </a>
+                          <>
+                            <a
+                              href={`tel:${seller.phone}`}
+                              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-950 bg-white px-5 py-3.5 text-sm font-black text-blue-950 transition hover:bg-blue-50"
+                            >
+                              <Phone className="h-4 w-4" />
+                              {seller.phone}
+                            </a>
+                            <a
+                              href={`viber://contact?number=${encodeURIComponent(seller.phone.replace(/\s/g, ""))}`}
+                              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-violet-200 bg-violet-50 px-5 py-3.5 text-sm font-black text-violet-700 transition hover:bg-violet-100"
+                            >
+                              <span className="text-base leading-none">📲</span>
+                              Viber
+                            </a>
+                          </>
                         ) : (
                           <p className="text-center text-xs font-semibold text-slate-600">
                             Продавачът не е посочил телефон.
@@ -1015,13 +1024,21 @@ export default function ListingPage() {
             </button>
             {phoneRevealed ? (
               seller.phone ? (
-                <a
-                  href={`tel:${seller.phone}`}
-                  className="flex shrink-0 items-center justify-center gap-2 rounded-2xl border border-blue-950 bg-white px-4 py-3.5 text-sm font-black text-blue-950 transition hover:bg-blue-50"
-                >
-                  <Phone className="h-4 w-4" />
-                  <span className="max-w-[130px] truncate">{seller.phone}</span>
-                </a>
+                <>
+                  <a
+                    href={`tel:${seller.phone}`}
+                    className="flex shrink-0 items-center justify-center gap-2 rounded-2xl border border-blue-950 bg-white px-4 py-3.5 text-sm font-black text-blue-950 transition hover:bg-blue-50"
+                  >
+                    <Phone className="h-4 w-4" />
+                    <span className="max-w-[100px] truncate">{seller.phone}</span>
+                  </a>
+                  <a
+                    href={`viber://contact?number=${encodeURIComponent(seller.phone.replace(/\s/g, ""))}`}
+                    className="flex shrink-0 items-center justify-center gap-2 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3.5 text-sm font-black text-violet-700 transition hover:bg-violet-100"
+                  >
+                    <span className="text-base leading-none">📲</span>
+                  </a>
+                </>
               ) : null
             ) : (
               <button
