@@ -308,37 +308,41 @@ export default function EditListingPage() {
 
     if (newImageFiles.length > 0) {
       setUploadingImages(true);
-      setUploadProgress(10);
+      setUploadProgress(0);
       const timestamp = Date.now();
 
-      const uploadResults = await Promise.all(
-        newImageFiles.map(async (file, index) => {
-          const safeFileName = file.name.replace(/\s+/g, "_");
-          const filePath = `${user.id}/${timestamp}_${index}_${safeFileName}`;
+      for (let index = 0; index < newImageFiles.length; index++) {
+        const file = newImageFiles[index];
+        const safeFileName = file.name.replace(/\s+/g, "_");
+        const filePath = `${user.id}/${timestamp}_${index}_${safeFileName}`;
 
-          const { error: uploadError } = await supabase.storage
-            .from("listing-images")
-            .upload(filePath, file, { cacheControl: "3600", upsert: false });
+        const { error: uploadError } = await supabase.storage
+          .from("listing-images")
+          .upload(filePath, file, { cacheControl: "3600", upsert: false });
 
-          if (uploadError) return null;
+        if (uploadError) {
+          setUploadingImages(false);
+          setSaving(false);
+          setError("Снимките не се качиха. Моля опитайте отново.");
+          return;
+        }
 
-          const { data: publicUrlData } = supabase.storage
-            .from("listing-images")
-            .getPublicUrl(filePath);
+        const { data: publicUrlData } = supabase.storage
+          .from("listing-images")
+          .getPublicUrl(filePath);
 
-          return publicUrlData?.publicUrl ?? null;
-        })
-      );
+        const url = publicUrlData?.publicUrl ?? null;
+        if (!url) {
+          setUploadingImages(false);
+          setSaving(false);
+          setError("Снимките не се качиха. Моля опитайте отново.");
+          return;
+        }
 
-      if (uploadResults.some((r) => r === null)) {
-        setUploadingImages(false);
-        setSaving(false);
-        setError("Снимките не се качиха. Моля опитайте отново.");
-        return;
+        uploadedUrls.push(url);
+        setUploadProgress(Math.round(((index + 1) / newImageFiles.length) * 100));
       }
 
-      uploadedUrls = uploadResults.filter((r): r is string => r !== null);
-      setUploadProgress(100);
       setUploadingImages(false);
     }
 

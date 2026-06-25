@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import UnverifiedBanner from "@/components/UnverifiedBanner";
 import { AlertTriangle, CheckCircle2, ChevronDown, ImagePlus, SlidersHorizontal } from "lucide-react";
@@ -21,13 +21,22 @@ function CategoryDetailFields({
   category,
   details,
   onChange,
+  errorKeys = new Set(),
+  onFieldChange,
 }: {
   category: string;
   details: Record<string, string>;
   onChange: (key: string, value: string) => void;
+  errorKeys?: Set<string>;
+  onFieldChange?: (key: string) => void;
 }) {
   const fields = CATEGORY_DETAILS[category];
   if (!fields) return null;
+
+  const handleChange = (key: string, value: string) => {
+    onChange(key, value);
+    onFieldChange?.(key);
+  };
 
   return (
     <div className="rounded-[28px] border border-blue-100 bg-blue-50/40 p-6">
@@ -38,38 +47,44 @@ function CategoryDetailFields({
 
       <div className="grid gap-5 sm:grid-cols-2">
         {fields.map((field) => {
-          // Resolve options: static list or dynamic based on another field's value
           const dependValue = field.dependsOn ? (details[field.dependsOn] ?? "") : "";
           const resolvedOptions = field.getOptions
             ? field.getOptions(dependValue)
             : (field.options ?? []);
           const isDisabledByDep = !!field.dependsOn && !dependValue;
+          const hasError = errorKeys.has(field.key);
 
           return (
           <label key={field.key} className="space-y-2">
-            <span className="block text-sm font-black text-blue-950">
+            <span className={`block text-sm font-black ${hasError ? "text-red-600" : "text-blue-950"}`}>
               {field.label}
               {field.required && <span className="ml-1 text-red-500">*</span>}
             </span>
 
             {field.type === "select" ? (
-              <SearchableSelect
-                value={details[field.key] ?? ""}
-                onChange={(v) => onChange(field.key, v)}
-                options={resolvedOptions}
-                placeholder={`Избери ${field.label.toLowerCase()}`}
-                disabled={isDisabledByDep}
-                disabledPlaceholder="Първо изберете марка"
-                size="md"
-              />
+              <div className={hasError ? "rounded-2xl ring-2 ring-red-400" : ""}>
+                <SearchableSelect
+                  value={details[field.key] ?? ""}
+                  onChange={(v) => handleChange(field.key, v)}
+                  options={resolvedOptions}
+                  placeholder={`Избери ${field.label.toLowerCase()}`}
+                  disabled={isDisabledByDep}
+                  disabledPlaceholder="Първо изберете марка"
+                  size="md"
+                />
+              </div>
             ) : (
               <input
                 value={details[field.key] ?? ""}
-                onChange={(e) => onChange(field.key, e.target.value)}
+                onChange={(e) => handleChange(field.key, e.target.value)}
                 type={field.type}
                 placeholder={field.placeholder ?? ""}
                 min={field.type === "number" ? "0" : undefined}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-950 focus:ring-4 focus:ring-blue-100"
+                className={`w-full rounded-2xl border px-5 py-4 font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:ring-4 ${
+                  hasError
+                    ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100"
+                    : "border-slate-200 bg-slate-50 focus:border-blue-950 focus:ring-blue-100"
+                }`}
               />
             )}
           </label>
@@ -115,6 +130,15 @@ export default function PublishPage() {
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  // Validation error state — keys that failed validation
+  const [fieldErrors, setFieldErrors] = useState<Set<string>>(new Set());
+
+  // Refs for scroll-to-error
+  const titleRef = useRef<HTMLLabelElement>(null);
+  const cityRef = useRef<HTMLDivElement>(null);
+  const descriptionRef = useRef<HTMLLabelElement>(null);
+  const categoryDetailsRef = useRef<HTMLDivElement>(null);
 
   // Auth
   const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(null);
@@ -212,34 +236,44 @@ export default function PublishPage() {
     const cleanCity = city.trim();
     const cleanPrice = price.trim();
 
+    // Collect ALL validation errors before showing anything
+    const errors = new Set<string>();
+    const errorRefs: Array<React.RefObject<HTMLElement | null>> = [];
+
     if (cleanTitle.length < 3) {
-      showError("Кратко заглавие", "Заглавието трябва да съдържа поне 3 символа.");
-      return;
+      errors.add("title");
+      errorRefs.push(titleRef as React.RefObject<HTMLElement | null>);
     }
     if (cleanCity.length < 2) {
-      showError("Липсва град", "Моля въведете град преди да публикувате обявата.");
-      return;
+      errors.add("city");
+      errorRefs.push(cityRef as React.RefObject<HTMLElement | null>);
     }
     if (cleanDescription.length < 10) {
-      showError("Кратко описание", "Описанието трябва да съдържа поне 10 символа.");
-      return;
+      errors.add("description");
+      errorRefs.push(descriptionRef as React.RefObject<HTMLElement | null>);
     }
     if (selectedImages.length > imageLimit) {
-      showError("Твърде много снимки", `Можете да изберете максимум ${imageLimit} снимки за категория ${category}.`);
-      return;
+      errors.add("images");
     }
 
     // Validate required detail fields
     const requiredFields = CATEGORY_DETAILS[category]?.filter((f) => f.required) ?? [];
     for (const field of requiredFields) {
       if (!details[field.key]?.trim()) {
-        showError(
-          `Липсва ${field.label.toLowerCase()}`,
-          `Полето "${field.label}" е задължително за категория ${category}.`
-        );
-        return;
+        errors.add(field.key);
+        if (!errorRefs.includes(categoryDetailsRef as React.RefObject<HTMLElement | null>)) {
+          errorRefs.push(categoryDetailsRef as React.RefObject<HTMLElement | null>);
+        }
       }
     }
+
+    if (errors.size > 0) {
+      setFieldErrors(errors);
+      errorRefs[0]?.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      showError("Попълнете задължителните полета", "Маркираните в червено полета са задължителни.");
+      return;
+    }
+    setFieldErrors(new Set());
 
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user ?? null;
@@ -271,37 +305,41 @@ export default function PublishPage() {
 
     if (selectedImages.length > 0) {
       setUploadingImages(true);
-      setUploadProgress(10);
+      setUploadProgress(0);
       const timestamp = Date.now();
 
-      const uploadResults = await Promise.all(
-        selectedImages.map(async (file, index) => {
-          const safeFileName = file.name.replace(/\s+/g, "_");
-          const filePath = `${user.id}/${timestamp}_${index}_${safeFileName}`;
+      for (let index = 0; index < selectedImages.length; index++) {
+        const file = selectedImages[index];
+        const safeFileName = file.name.replace(/\s+/g, "_");
+        const filePath = `${user.id}/${timestamp}_${index}_${safeFileName}`;
 
-          const { error: uploadError } = await supabase.storage
-            .from("listing-images")
-            .upload(filePath, file, { cacheControl: "3600", upsert: false });
+        const { error: uploadError } = await supabase.storage
+          .from("listing-images")
+          .upload(filePath, file, { cacheControl: "3600", upsert: false });
 
-          if (uploadError) return null;
+        if (uploadError) {
+          setUploadingImages(false);
+          setLoading(false);
+          showError("Снимките не се качиха", "Моля опитайте отново или изберете други снимки.");
+          return;
+        }
 
-          const { data: publicUrlData } = supabase.storage
-            .from("listing-images")
-            .getPublicUrl(filePath);
+        const { data: publicUrlData } = supabase.storage
+          .from("listing-images")
+          .getPublicUrl(filePath);
 
-          return publicUrlData?.publicUrl ?? null;
-        })
-      );
+        const url = publicUrlData?.publicUrl ?? null;
+        if (!url) {
+          setUploadingImages(false);
+          setLoading(false);
+          showError("Снимките не се качиха", "Моля опитайте отново или изберете други снимки.");
+          return;
+        }
 
-      if (uploadResults.some((r) => r === null)) {
-        setUploadingImages(false);
-        setLoading(false);
-        showError("Снимките не се качиха", "Моля опитайте отново или изберете други снимки.");
-        return;
+        uploadedUrls.push(url);
+        setUploadProgress(Math.round(((index + 1) / selectedImages.length) * 100));
       }
 
-      uploadedUrls = uploadResults.filter((r): r is string => r !== null);
-      setUploadProgress(100);
       setUploadingImages(false);
     }
 
@@ -442,14 +480,14 @@ export default function PublishPage() {
 
             {/* Title + Listing type */}
             <div className="grid gap-5 lg:grid-cols-2">
-              <label className="space-y-2.5">
-                <span className="block text-sm font-black text-blue-950">Заглавие *</span>
+              <label ref={titleRef} className="space-y-2.5">
+                <span className={`block text-sm font-black ${fieldErrors.has("title") ? "text-red-600" : "text-blue-950"}`}>Заглавие *</span>
                 <input
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => { setTitle(e.target.value); setFieldErrors((prev) => { const n = new Set(prev); n.delete("title"); return n; }); }}
                   type="text"
                   placeholder="Например: Модерен апартамент в центъра"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-950 focus:ring-4 focus:ring-blue-100"
+                  className={`w-full rounded-2xl border px-5 py-4 font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:ring-4 ${fieldErrors.has("title") ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100" : "border-slate-200 bg-slate-50 focus:border-blue-950 focus:ring-blue-100"}`}
                 />
               </label>
 
@@ -551,35 +589,41 @@ export default function PublishPage() {
             </div>
 
             {/* City */}
-            <div className="space-y-2.5">
-              <span className="block text-sm font-black text-blue-950">Град *</span>
-              <SearchableSelect
-                value={city}
-                onChange={setCity}
-                options={BG_CITIES}
-                placeholder="Например: София"
-                size="md"
-              />
+            <div ref={cityRef} className="space-y-2.5">
+              <span className={`block text-sm font-black ${fieldErrors.has("city") ? "text-red-600" : "text-blue-950"}`}>Град *</span>
+              <div className={fieldErrors.has("city") ? "rounded-2xl ring-2 ring-red-400" : ""}>
+                <SearchableSelect
+                  value={city}
+                  onChange={(v) => { setCity(v); setFieldErrors((prev) => { const n = new Set(prev); n.delete("city"); return n; }); }}
+                  options={BG_CITIES}
+                  placeholder="Например: София"
+                  size="md"
+                />
+              </div>
             </div>
 
             {/* Category-specific details panel */}
             {CATEGORY_DETAILS[category] && (
-              <CategoryDetailFields
-                category={category}
-                details={details}
-                onChange={handleDetailChange}
-              />
+              <div ref={categoryDetailsRef}>
+                <CategoryDetailFields
+                  category={category}
+                  details={details}
+                  onChange={handleDetailChange}
+                  errorKeys={fieldErrors}
+                  onFieldChange={(key) => setFieldErrors((prev) => { const n = new Set(prev); n.delete(key); return n; })}
+                />
+              </div>
             )}
 
             {/* Description */}
-            <label className="block space-y-2.5">
-              <span className="block text-sm font-black text-blue-950">Описание *</span>
+            <label ref={descriptionRef} className="block space-y-2.5">
+              <span className={`block text-sm font-black ${fieldErrors.has("description") ? "text-red-600" : "text-blue-950"}`}>Описание *</span>
               <textarea
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => { setDescription(e.target.value); setFieldErrors((prev) => { const n = new Set(prev); n.delete("description"); return n; }); }}
                 rows={6}
                 placeholder="Опишете детайлно състоянието, характеристиките и допълнителните условия."
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-950 focus:ring-4 focus:ring-blue-100"
+                className={`w-full rounded-2xl border px-5 py-4 font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:ring-4 ${fieldErrors.has("description") ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100" : "border-slate-200 bg-slate-50 focus:border-blue-950 focus:ring-blue-100"}`}
               />
             </label>
 
