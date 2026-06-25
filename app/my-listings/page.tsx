@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
-import { RefreshCw, Trash2 } from "lucide-react";
+import { CheckCircle2, RefreshCw, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { formatDualPrice } from "@/lib/formatPrice";
 
@@ -22,6 +22,7 @@ type Listing = {
   image_url: string | null;
   image_urls: string[] | null;
   moderation_status: ModerationStatus;
+  details: Record<string, string> | null;
 };
 
 const EXPIRY_DAYS = 60;
@@ -85,6 +86,7 @@ export default function MyListingsPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [listingToDelete, setListingToDelete] = useState<string | null>(null);
   const [renewingId, setRenewingId] = useState<string | null>(null);
+  const [soldId, setSoldId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadUserAndListings = async () => {
@@ -105,7 +107,7 @@ export default function MyListingsPage() {
 
       const { data, error } = await supabase
         .from("listings")
-        .select("id, title, price, city, category, listing_type, created_at, expires_at, image_url, image_urls, moderation_status")
+        .select("id, title, price, city, category, listing_type, created_at, expires_at, image_url, image_urls, moderation_status, details")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -169,6 +171,25 @@ export default function MyListingsPage() {
     }
 
     setRenewingId(null);
+  };
+
+  const handleMarkSold = async (listingId: string, currentDetails: Record<string, string> | null) => {
+    if (!currentUserId) return;
+    setSoldId(listingId);
+    const updatedDetails = { ...(currentDetails ?? {}), sold: "yes" };
+    const { error } = await supabase
+      .from("listings")
+      .update({ details: updatedDetails, hidden: true })
+      .eq("id", listingId)
+      .eq("user_id", currentUserId);
+    if (!error) {
+      setListings((prev) =>
+        prev.map((l) =>
+          l.id === listingId ? { ...l, details: updatedDetails, hidden: true } : l
+        ) as Listing[]
+      );
+    }
+    setSoldId(null);
   };
 
   return (
@@ -283,7 +304,11 @@ export default function MyListingsPage() {
                                 Отхвърлена
                               </span>
                             )}
-                            {(listing.moderation_status === "approved" || listing.moderation_status === null) && (
+                            {listing.details?.sold === "yes" ? (
+                              <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-black text-white">
+                                Продадено
+                              </span>
+                            ) : (listing.moderation_status === "approved" || listing.moderation_status === null) && (
                               isExpired(listing) ? (
                                 <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-600 ring-1 ring-red-200">
                                   Изтекла
@@ -359,6 +384,22 @@ export default function MyListingsPage() {
                           : isExpired(listing)
                             ? "Поднови обявата"
                             : "Поднови за още 60 дни"}
+                      </button>
+                    )}
+
+                    {listing.details?.sold !== "yes" && (
+                      <button
+                        type="button"
+                        onClick={() => handleMarkSold(listing.id, listing.details)}
+                        disabled={soldId === listing.id}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-slate-700 hover:bg-slate-700 hover:text-white disabled:opacity-60"
+                      >
+                        {soldId === listing.id ? (
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4" />
+                        )}
+                        {soldId === listing.id ? "Запазване…" : "Маркирай като продадено"}
                       </button>
                     )}
 

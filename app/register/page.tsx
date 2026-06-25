@@ -246,6 +246,7 @@ export default function RegisterPage() {
         full_name: `${cleanFirstName} ${cleanLastName}`,
         phone: cleanPhone || null,
         city: cleanCity || null,
+        account_type: accountType || "Частно лице",
         updated_at: new Date().toISOString(),
       });
 
