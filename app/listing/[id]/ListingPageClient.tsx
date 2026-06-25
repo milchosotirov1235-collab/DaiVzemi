@@ -207,6 +207,13 @@ const DETAIL_LABELS: Record<string, string> = {
   book_language: "Език",
   language: "Език",
 
+  // Животни
+  animal_type: "Вид животно",
+  breed: "Порода",
+  age: "Възраст",
+  vaccinated: "Ваксинирано",
+  pedigree: "Родословие",
+
   // Misc
   size: "Размер",
   material: "Материал",

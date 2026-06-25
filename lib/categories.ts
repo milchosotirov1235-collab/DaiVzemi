@@ -15,6 +15,7 @@ import {
   FASHION_TYPES, FASHION_SIZES, FASHION_GENDERS,
   SPORT_CATEGORIES,
   BOOK_GENRES, BOOK_CONDITIONS, BOOK_LANGUAGES,
+  ANIMAL_TYPES, ANIMAL_GENDERS,
 } from "@/lib/data/categoryData";
 
 export type FieldType = "text" | "number" | "select";
@@ -41,6 +42,7 @@ export const categoryOptions = [
   "Дом и градина",
   "Мода",
   "Спорт и хоби",
+  "Животни",
   "Услуги",
   "Работа",
   "Компютри",
@@ -140,5 +142,13 @@ export const CATEGORY_DETAILS: Record<string, FieldDef[]> = {
     { key: "genre",     label: "Жанр",      type: "select", options: BOOK_GENRES },
     { key: "language",  label: "Език",      type: "select", options: BOOK_LANGUAGES },
     { key: "condition", label: "Състояние", type: "select", options: BOOK_CONDITIONS },
+  ],
+  Животни: [
+    { key: "animal_type", label: "Вид животно", type: "select", options: ANIMAL_TYPES, required: true },
+    { key: "breed",       label: "Порода",      type: "text",   placeholder: "напр. Лабрадор" },
+    { key: "age",         label: "Възраст",     type: "text",   placeholder: "напр. 6 месеца" },
+    { key: "gender",      label: "Пол",         type: "select", options: ANIMAL_GENDERS },
+    { key: "vaccinated",  label: "Ваксинирано", type: "select", options: ["Да", "Не", "Частично"] },
+    { key: "pedigree",    label: "С родословие", type: "select", options: ["Да", "Не"] },
   ],
 };
