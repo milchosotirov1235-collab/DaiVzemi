@@ -1594,8 +1594,8 @@ function ListingsPageContent() {
 
   const heroTitle = () => {
     if (!hasFilters) return "Всички обяви";
-    if (category && !hasFilters) return category;
-    return category || "Резултати от търсенето";
+    if (category) return category;
+    return "Резултати от търсенето";
   };
 
   const heroSubtitle = () => {

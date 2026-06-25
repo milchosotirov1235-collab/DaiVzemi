@@ -524,17 +524,45 @@ export default function ListingPageClient({ id }: { id: string }) {
 
       if (data.category) {
         parallelTasks.push(
-          Promise.resolve(
-            supabase
+          (async () => {
+            const base = supabase
               .from("listings")
               .select("id, title, price, city, image_url, image_urls, category, listing_type")
               .eq("category", data.category)
               .or("hidden.is.null,hidden.eq.false")
               .neq("id", id)
               .or("moderation_status.is.null,moderation_status.eq.approved")
-              .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
-              .limit(6)
-          ).then(({ data: sim }) => setSimilar((sim as SimilarListing[]) ?? []))
+              .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
+
+            // Prefer same city — fetch city-scoped first
+            let results: SimilarListing[] = [];
+            if (data.city) {
+              const { data: cityMatches } = await base
+                .ilike("city", `%${data.city}%`)
+                .limit(6);
+              results = (cityMatches as SimilarListing[]) ?? [];
+            }
+
+            // Backfill with other cities if fewer than 3 local matches
+            if (results.length < 3) {
+              const seenIds = new Set([id, ...results.map((r) => String(r.id))]);
+              const { data: otherMatches } = await supabase
+                .from("listings")
+                .select("id, title, price, city, image_url, image_urls, category, listing_type")
+                .eq("category", data.category)
+                .or("hidden.is.null,hidden.eq.false")
+                .neq("id", id)
+                .or("moderation_status.is.null,moderation_status.eq.approved")
+                .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+                .limit(6);
+              for (const l of (otherMatches as SimilarListing[]) ?? []) {
+                if (!seenIds.has(String(l.id))) results.push(l);
+                if (results.length >= 6) break;
+              }
+            }
+
+            setSimilar(results.slice(0, 6));
+          })()
         );
       }
 
