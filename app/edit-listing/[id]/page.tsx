@@ -251,6 +251,7 @@ export default function EditListingPage() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
     if (files.length === 0) return;
 
     if (currentImages.length + newImageFiles.length + files.length > maxImages) {

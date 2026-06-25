@@ -188,24 +188,16 @@ export default function PublishPage() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     resetNotice();
-    const files = Array.from(e.target.files ?? []);
+    const newFiles = Array.from(e.target.files ?? []);
+    // Reset input so the same file can be picked again later
+    e.target.value = "";
 
-    if (files.length === 0) {
-      setSelectedImages([]);
-      setImagePreviewUrls([]);
-      setUploadProgress(0);
-      return;
-    }
-
-    if (files.length > imageLimit) {
-      showError("Твърде много снимки", `Можете да изберете максимум ${imageLimit} снимки за тази категория.`);
-      return;
-    }
+    if (newFiles.length === 0) return;
 
     const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     const maxSize = 5 * 1024 * 1024;
 
-    for (const file of files) {
+    for (const file of newFiles) {
       if (!allowedTypes.includes(file.type)) {
         showError("Невалиден формат", "Разрешени са само JPG, JPEG, PNG и WEBP файлове.");
         return;
@@ -216,9 +208,29 @@ export default function PublishPage() {
       }
     }
 
-    imagePreviewUrls.forEach((url) => URL.revokeObjectURL(url));
-    setSelectedImages(files);
-    setImagePreviewUrls(files.map((file) => URL.createObjectURL(file)));
+    // Append to existing selection, skip exact duplicates (same name+size+lastModified)
+    const combined = [...selectedImages];
+    const combinedPreviews = [...imagePreviewUrls];
+
+    for (const file of newFiles) {
+      const isDupe = combined.some(
+        (f) => f.name === file.name && f.size === file.size && f.lastModified === file.lastModified
+      );
+      if (!isDupe) {
+        combined.push(file);
+        combinedPreviews.push(URL.createObjectURL(file));
+      }
+    }
+
+    if (combined.length > imageLimit) {
+      // Revoke the URLs we just created for the new files before bailing
+      combinedPreviews.slice(selectedImages.length).forEach((url) => URL.revokeObjectURL(url));
+      showError("Твърде много снимки", `Можете да изберете максимум ${imageLimit} снимки за тази категория.`);
+      return;
+    }
+
+    setSelectedImages(combined);
+    setImagePreviewUrls(combinedPreviews);
     setUploadProgress(0);
   };
 
