@@ -53,27 +53,39 @@ type ExpiryFilter = "all" | "active" | "expired";
 // Page
 // ---------------------------------------------------------------------------
 
+const PAGE_SIZE = 50;
+
 export default function AdminListings() {
   const [listings, setListings] = useState<AdminListing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
   const [actionId, setActionId] = useState<number | null>(null);
 
   const [modFilter, setModFilter] = useState<ModerationFilter>("all");
   const [hidFilter, setHidFilter] = useState<HiddenFilter>("all");
   const [expFilter, setExpFilter] = useState<ExpiryFilter>("all");
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(0, true); }, []);
 
-  const load = async () => {
-    setLoading(true);
+  const load = async (pageIndex: number, replace: boolean) => {
+    if (replace) setLoading(true); else setLoadingMore(true);
+    const from = pageIndex * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
     const { data } = await supabase
       .from("listings")
       .select("id, title, category, city, user_id, created_at, expires_at, hidden, moderation_status")
       .order("created_at", { ascending: false })
-      .limit(300);
-    setListings((data as AdminListing[]) ?? []);
-    setLoading(false);
+      .range(from, to);
+    const rows = (data as AdminListing[]) ?? [];
+    setListings((prev) => replace ? rows : [...prev, ...rows]);
+    setHasMore(rows.length === PAGE_SIZE);
+    setPage(pageIndex);
+    if (replace) setLoading(false); else setLoadingMore(false);
   };
+
+  const loadMore = () => load(page + 1, false);
 
   const toggleHidden = async (listing: AdminListing) => {
     setActionId(listing.id);
@@ -251,6 +263,21 @@ export default function AdminListings() {
           </div>
         )}
       </div>
+
+      {/* Load more */}
+      {hasMore && !loading && (
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:border-blue-950 hover:text-blue-950 disabled:opacity-50"
+          >
+            {loadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {loadingMore ? "Зареждане…" : "Зареди още"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

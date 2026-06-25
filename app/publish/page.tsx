@@ -271,35 +271,37 @@ export default function PublishPage() {
 
     if (selectedImages.length > 0) {
       setUploadingImages(true);
+      setUploadProgress(10);
       const timestamp = Date.now();
 
-      for (let index = 0; index < selectedImages.length; index += 1) {
-        const file = selectedImages[index];
-        const safeFileName = file.name.replace(/\s+/g, "_");
-        const filePath = `${user.id}/${timestamp}_${index}_${safeFileName}`;
+      const uploadResults = await Promise.all(
+        selectedImages.map(async (file, index) => {
+          const safeFileName = file.name.replace(/\s+/g, "_");
+          const filePath = `${user.id}/${timestamp}_${index}_${safeFileName}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from("listing-images")
-          .upload(filePath, file, { cacheControl: "3600", upsert: false });
+          const { error: uploadError } = await supabase.storage
+            .from("listing-images")
+            .upload(filePath, file, { cacheControl: "3600", upsert: false });
 
-        if (uploadError) {
-          setUploadingImages(false);
-          setLoading(false);
-          showError("Снимките не се качиха", "Моля опитайте отново или изберете други снимки.");
-          return;
-        }
+          if (uploadError) return null;
 
-        const { data: publicUrlData } = supabase.storage
-          .from("listing-images")
-          .getPublicUrl(filePath);
+          const { data: publicUrlData } = supabase.storage
+            .from("listing-images")
+            .getPublicUrl(filePath);
 
-        if (publicUrlData?.publicUrl) {
-          uploadedUrls.push(publicUrlData.publicUrl);
-        }
+          return publicUrlData?.publicUrl ?? null;
+        })
+      );
 
-        setUploadProgress(Math.round(((index + 1) / selectedImages.length) * 100));
+      if (uploadResults.some((r) => r === null)) {
+        setUploadingImages(false);
+        setLoading(false);
+        showError("Снимките не се качиха", "Моля опитайте отново или изберете други снимки.");
+        return;
       }
 
+      uploadedUrls = uploadResults.filter((r): r is string => r !== null);
+      setUploadProgress(100);
       setUploadingImages(false);
     }
 

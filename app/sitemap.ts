@@ -47,6 +47,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select("id, created_at, expires_at")
     .or("hidden.is.null,hidden.eq.false")
     .or(`expires_at.is.null,expires_at.gt.${now.toISOString()}`)
+    .or("moderation_status.is.null,moderation_status.eq.approved")
     .order("created_at", { ascending: false })
     .limit(5000);
 

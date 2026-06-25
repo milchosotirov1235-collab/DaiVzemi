@@ -308,35 +308,37 @@ export default function EditListingPage() {
 
     if (newImageFiles.length > 0) {
       setUploadingImages(true);
+      setUploadProgress(10);
       const timestamp = Date.now();
 
-      for (let index = 0; index < newImageFiles.length; index += 1) {
-        const file = newImageFiles[index];
-        const safeFileName = file.name.replace(/\s+/g, "_");
-        const filePath = `${user.id}/${timestamp}_${index}_${safeFileName}`;
+      const uploadResults = await Promise.all(
+        newImageFiles.map(async (file, index) => {
+          const safeFileName = file.name.replace(/\s+/g, "_");
+          const filePath = `${user.id}/${timestamp}_${index}_${safeFileName}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from("listing-images")
-          .upload(filePath, file, { cacheControl: "3600", upsert: false });
+          const { error: uploadError } = await supabase.storage
+            .from("listing-images")
+            .upload(filePath, file, { cacheControl: "3600", upsert: false });
 
-        if (uploadError) {
-          setUploadingImages(false);
-          setSaving(false);
-          setError(uploadError.message);
-          return;
-        }
+          if (uploadError) return null;
 
-        const { data: publicUrlData } = supabase.storage
-          .from("listing-images")
-          .getPublicUrl(filePath);
+          const { data: publicUrlData } = supabase.storage
+            .from("listing-images")
+            .getPublicUrl(filePath);
 
-        if (publicUrlData?.publicUrl) {
-          uploadedUrls.push(publicUrlData.publicUrl);
-        }
+          return publicUrlData?.publicUrl ?? null;
+        })
+      );
 
-        setUploadProgress(Math.round(((index + 1) / newImageFiles.length) * 100));
+      if (uploadResults.some((r) => r === null)) {
+        setUploadingImages(false);
+        setSaving(false);
+        setError("Снимките не се качиха. Моля опитайте отново.");
+        return;
       }
 
+      uploadedUrls = uploadResults.filter((r): r is string => r !== null);
+      setUploadProgress(100);
       setUploadingImages(false);
     }
 
