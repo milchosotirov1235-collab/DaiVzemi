@@ -13,7 +13,6 @@ import {
   Hammer,
   Heart,
   Home as HomeIcon,
-  Monitor,
   PawPrint,
   Shirt,
   Smartphone,
@@ -245,7 +244,6 @@ export default function Home() {
             { icon: PawPrint, label: "Животни" },
             { icon: Hammer, label: "Услуги" },
             { icon: Briefcase, label: "Работа" },
-            { icon: Monitor, label: "Компютри" },
             { icon: BookOpen, label: "Книги" },
           ].map(({ icon: Icon, label }) => (
             <Link
