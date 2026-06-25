@@ -24,6 +24,7 @@ import {
   FASHION_TYPES, FASHION_SIZES, FASHION_GENDERS,
   SPORT_CATEGORIES,
   BOOK_GENRES, BOOK_CONDITIONS, BOOK_LANGUAGES,
+  ANIMAL_TYPES, ANIMAL_GENDERS,
 } from "@/lib/data/categoryData";
 import SearchableSelect from "@/components/SearchableSelect";
 import { formatDualPrice } from "@/lib/formatPrice";
@@ -90,6 +91,7 @@ const fallbackImageByCategory: Record<string, string> = {
   "Дом и градина": "🏡",
   Мода: "👗",
   "Спорт и хоби": "🏀",
+  Животни: "🐾",
   Услуги: "🛠️",
   Работа: "💼",
   Компютри: "💻",
@@ -97,7 +99,7 @@ const fallbackImageByCategory: Record<string, string> = {
 };
 
 // Categories that have their own dedicated filter panel
-const CATEGORY_SPECIFIC = ["Имоти", "Автомобили", "Авточасти", "Електроника", "Услуги", "Работа", "Компютри", "Детски стоки", "Дом и градина", "Мода", "Спорт и хоби", "Книги"];
+const CATEGORY_SPECIFIC = ["Имоти", "Автомобили", "Авточасти", "Електроника", "Услуги", "Работа", "Компютри", "Детски стоки", "Дом и градина", "Мода", "Спорт и хоби", "Книги", "Животни"];
 
 // ---------------------------------------------------------------------------
 // CustomDropdown
@@ -258,6 +260,11 @@ type CategoryFilterProps = {
   bookGenre: string; onBookGenre: (v: string) => void;
   bookCondition: string; onBookCondition: (v: string) => void;
   bookLanguage: string; onBookLanguage: (v: string) => void;
+  // Животни
+  animalType: string; onAnimalType: (v: string) => void;
+  animalGender: string; onAnimalGender: (v: string) => void;
+  animalVaccinated: string; onAnimalVaccinated: (v: string) => void;
+  animalPedigree: string; onAnimalPedigree: (v: string) => void;
 };
 
 function CategoryFilters(p: CategoryFilterProps) {
@@ -564,6 +571,21 @@ function CategoryFilters(p: CategoryFilterProps) {
     );
   }
 
+  if (p.category === "Животни") {
+    return (
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <SearchableSelect value={p.animalType} onChange={p.onAnimalType}
+          options={ANIMAL_TYPES} placeholder="Вид животно" />
+        <SearchableSelect value={p.animalGender} onChange={p.onAnimalGender}
+          options={ANIMAL_GENDERS} placeholder="Пол" />
+        <SearchableSelect value={p.animalVaccinated} onChange={p.onAnimalVaccinated}
+          options={["Да", "Не", "Частично"]} placeholder="Ваксинирано" />
+        <SearchableSelect value={p.animalPedigree} onChange={p.onAnimalPedigree}
+          options={["Да", "Не"]} placeholder="С родословие" />
+      </div>
+    );
+  }
+
   return null;
 }
 
@@ -748,6 +770,12 @@ function ListingsPageContent() {
   const [bookCondition, setBookCondition] = useState(searchParams.get("bookCondition") ?? "");
   const [bookLanguage, setBookLanguage] = useState(searchParams.get("bookLanguage") ?? "");
 
+  // Category-specific filters — Животни
+  const [animalType, setAnimalType] = useState(searchParams.get("animalType") ?? "");
+  const [animalGender, setAnimalGender] = useState(searchParams.get("animalGender") ?? "");
+  const [animalVaccinated, setAnimalVaccinated] = useState(searchParams.get("animalVaccinated") ?? "");
+  const [animalPedigree, setAnimalPedigree] = useState(searchParams.get("animalPedigree") ?? "");
+
   // Dropdown open state (tracks which key is open)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
@@ -833,6 +861,10 @@ function ListingsPageContent() {
   const urlBookGenre = searchParams.get("bookGenre") ?? "";
   const urlBookCondition = searchParams.get("bookCondition") ?? "";
   const urlBookLanguage = searchParams.get("bookLanguage") ?? "";
+  const urlAnimalType = searchParams.get("animalType") ?? "";
+  const urlAnimalGender = searchParams.get("animalGender") ?? "";
+  const urlAnimalVaccinated = searchParams.get("animalVaccinated") ?? "";
+  const urlAnimalPedigree = searchParams.get("animalPedigree") ?? "";
 
   const hasFilters =
     search.trim().length > 0 ||
@@ -909,7 +941,11 @@ function ListingsPageContent() {
     urlSportCondition.length > 0 ||
     urlBookGenre.length > 0 ||
     urlBookCondition.length > 0 ||
-    urlBookLanguage.length > 0;
+    urlBookLanguage.length > 0 ||
+    urlAnimalType.length > 0 ||
+    urlAnimalGender.length > 0 ||
+    urlAnimalVaccinated.length > 0 ||
+    urlAnimalPedigree.length > 0;
 
   const hasSpecificFilters = CATEGORY_SPECIFIC.includes(categoryInput);
 
@@ -984,6 +1020,10 @@ function ListingsPageContent() {
     setBookGenre(searchParams.get("bookGenre") ?? "");
     setBookCondition(searchParams.get("bookCondition") ?? "");
     setBookLanguage(searchParams.get("bookLanguage") ?? "");
+    setAnimalType(searchParams.get("animalType") ?? "");
+    setAnimalGender(searchParams.get("animalGender") ?? "");
+    setAnimalVaccinated(searchParams.get("animalVaccinated") ?? "");
+    setAnimalPedigree(searchParams.get("animalPedigree") ?? "");
     setCategoryInput(searchParams.get("category") ?? "");
     setTypeInput(searchParams.get("type") ?? "");
     setSearchInput(searchParams.get("search") ?? "");
@@ -1113,6 +1153,13 @@ function ListingsPageContent() {
       if (bookLanguage) params.set("bookLanguage", bookLanguage);
     }
 
+    if (cat === "Животни") {
+      if (animalType) params.set("animalType", animalType);
+      if (animalGender) params.set("animalGender", animalGender);
+      if (animalVaccinated) params.set("animalVaccinated", animalVaccinated);
+      if (animalPedigree) params.set("animalPedigree", animalPedigree);
+    }
+
     router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
@@ -1199,6 +1246,10 @@ function ListingsPageContent() {
     if (urlBookGenre) filters.bookGenre = urlBookGenre;
     if (urlBookCondition) filters.bookCondition = urlBookCondition;
     if (urlBookLanguage) filters.bookLanguage = urlBookLanguage;
+    if (urlAnimalType) filters.animalType = urlAnimalType;
+    if (urlAnimalGender) filters.animalGender = urlAnimalGender;
+    if (urlAnimalVaccinated) filters.animalVaccinated = urlAnimalVaccinated;
+    if (urlAnimalPedigree) filters.animalPedigree = urlAnimalPedigree;
 
     // Check for duplicate (same user + same key params).
     // Fields are stored as null when empty, so we must use .is() for null
@@ -1543,6 +1594,12 @@ function ListingsPageContent() {
         if (urlBookCondition && d.condition !== urlBookCondition) return false;
         if (urlBookLanguage && d.language !== urlBookLanguage) return false;
 
+        // Животни
+        if (urlAnimalType && d.animal_type !== urlAnimalType) return false;
+        if (urlAnimalGender && d.gender !== urlAnimalGender) return false;
+        if (urlAnimalVaccinated && d.vaccinated !== urlAnimalVaccinated) return false;
+        if (urlAnimalPedigree && d.pedigree !== urlAnimalPedigree) return false;
+
         return true;
       });
 
@@ -1885,6 +1942,10 @@ function ListingsPageContent() {
                 bookGenre={bookGenre} onBookGenre={setBookGenre}
                 bookCondition={bookCondition} onBookCondition={setBookCondition}
                 bookLanguage={bookLanguage} onBookLanguage={setBookLanguage}
+                animalType={animalType} onAnimalType={setAnimalType}
+                animalGender={animalGender} onAnimalGender={setAnimalGender}
+                animalVaccinated={animalVaccinated} onAnimalVaccinated={setAnimalVaccinated}
+                animalPedigree={animalPedigree} onAnimalPedigree={setAnimalPedigree}
               />
             </>
           )}
@@ -1965,6 +2026,10 @@ function ListingsPageContent() {
                 { label: urlBookGenre, key: "bookGenre" },
                 { label: urlBookCondition, key: "bookCondition" },
                 { label: urlBookLanguage, key: "bookLanguage" },
+                { label: urlAnimalType, key: "animalType" },
+                { label: urlAnimalGender, key: "animalGender" },
+                { label: urlAnimalVaccinated ? `Ваксинирано: ${urlAnimalVaccinated}` : "", key: "animalVaccinated" },
+                { label: urlAnimalPedigree ? `Родословие: ${urlAnimalPedigree}` : "", key: "animalPedigree" },
               ]
                 .filter((chip) => chip.label.trim().length > 0)
                 .map((chip) => (
