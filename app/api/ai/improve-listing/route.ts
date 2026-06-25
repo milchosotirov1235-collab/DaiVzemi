@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { fetchAISettings, isFeatureEnabled } from "@/lib/ai/settings";
 
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
@@ -9,7 +10,25 @@ const client = new Anthropic({
 });
 
 export async function POST(request: Request) {
-  // Check DB settings first — env killswitch and global/feature toggles
+  // ── Auth guard: only authenticated users may call this endpoint ──────────
+  const authHeader = request.headers.get("Authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
+  if (!token) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !user) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  // ── Feature flags ─────────────────────────────────────────────────────────
   const aiSettings = await fetchAISettings();
   if (!isFeatureEnabled(aiSettings, "ai_listing_assistant_enabled")) {
     return NextResponse.json({ error: "feature_disabled" }, { status: 503 });
@@ -34,16 +53,13 @@ export async function POST(request: Request) {
   }
 
   const title = typeof body.title === "string" ? body.title.trim() : "";
-  const description =
-    typeof body.description === "string" ? body.description.trim() : "";
-  const category =
-    typeof body.category === "string" ? body.category.trim() : "";
+  const description = typeof body.description === "string" ? body.description.trim() : "";
+  const category = typeof body.category === "string" ? body.category.trim() : "";
 
   if (!title || !description) {
     return NextResponse.json({ error: "missing_fields" }, { status: 400 });
   }
 
-  // Build a context string from structured details if provided
   let detailsContext = "";
   if (body.details && typeof body.details === "object") {
     const entries = Object.entries(body.details as Record<string, string>)
@@ -93,24 +109,15 @@ export async function POST(request: Request) {
       messages: [{ role: "user", content: prompt }],
     });
 
-    const raw =
-      message.content[0]?.type === "text" ? message.content[0].text.trim() : "";
-
-    // Extract JSON — model may wrap in markdown code fences
+    const raw = message.content[0]?.type === "text" ? message.content[0].text.trim() : "";
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return NextResponse.json({ error: "parse_error" }, { status: 502 });
     }
 
-    const parsed = JSON.parse(jsonMatch[0]) as {
-      title?: unknown;
-      description?: unknown;
-    };
+    const parsed = JSON.parse(jsonMatch[0]) as { title?: unknown; description?: unknown };
 
-    if (
-      typeof parsed.title !== "string" ||
-      typeof parsed.description !== "string"
-    ) {
+    if (typeof parsed.title !== "string" || typeof parsed.description !== "string") {
       return NextResponse.json({ error: "parse_error" }, { status: 502 });
     }
 

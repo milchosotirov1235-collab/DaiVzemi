@@ -115,17 +115,12 @@ export default function Home() {
       setLatestListings(!error && listingsData ? (listingsData as Listing[]) : []);
       setListingsLoading(false);
 
-      // Category counts — single query, count in JS
-      const { data: catRows } = await supabase
-        .from("listings")
-        .select("category")
-        .or("hidden.is.null,hidden.eq.false")
-        .or("moderation_status.is.null,moderation_status.eq.approved")
-        .or(`expires_at.is.null,expires_at.gt.${now}`);
+      // Category counts — server-side via RPC for efficiency
+      const { data: catRows } = await supabase.rpc("get_category_counts");
 
       const counts: Record<string, number> = {};
-      for (const row of catRows ?? []) {
-        if (row.category) counts[row.category] = (counts[row.category] ?? 0) + 1;
+      for (const row of (catRows ?? []) as { category: string; count: number }[]) {
+        if (row.category) counts[row.category] = Number(row.count);
       }
       setCategoryCounts(counts);
     };

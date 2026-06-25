@@ -14,10 +14,13 @@ import { supabase } from "@/lib/supabaseClient";
 type Notification = {
   id: string;
   user_id: string;
-  type: "new_message" | "listing_inquiry";
+  type: "new_message" | "listing_inquiry" | "listing_moderated";
   conversation_id: string | null;
+  listing_id: number | null;
+  message: string | null;
   body: string | null;
   read_at: string | null;
+  read: boolean | null;
   created_at: string;
 };
 
@@ -51,6 +54,8 @@ function typeLabel(type: Notification["type"]) {
       return "Ново съобщение";
     case "listing_inquiry":
       return "Запитване за обява";
+    case "listing_moderated":
+      return "Статус на обявата";
     default:
       return "Известие";
   }
@@ -217,8 +222,17 @@ export default function NotificationsPage() {
             {/* List */}
             <div className="flex flex-col gap-3">
               {notifications.map((n) => {
-                const isUnread = !n.read_at;
-                const href = n.conversation_id ? `/messages/${n.conversation_id}` : null;
+                const isUnread = !n.read_at && !n.read;
+                const href = n.conversation_id
+                  ? `/messages/${n.conversation_id}`
+                  : n.listing_id
+                    ? `/listing/${n.listing_id}`
+                    : null;
+                const hrefLabel = n.conversation_id
+                  ? "Виж разговора →"
+                  : n.listing_id
+                    ? "Виж обявата →"
+                    : null;
 
                 return (
                   <div
@@ -268,17 +282,17 @@ export default function NotificationsPage() {
                               : "font-semibold text-slate-500"
                           }`}
                         >
-                          {n.body ?? "Ново известие."}
+                          {n.message ?? n.body ?? "Ново известие."}
                         </p>
 
                         {/* Actions */}
                         <div className="mt-3 flex flex-wrap items-center gap-3">
-                          {href && (
+                          {href && hrefLabel && (
                             <Link
                               href={href}
                               className="text-sm font-black text-blue-950 transition hover:text-blue-700"
                             >
-                              Виж разговора →
+                              {hrefLabel}
                             </Link>
                           )}
 

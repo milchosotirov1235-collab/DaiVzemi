@@ -65,6 +65,11 @@ export default function ProfilePage() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [passwordNotice, setPasswordNotice] = useState<Notice | null>(null);
 
+  // Account deletion
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   // -------------------------------------------------------------------------
   // Load profile on mount
   // -------------------------------------------------------------------------
@@ -308,6 +313,28 @@ export default function ProfilePage() {
     setNewPassword("");
     setConfirmPassword("");
     setPasswordNotice({ type: "success", message: "Паролата беше сменена успешно." });
+  };
+
+  // -------------------------------------------------------------------------
+  // Account deletion
+  // -------------------------------------------------------------------------
+
+  const handleDeleteAccount = async () => {
+    setDeletingAccount(true);
+    setDeleteError(null);
+    try {
+      // Delete the profile row first (cascade handles related rows)
+      if (userId) {
+        await supabase.from("profiles").delete().eq("id", userId);
+      }
+      // Sign out then let Supabase cascade delete auth.users via the trigger
+      // (the trigger must exist: after delete on profiles → delete from auth.users)
+      await supabase.auth.signOut();
+      router.push("/?deleted=1");
+    } catch {
+      setDeleteError("Грешка при изтриване. Моля, опитайте отново.");
+      setDeletingAccount(false);
+    }
   };
 
   // -------------------------------------------------------------------------
@@ -665,6 +692,54 @@ export default function ProfilePage() {
             )}
           </div>
         )}
+
+        {/* ── Danger zone: account deletion ── */}
+        <div className="mx-auto mt-12 max-w-2xl">
+          <div className="rounded-[28px] border border-red-100 bg-red-50/50 p-6">
+            <h2 className="text-base font-black text-red-700">Изтриване на акаунт</h2>
+            <p className="mt-2 text-sm font-semibold text-red-600">
+              Всички ваши обяви, съобщения и данни ще бъдат изтрити без възможност за
+              възстановяване.
+            </p>
+
+            {!showDeleteConfirm ? (
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="mt-4 rounded-2xl border border-red-300 bg-white px-5 py-3 text-sm font-black text-red-600 transition hover:bg-red-600 hover:text-white"
+              >
+                Изтрий акаунта ми
+              </button>
+            ) : (
+              <div className="mt-4 space-y-3">
+                <p className="text-sm font-black text-red-700">
+                  Сигурни ли сте? Това действие е необратимо.
+                </p>
+                {deleteError && (
+                  <p className="text-sm font-semibold text-red-600">{deleteError}</p>
+                )}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleDeleteAccount}
+                    disabled={deletingAccount}
+                    className="flex items-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700 disabled:opacity-60"
+                  >
+                    {deletingAccount && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {deletingAccount ? "Изтриване..." : "Да, изтрий завинаги"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowDeleteConfirm(false); setDeleteError(null); }}
+                    className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 transition hover:border-slate-400"
+                  >
+                    Отказ
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </section>
     </main>
   );

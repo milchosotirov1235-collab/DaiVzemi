@@ -1285,6 +1285,38 @@ function ListingsPageContent() {
     const loadListings = async () => {
       setLoading(true);
 
+      const urlSort = searchParams.get("sort") ?? "newest";
+
+      // Detect whether any JSONB-only filters are active.
+      // These cannot be pushed to the DB without expression indexes, so we
+      // fetch a capped batch and filter client-side only when needed.
+      const hasJsonbFilters = !!(
+        urlPropertyPurpose || urlPropertyType || urlRooms || urlFloor ||
+        urlSqmMin || urlSqmMax || urlFurnished || urlHeating ||
+        urlConstructionType || urlPropertyCondition || urlElevator || urlParking ||
+        urlVehicleType || urlCarMake || urlCarModel || urlYearFrom || urlYearTo ||
+        urlFuel || urlTransmission || urlMileageFrom || urlMileageTo ||
+        urlEngineSizeFrom || urlEngineSizeTo || urlPowerFrom || urlPowerTo ||
+        urlEuroStandard || urlBodyType || urlDriveType || urlCarColor || urlCarCondition ||
+        urlPartType || urlElDeviceType || urlElBrand || urlElModel || urlElCondition ||
+        urlElStorage || urlElRam || urlElColor || urlElectronicsSubcat || urlCondition ||
+        urlServiceType || urlServiceCategory || urlOnlineService || urlProviderType ||
+        urlJobCategory || urlEmploymentType || urlExperience || urlRemote ||
+        urlSalaryFrom || urlSalaryTo || urlCompType || urlCompBrand || urlCompCondition ||
+        urlKidsItemType || urlKidsAgeGroup || urlKidsGender || urlKidsCondition ||
+        urlHomeSubcategory || urlHomeCondition || urlFashionType || urlFashionGender ||
+        urlFashionSize || urlFashionCondition || urlSportCategory || urlSportCondition ||
+        urlBookGenre || urlBookCondition || urlBookLanguage
+      );
+
+      // Row budget: unlimited when price-sorting (need all rows for client sort),
+      // capped at 500 when JSONB filters active, else 200 per page fetch.
+      const ROW_LIMIT = urlSort === "cheapest" || urlSort === "priciest"
+        ? 2000
+        : hasJsonbFilters
+          ? 500
+          : 200;
+
       let query = supabase
         .from("listings")
         .select(
@@ -1293,16 +1325,24 @@ function ListingsPageContent() {
         .or("hidden.is.null,hidden.eq.false")
         .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
         .or("moderation_status.is.null,moderation_status.eq.approved")
-        .order("created_at", { ascending: false });
+        .limit(ROW_LIMIT);
 
+      // ── Column-level filters pushed to the DB ──────────────────────────────
+      if (category.trim()) query = query.eq("category", category.trim());
+      if (type.trim()) query = query.eq("listing_type", type.trim());
+      if (city.trim()) query = query.ilike("city", `%${city.trim()}%`);
       if (search.trim()) {
         const sv = `%${search.trim()}%`;
         query = query.or(`title.ilike.${sv},description.ilike.${sv}`);
       }
 
-      if (city.trim()) query = query.ilike("city", `%${city.trim()}%`);
-      if (category.trim()) query = query.eq("category", category.trim());
-      if (type.trim()) query = query.eq("listing_type", type.trim());
+      // Sort at DB level for "newest" (the dominant case)
+      if (urlSort === "newest") {
+        query = query.order("created_at", { ascending: false });
+      } else {
+        // Price sort needs all rows client-side due to text price column; fetch newest first
+        query = query.order("created_at", { ascending: false });
+      }
 
       const { data, error } = await query;
 
@@ -1506,7 +1546,6 @@ function ListingsPageContent() {
         return true;
       });
 
-      const urlSort = searchParams.get("sort") ?? "newest";
       if (urlSort === "cheapest" || urlSort === "priciest") {
         const parsePrice = (v: string | number | null): number => {
           if (v === null || v === "") return -1;
@@ -1531,7 +1570,7 @@ function ListingsPageContent() {
 
     loadListings();
   }, [
-    search, city, category, type, minPrice, maxPrice,
+    search, city, category, type, minPrice, maxPrice, searchParams,
     urlPropertyPurpose, urlPropertyType, urlRooms, urlFloor, urlSqmMin, urlSqmMax,
     urlFurnished, urlHeating, urlConstructionType, urlPropertyCondition, urlElevator, urlParking,
     urlVehicleType, urlCarMake, urlCarModel, urlYearFrom, urlYearTo, urlFuel, urlTransmission,
@@ -2127,15 +2166,10 @@ function ListingsPageContent() {
                                 Нов
                               </span>
                             )}
-                            {d.urgent === "yes" && (
-                              <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-bold text-red-600 ring-1 ring-red-200">
-                                Спешно
-                              </span>
-                            )}
                             <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-[0.15em] text-blue-950">
                               {listing.listing_type ?? "Обява"}
                             </span>
-                            {(() => {
+                            {!isNew && (() => {
                               const badge = conditionBadge(d.condition);
                               if (!badge) return null;
                               return (
@@ -2150,11 +2184,6 @@ function ListingsPageContent() {
                         <div>
                           <div className="flex flex-wrap items-baseline gap-2">
                             <p className="text-lg font-black text-blue-950">{formatDualPrice(listing.price)}</p>
-                            {d.negotiable === "yes" && (
-                              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700 ring-1 ring-amber-200">
-                                По договаряне
-                              </span>
-                            )}
                           </div>
                           {sqmPrice && <p className="text-xs font-semibold text-slate-400">{sqmPrice}</p>}
                         </div>
@@ -2216,15 +2245,10 @@ function ListingsPageContent() {
                             Нов
                           </span>
                         )}
-                        {d.urgent === "yes" && (
-                          <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-600 ring-1 ring-red-200">
-                            Спешно
-                          </span>
-                        )}
                         <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950">
                           {listing.listing_type ?? "Обява"}
                         </span>
-                        {(() => {
+                        {!isNew && (() => {
                           const badge = conditionBadge(d.condition);
                           if (!badge) return null;
                           return (
@@ -2241,11 +2265,6 @@ function ListingsPageContent() {
                           <p className="text-2xl font-black text-blue-950">
                             {formatDualPrice(listing.price)}
                           </p>
-                          {d.negotiable === "yes" && (
-                            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700 ring-1 ring-amber-200">
-                              По договаряне
-                            </span>
-                          )}
                         </div>
                         {sqmPrice && <p className="mt-0.5 text-sm font-semibold text-slate-400">{sqmPrice}</p>}
                       </div>

@@ -84,8 +84,30 @@ export default function AdminListings() {
 
   const setModeration = async (listing: AdminListing, status: ModerationStatus) => {
     setActionId(listing.id);
-    const { error } = await supabase.from("listings").update({ moderation_status: status }).eq("id", listing.id);
-    if (!error) setListings((prev) => prev.map((l) => l.id === listing.id ? { ...l, moderation_status: status } : l));
+    const { error } = await supabase
+      .from("listings")
+      .update({ moderation_status: status })
+      .eq("id", listing.id);
+
+    if (!error) {
+      setListings((prev) =>
+        prev.map((l) => l.id === listing.id ? { ...l, moderation_status: status } : l)
+      );
+      // Notify the seller about the moderation decision
+      if (listing.user_id && (status === "approved" || status === "rejected")) {
+        const messageText =
+          status === "approved"
+            ? `Обявата Ви "${listing.title}" беше одобрена и е вече видима публично.`
+            : `Обявата Ви "${listing.title}" беше отхвърлена от модераторите.`;
+        await supabase.from("notifications").insert({
+          user_id: listing.user_id,
+          type: "listing_moderated",
+          message: messageText,
+          listing_id: listing.id,
+          read: false,
+        });
+      }
+    }
     setActionId(null);
   };
 

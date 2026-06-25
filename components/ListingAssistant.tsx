@@ -61,9 +61,15 @@ export default function ListingAssistant({
   const handlePreview = async () => {
     setState({ phase: "loading" });
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token ?? "";
+
       const res = await fetch("/api/ai/improve-listing", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify({ title, description, category, details }),
       });
 
