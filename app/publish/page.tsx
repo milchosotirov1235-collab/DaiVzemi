@@ -579,8 +579,9 @@ export default function PublishPage() {
                 <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 shadow-sm transition focus-within:border-blue-950 focus-within:ring-4 focus-within:ring-blue-100">
                   <input
                     value={price}
-                    onChange={(e) => setPrice(e.target.value)}
+                    onChange={(e) => { const v = e.target.value; if (/^\d*\.?\d*$/.test(v)) setPrice(v); }}
                     type="text"
+                    inputMode="decimal"
                     placeholder="500"
                     disabled={negotiable}
                     className="w-full rounded-2xl bg-transparent px-5 py-4 font-bold text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-40"

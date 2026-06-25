@@ -621,7 +621,8 @@ export default function EditListingPage() {
                   <div className="flex items-center rounded-2xl border border-slate-200 bg-white shadow-sm transition focus-within:border-blue-900 focus-within:ring-4 focus-within:ring-blue-100">
                     <input
                       value={price}
-                      onChange={(e) => setPrice(e.target.value)}
+                      onChange={(e) => { const v = e.target.value; if (/^\d*\.?\d*$/.test(v)) setPrice(v); }}
+                      inputMode="decimal"
                       type="text"
                       disabled={negotiable}
                       className="w-full rounded-2xl bg-transparent px-4 py-3.5 text-base text-slate-900 outline-none disabled:opacity-40"
