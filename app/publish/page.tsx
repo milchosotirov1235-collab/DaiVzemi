@@ -322,17 +322,19 @@ export default function PublishPage() {
 
       for (let index = 0; index < selectedImages.length; index++) {
         const file = selectedImages[index];
-        const safeFileName = file.name.replace(/\s+/g, "_");
-        const filePath = `${user.id}/${timestamp}_${index}_${safeFileName}`;
+        const rawExt = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+        const safeExt = ["jpg", "jpeg", "png", "webp"].includes(rawExt) ? rawExt : "jpg";
+        const filePath = `${user.id}/${timestamp}_${index}.${safeExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from("listing-images")
-          .upload(filePath, file, { cacheControl: "3600", upsert: false });
+          .upload(filePath, file, { cacheControl: "3600", upsert: true });
 
         if (uploadError) {
+          console.error("Storage upload error:", uploadError);
           setUploadingImages(false);
           setLoading(false);
-          showError("Снимките не се качиха", "Моля опитайте отново или изберете други снимки.");
+          showError("Снимките не се качиха", `Грешка: ${uploadError.message}`);
           return;
         }
 
