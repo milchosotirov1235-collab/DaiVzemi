@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import UnverifiedBanner from "@/components/UnverifiedBanner";
-import { AlertTriangle, CheckCircle2, ChevronDown, ImagePlus, SlidersHorizontal } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronDown, ImagePlus, SlidersHorizontal, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { checkListingRateLimit, checkDuplicateListing } from "@/lib/security/rateLimit";
 import { getImageLimit } from "@/lib/config/imageLimits";
@@ -232,6 +232,12 @@ export default function PublishPage() {
     setSelectedImages(combined);
     setImagePreviewUrls(combinedPreviews);
     setUploadProgress(0);
+  };
+
+  const removeImage = (index: number) => {
+    URL.revokeObjectURL(imagePreviewUrls[index]);
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -665,8 +671,16 @@ export default function PublishPage() {
                   </p>
                   <div className="mt-2 grid gap-3 sm:grid-cols-3">
                     {imagePreviewUrls.map((url, index) => (
-                      <div key={url} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                      <div key={url} className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                         <img src={url} alt={`Preview ${index + 1}`} className="h-32 w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition hover:bg-black/70 group-hover:opacity-100"
+                          aria-label="Изтрий снимка"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
                       </div>
                     ))}
                   </div>
