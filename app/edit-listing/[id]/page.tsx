@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
@@ -22,10 +22,12 @@ function CategoryDetailFields({
   category,
   details,
   onChange,
+  errorKeys,
 }: {
   category: string;
   details: Record<string, string>;
   onChange: (key: string, value: string) => void;
+  errorKeys?: Set<string>;
 }) {
   const fields = CATEGORY_DETAILS[category];
   if (!fields) return null;
@@ -44,24 +46,27 @@ function CategoryDetailFields({
             ? field.getOptions(dependValue)
             : (field.options ?? []);
           const isDisabledByDep = !!field.dependsOn && !dependValue;
+          const hasError = errorKeys?.has(field.key) ?? false;
 
           return (
             <label key={field.key} className="space-y-2">
-              <span className="block text-sm font-black text-blue-950">
+              <span className={`block text-sm font-black ${hasError ? "text-red-600" : "text-blue-950"}`}>
                 {field.label}
                 {field.required && <span className="ml-1 text-red-500">*</span>}
               </span>
 
               {field.type === "select" ? (
-                <SearchableSelect
-                  value={details[field.key] ?? ""}
-                  onChange={(v) => onChange(field.key, v)}
-                  options={resolvedOptions}
-                  placeholder={`Избери ${field.label.toLowerCase()}`}
-                  disabled={isDisabledByDep}
-                  disabledPlaceholder="Първо изберете марка"
-                  size="md"
-                />
+                <div className={hasError ? "rounded-2xl ring-2 ring-red-400" : ""}>
+                  <SearchableSelect
+                    value={details[field.key] ?? ""}
+                    onChange={(v) => onChange(field.key, v)}
+                    options={resolvedOptions}
+                    placeholder={`Избери ${field.label.toLowerCase()}`}
+                    disabled={isDisabledByDep}
+                    disabledPlaceholder="Първо изберете марка"
+                    size="md"
+                  />
+                </div>
               ) : (
                 <input
                   value={details[field.key] ?? ""}
@@ -69,7 +74,7 @@ function CategoryDetailFields({
                   type={field.type}
                   placeholder={field.placeholder ?? ""}
                   min={field.type === "number" ? "0" : undefined}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-950 focus:ring-4 focus:ring-blue-100"
+                  className={`w-full rounded-2xl border px-5 py-4 font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 ${hasError ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-4 focus:ring-red-100" : "border-slate-200 bg-slate-50 focus:border-blue-950 focus:ring-4 focus:ring-blue-100"}`}
                 />
               )}
             </label>
@@ -132,6 +137,11 @@ export default function EditListingPage() {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Set<string>>(new Set());
+  const titleRef = useRef<HTMLInputElement>(null);
+  const cityRef = useRef<HTMLDivElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const categoryDetailsRef = useRef<HTMLDivElement>(null);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
@@ -288,6 +298,28 @@ export default function EditListingPage() {
     e.preventDefault();
     setError("");
     setSuccess("");
+
+    const errors = new Set<string>();
+    if (!title.trim()) errors.add("title");
+    if (!city.trim()) errors.add("city");
+    if (!description.trim()) errors.add("description");
+
+    const activeFields = CATEGORY_DETAILS[category] ?? [];
+    for (const f of activeFields) {
+      if (f.required && !details[f.key]?.toString().trim()) errors.add(f.key);
+    }
+
+    if (errors.size > 0) {
+      setFieldErrors(errors);
+      const firstRef = errors.has("title") ? titleRef
+        : errors.has("city") ? cityRef
+        : errors.has("description") ? descriptionRef
+        : categoryDetailsRef;
+      firstRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setError("Попълнете задължителните полета.");
+      return;
+    }
+    setFieldErrors(new Set());
 
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -513,12 +545,15 @@ export default function EditListingPage() {
               {/* ── Title + Listing type ── */}
               <div className="grid gap-5 lg:grid-cols-2">
                 <label className="space-y-2.5">
-                  <span className="block text-sm font-semibold text-slate-800">Заглавие</span>
+                  <span className={`block text-sm font-semibold ${fieldErrors.has("title") ? "text-red-600" : "text-slate-800"}`}>
+                    Заглавие{fieldErrors.has("title") && <span className="ml-1 text-red-500">*</span>}
+                  </span>
                   <input
+                    ref={titleRef}
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => { setTitle(e.target.value); if (e.target.value.trim()) setFieldErrors((p) => { const n = new Set(p); n.delete("title"); return n; }); }}
                     type="text"
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base text-slate-900 shadow-sm outline-none transition focus:border-blue-900 focus:ring-4 focus:ring-blue-100"
+                    className={`w-full rounded-2xl border px-4 py-3.5 text-base text-slate-900 shadow-sm outline-none transition ${fieldErrors.has("title") ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-4 focus:ring-red-100" : "border-slate-200 bg-white focus:border-blue-900 focus:ring-4 focus:ring-blue-100"}`}
                   />
                 </label>
 
@@ -615,34 +650,44 @@ export default function EditListingPage() {
               </div>
 
               {/* ── City ── */}
-              <div className="space-y-2.5">
-                <span className="block text-sm font-semibold text-slate-800">Град</span>
-                <SearchableSelect
-                  value={city}
-                  onChange={setCity}
-                  options={BG_CITIES}
-                  placeholder="Например: София"
-                  size="md"
-                />
+              <div ref={cityRef} className="space-y-2.5">
+                <span className={`block text-sm font-semibold ${fieldErrors.has("city") ? "text-red-600" : "text-slate-800"}`}>
+                  Град{fieldErrors.has("city") && <span className="ml-1 text-red-500">*</span>}
+                </span>
+                <div className={fieldErrors.has("city") ? "rounded-2xl ring-2 ring-red-400" : ""}>
+                  <SearchableSelect
+                    value={city}
+                    onChange={(v) => { setCity(v); if (v) setFieldErrors((p) => { const n = new Set(p); n.delete("city"); return n; }); }}
+                    options={BG_CITIES}
+                    placeholder="Например: София"
+                    size="md"
+                  />
+                </div>
               </div>
 
               {/* ── Category-specific detail fields ── */}
               {hasDetailFields && (
-                <CategoryDetailFields
-                  category={category}
-                  details={details}
-                  onChange={handleDetailChange}
-                />
+                <div ref={categoryDetailsRef}>
+                  <CategoryDetailFields
+                    category={category}
+                    details={details}
+                    onChange={(key, val) => { handleDetailChange(key, val); if (val) setFieldErrors((p) => { const n = new Set(p); n.delete(key); return n; }); }}
+                    errorKeys={fieldErrors}
+                  />
+                </div>
               )}
 
               {/* ── Description ── */}
               <label className="block space-y-2.5">
-                <span className="block text-sm font-semibold text-slate-800">Описание</span>
+                <span className={`block text-sm font-semibold ${fieldErrors.has("description") ? "text-red-600" : "text-slate-800"}`}>
+                  Описание{fieldErrors.has("description") && <span className="ml-1 text-red-500">*</span>}
+                </span>
                 <textarea
+                  ref={descriptionRef}
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => { setDescription(e.target.value); if (e.target.value.trim()) setFieldErrors((p) => { const n = new Set(p); n.delete("description"); return n; }); }}
                   rows={6}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base text-slate-900 shadow-sm outline-none transition focus:border-blue-900 focus:ring-4 focus:ring-blue-100"
+                  className={`w-full rounded-2xl border px-4 py-3.5 text-base text-slate-900 shadow-sm outline-none transition ${fieldErrors.has("description") ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-4 focus:ring-red-100" : "border-slate-200 bg-white focus:border-blue-900 focus:ring-4 focus:ring-blue-100"}`}
                 />
               </label>
 
