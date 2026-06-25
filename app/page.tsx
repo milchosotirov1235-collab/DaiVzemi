@@ -266,24 +266,24 @@ export default function Home() {
       {/* Recently Viewed */}
       {recentlyViewed.length > 0 && (
         <section className="mx-auto max-w-7xl px-6 pb-12">
-          <h2 className="mb-4 text-xl font-black text-slate-900">Наскоро разгледани</h2>
-          <div className="flex gap-4 overflow-x-auto pb-2">
+          <h2 className="mb-5 text-2xl font-black text-slate-900">Наскоро разгледани</h2>
+          <div className="flex gap-5 overflow-x-auto pb-2">
             {recentlyViewed.map((item) => (
               <Link
                 key={item.id}
                 href={`/listing/${item.id}`}
-                className="group flex w-44 shrink-0 flex-col overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+                className="group flex w-56 shrink-0 flex-col overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
               >
                 {item.image_url ? (
-                  <img src={item.image_url} alt={item.title} className="h-28 w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
+                  <img src={item.image_url} alt={item.title} className="h-36 w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
                 ) : (
-                  <div className="flex h-28 items-center justify-center bg-blue-950 text-3xl text-white">
+                  <div className="flex h-36 items-center justify-center bg-blue-950 text-4xl text-white">
                     {item.category ? fallbackImageByCategory[item.category] ?? "📦" : "📦"}
                   </div>
                 )}
-                <div className="flex flex-1 flex-col gap-1 p-3">
-                  <p className="line-clamp-2 text-xs font-black leading-snug text-slate-900">{item.title}</p>
-                  <p className="mt-auto text-xs font-black text-blue-950">{formatDualPrice(item.price)}</p>
+                <div className="flex flex-1 flex-col gap-1 p-4">
+                  <p className="line-clamp-2 text-sm font-black leading-snug text-slate-900">{item.title}</p>
+                  <p className="mt-auto text-sm font-black text-blue-950">{formatDualPrice(item.price)}</p>
                 </div>
               </Link>
             ))}
