@@ -162,7 +162,7 @@ export default function Home() {
             </p>
           )}
 
-          <div className="mx-auto mt-6 flex max-w-4xl flex-col gap-3 rounded-2xl bg-white p-2 shadow-2xl md:mt-10 md:flex-row md:rounded-3xl md:p-3">
+          <div className="mx-auto mt-6 flex max-w-4xl flex-col gap-2 rounded-2xl bg-white p-2 shadow-2xl ring-1 ring-white/20 md:mt-10 md:flex-row md:rounded-3xl md:p-3">
             <input
               type="text"
               value={searchTerm}
@@ -214,7 +214,7 @@ export default function Home() {
             <Link
               key={title}
               href={`/listings?type=${encodeURIComponent(title as string)}`}
-              className="rounded-2xl bg-white p-5 text-center shadow-md transition hover:shadow-xl md:rounded-3xl md:p-8"
+              className="rounded-2xl bg-white p-5 text-center shadow-sm ring-1 ring-blue-100 transition active:scale-[0.97] hover:shadow-md hover:ring-blue-200 md:rounded-3xl md:p-8 md:shadow-md md:hover:shadow-xl"
             >
               <div className="text-3xl md:text-5xl">{icon}</div>
               <h3 className="mt-2 text-base font-black text-blue-950 md:mt-4 md:text-2xl">
@@ -249,18 +249,18 @@ export default function Home() {
               </h2>
             </div>
 
-            {/* Mobile — horizontal scroll circles */}
+            {/* Mobile — horizontal scroll, branded dark-blue circles */}
             <div className="flex gap-5 overflow-x-auto pb-4 pl-6 pr-6 md:hidden">
               {cats.map(({ icon: Icon, label }) => (
                 <Link
                   key={label}
                   href={`/listings?category=${encodeURIComponent(label)}`}
-                  className="flex shrink-0 flex-col items-center gap-2"
+                  className="flex shrink-0 flex-col items-center gap-2 transition active:scale-95"
                 >
-                  <div className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-200 transition active:scale-95">
-                    <Icon className="h-7 w-7 text-blue-950" />
+                  <div className="flex h-[62px] w-[62px] items-center justify-center rounded-full bg-gradient-to-br from-blue-800 to-blue-950 shadow-md shadow-blue-950/30 ring-1 ring-blue-700/40">
+                    <Icon className="h-7 w-7 text-white" strokeWidth={1.8} />
                   </div>
-                  <span className="w-16 text-center text-[11px] font-semibold leading-tight text-slate-700">
+                  <span className="w-[70px] text-center text-[11px] font-bold leading-tight text-slate-800">
                     {label}
                   </span>
                 </Link>
