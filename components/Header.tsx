@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
+  ArrowLeft,
   Bell,
   BookMarked,
   ChevronDown,
@@ -396,6 +397,14 @@ export default function Header() {
 
           {/* Mobile */}
           <div className="flex items-center gap-2 lg:hidden">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              aria-label="Назад"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 transition hover:bg-white/20"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
             <Link href="/publish" className="rounded-xl bg-white px-3 py-2.5 text-sm font-black text-blue-950 shadow-sm transition hover:bg-blue-50">
               Публикувай
             </Link>
@@ -414,17 +423,7 @@ export default function Header() {
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="border-t border-white/10 bg-blue-950 px-6 pb-6 pt-4 lg:hidden">
-          <nav className="grid grid-cols-2 gap-1">
-            {navLinks.map((link) => (
-              <Link key={link.label} href={link.href} onClick={() => setMobileMenuOpen(false)}
-                className="rounded-xl px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/10 hover:text-white"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="mt-4 border-t border-white/10 pt-4">
+          <div className="mt-0">
             {isLoggedIn ? (
               <div className="space-y-0.5">
                 {/* Identity row */}
