@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
-import { BookMarked, Camera, ChevronDown, Heart, LayoutGrid, LayoutList, Loader2, SlidersHorizontal, X } from "lucide-react";
+import { BookMarked, Camera, ChevronDown, Heart, LayoutGrid, LayoutList, Loader2, Search, SlidersHorizontal, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
@@ -621,6 +621,15 @@ const conditionBadge = (condition: string | null | undefined) => {
   return { label: c, cls: "bg-slate-100 text-slate-600 ring-slate-200" };
 };
 
+const timeAgo = (date: string | null): string => {
+  if (!date) return "";
+  const ms = Date.now() - new Date(date).getTime();
+  if (ms < 3_600_000) return `${Math.max(1, Math.floor(ms / 60_000))} мин.`;
+  if (ms < 86_400_000) return `${Math.floor(ms / 3_600_000)} ч.`;
+  if (ms < 2_592_000_000) return `${Math.floor(ms / 86_400_000)} дн.`;
+  return new Date(date).toLocaleDateString("bg-BG", { day: "numeric", month: "short" });
+};
+
 // ---------------------------------------------------------------------------
 // Main page content
 // ---------------------------------------------------------------------------
@@ -634,6 +643,11 @@ function ListingsPageContent() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+
+  // Desktop gets grid by default; mobile stays on list. Runs after hydration, no SSR mismatch.
+  useEffect(() => {
+    if (window.innerWidth >= 1024) setViewMode("grid");
+  }, []);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
@@ -1668,7 +1682,8 @@ function ListingsPageContent() {
     <main className="min-h-screen bg-slate-50" onClick={() => setOpenDropdown(null)}>
       <Header />
 
-      <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-20 text-white">
+      {/* Hero — desktop only */}
+      <section className="hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-20 text-white lg:block">
         <div className="mx-auto max-w-6xl text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">DaiVzemi</p>
           <h1 className="mt-3 text-4xl font-black md:text-5xl">{heroTitle()}</h1>
@@ -1676,8 +1691,8 @@ function ListingsPageContent() {
         </div>
       </section>
 
-      {/* ── Free publish CTA strip ── */}
-      <div className="border-b border-slate-100 bg-white">
+      {/* ── Free publish CTA strip — desktop only ── */}
+      <div className="hidden border-b border-slate-100 bg-white lg:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3">
           <p className="text-sm font-semibold text-slate-600">
             Продаваш нещо? <span className="font-black text-blue-950">Публикуването е безплатно.</span>
@@ -1691,28 +1706,80 @@ function ListingsPageContent() {
         </div>
       </div>
 
-      {/* ── Mobile filter trigger bar ── */}
-      <div className="mx-auto max-w-7xl px-4 pb-3 pt-4 lg:hidden">
-        <div className="flex gap-2">
-          <input
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && applyFilters()}
-            placeholder="Търси обява"
-            className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 shadow-sm outline-none placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-          />
+      {/* ── Mobile sticky search + category bar ── */}
+      <div className="sticky top-0 z-30 border-b border-slate-100 bg-white shadow-sm lg:hidden">
+        {/* Search row */}
+        <div className="flex gap-2 px-4 pb-2.5 pt-3">
+          <div className="flex flex-1 items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/10 transition">
+            <Search className="h-4 w-4 shrink-0 text-slate-400" />
+            <input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && applyFilters()}
+              placeholder="Търси обява..."
+              className="flex-1 bg-transparent text-sm font-semibold text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400"
+            />
+            {searchInput && (
+              <button
+                type="button"
+                onClick={() => setSearchInput("")}
+                className="text-slate-400 transition active:text-slate-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
           <button
             type="button"
             onClick={() => setFilterDrawerOpen(true)}
-            className={`flex shrink-0 items-center gap-2 rounded-2xl px-4 py-3 text-sm font-black shadow-sm transition ${
+            className={`relative flex shrink-0 items-center gap-1.5 rounded-2xl px-3.5 py-2.5 text-sm font-black transition ${
               hasFilters
-                ? "bg-blue-950 text-white"
-                : "border border-slate-200 bg-white text-slate-700 hover:border-blue-950 hover:text-blue-950"
+                ? "bg-blue-950 text-white shadow-sm"
+                : "border border-slate-200 bg-white text-slate-700"
             }`}
           >
             <SlidersHorizontal className="h-4 w-4" />
-            Филтри
+            <span>Филтри</span>
+            {hasFilters && (
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-black text-blue-950 ring-1 ring-blue-950 shadow-sm">
+                ✓
+              </span>
+            )}
           </button>
+        </div>
+
+        {/* Category chips — horizontal scroll */}
+        <div className="flex gap-2 overflow-x-auto pb-2.5 pl-4 pr-4" style={{ scrollbarWidth: "none" }}>
+          <button
+            type="button"
+            onClick={() => {
+              const params = new URLSearchParams(searchParams.toString());
+              params.delete("category");
+              router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
+            }}
+            className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-bold transition ${
+              !category ? "bg-blue-950 text-white" : "bg-slate-100 text-slate-600 active:bg-slate-200"
+            }`}
+          >
+            Всички
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => {
+                const params = new URLSearchParams(searchParams.toString());
+                if (cat === category) { params.delete("category"); }
+                else { params.set("category", cat); }
+                router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
+              }}
+              className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-bold transition ${
+                category === cat ? "bg-blue-950 text-white" : "bg-slate-100 text-slate-600 active:bg-slate-200"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -2064,13 +2131,13 @@ function ListingsPageContent() {
       </section>
 
       {/* ── Sort bar ── */}
-      <section className="mx-auto max-w-7xl px-6 pb-4">
+      <section className="mx-auto max-w-7xl px-4 pb-3 pt-3 lg:px-6 lg:pb-4">
         <div className="flex items-center justify-between gap-4">
-          <p className="text-sm font-semibold text-slate-500">
+          <p className="text-xs font-bold text-slate-400 lg:text-sm lg:font-semibold lg:text-slate-500">
             {listings.length > 0 && !loading ? `${listings.length} обяви` : ""}
           </p>
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:inline text-sm font-semibold text-slate-500">Сортиране:</span>
+          <div className="flex items-center gap-2 lg:gap-3">
+            <span className="hidden text-sm font-semibold text-slate-500 lg:inline">Сортиране:</span>
             <select
               value={sort}
               onChange={(e) => {
@@ -2081,13 +2148,14 @@ function ListingsPageContent() {
                 else params.set("sort", newSort);
                 router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
               }}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-900 outline-none focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 lg:px-3 lg:py-2 lg:text-sm"
             >
               <option value="newest">Най-нови</option>
               <option value="cheapest">Най-евтини</option>
               <option value="priciest">Най-скъпи</option>
             </select>
-            <div className="flex items-center rounded-xl border border-slate-200 bg-white p-1">
+            {/* View toggle — desktop only */}
+            <div className="hidden items-center rounded-xl border border-slate-200 bg-white p-1 lg:flex">
               <button
                 type="button"
                 onClick={() => setViewMode("grid")}
@@ -2110,22 +2178,25 @@ function ListingsPageContent() {
       </section>
 
       {/* ── Listings grid ── */}
-      <section className="mx-auto max-w-7xl px-6 pb-12">
+      <section className="mx-auto max-w-7xl px-3 pb-12 lg:px-6">
         {loading ? (
-          <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-4"}>
+          <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-2.5 lg:gap-4"}>
             {Array.from({ length: 6 }).map((_, i) =>
               viewMode === "list" ? (
-                <div key={i} className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
-                  <div className="flex gap-0">
-                    <div className="w-36 shrink-0 animate-pulse bg-slate-200 sm:w-48" style={{ minHeight: "130px" }} />
-                    <div className="flex flex-1 flex-col gap-3 p-4">
-                      <div className="h-4 w-20 animate-pulse rounded-full bg-slate-200" />
-                      <div className="h-5 w-4/5 animate-pulse rounded-full bg-slate-200" />
-                      <div className="h-5 w-1/3 animate-pulse rounded-full bg-slate-200" />
-                      <div className="mt-auto flex gap-2">
-                        <div className="h-4 w-16 animate-pulse rounded-full bg-slate-200" />
-                        <div className="h-4 w-20 animate-pulse rounded-full bg-slate-200" />
+                <div key={i} className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm lg:rounded-[28px] lg:border-slate-200">
+                  <div className="flex items-stretch">
+                    <div className="aspect-square w-28 shrink-0 animate-pulse bg-slate-200 sm:w-36 lg:w-44" />
+                    <div className="flex flex-1 flex-col justify-between gap-2 px-3 py-3 lg:p-4">
+                      <div className="h-3.5 w-20 animate-pulse rounded-full bg-slate-200" />
+                      <div className="space-y-1.5">
+                        <div className="h-4 w-4/5 animate-pulse rounded-full bg-slate-200" />
+                        <div className="h-4 w-3/5 animate-pulse rounded-full bg-slate-200" />
                       </div>
+                      <div className="h-5 w-1/3 animate-pulse rounded-full bg-slate-200" />
+                      <div className="h-3 w-2/5 animate-pulse rounded-full bg-slate-200" />
+                    </div>
+                    <div className="flex items-center pr-3">
+                      <div className="h-11 w-11 animate-pulse rounded-full bg-slate-200" />
                     </div>
                   </div>
                 </div>
@@ -2148,14 +2219,17 @@ function ListingsPageContent() {
             )}
           </div>
         ) : listings.length === 0 ? (
-          <div className="rounded-3xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200">
-            <p className="text-xl font-black text-slate-900">
-              Няма намерени обяви по това търсене.
+          <div className="mx-auto max-w-sm rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-100 lg:max-w-none lg:ring-slate-200">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-3xl">
+              🔍
+            </div>
+            <p className="text-lg font-black text-slate-900">
+              Няма намерени обяви
             </p>
             <p className="mt-2 text-sm text-slate-500">
               Опитайте с по-широки критерии или публикувайте нова обява.
             </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
               <button
                 type="button"
                 onClick={clearFilters}
@@ -2173,7 +2247,7 @@ function ListingsPageContent() {
           </div>
         ) : (
           <>
-          <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-4"}>
+          <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-2.5 lg:gap-4"}>
             {listings.slice(0, visibleCount).map((listing) => {
               const cardImage = listing.image_urls?.find(Boolean) ?? listing.image_url;
               const d = (listing.details ?? {}) as Record<string, string>;
@@ -2188,83 +2262,95 @@ function ListingsPageContent() {
                 return (
                   <article
                     key={listing.id}
-                    className="group cursor-pointer overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+                    className="group overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition active:scale-[0.99] hover:shadow-md lg:rounded-[28px] lg:border-slate-200"
                   >
-                    <Link href={`/listing/${listing.id}`} className="flex gap-0">
-                      <div className="relative w-36 shrink-0 sm:w-48">
-                        {cardImage ? (
-                          <img
-                            src={cardImage}
-                            alt={listing.title}
-                            className="h-full w-full object-cover"
-                            style={{ minHeight: "120px", maxHeight: "160px" }}
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-blue-950 text-3xl text-white" style={{ minHeight: "120px" }}>
-                            {listing.category ? fallbackImageByCategory[listing.category] ?? "📦" : "📦"}
-                          </div>
-                        )}
-                        <button
-                          type="button"
-                          onClick={(e) => toggleFavorite(e, listing.id)}
-                          aria-label={favoriteIds.has(listing.id) ? "Премахни от любими" : "Добави в любими"}
-                          className={`absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full shadow-md transition ${
-                            favoriteIds.has(listing.id)
-                              ? "bg-red-500 text-white"
-                              : "bg-white/85 text-slate-400 hover:text-red-500"
-                          }`}
-                        >
-                          <Heart className={`h-4 w-4 ${favoriteIds.has(listing.id) ? "fill-current" : ""}`} />
-                        </button>
-                        {(listing.image_urls?.filter(Boolean).length ?? 0) > 1 && (
-                          <span className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-full bg-slate-950/60 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur">
-                            <Camera className="h-2.5 w-2.5" />
-                            {listing.image_urls!.filter(Boolean).length}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-1 flex-col justify-between gap-2 p-4">
-                        <div>
-                          <div className="mb-2 flex flex-wrap items-center gap-2">
-                            {isNew && (
-                              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
-                                Нов
-                              </span>
-                            )}
-                            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-[0.15em] text-blue-950">
+                    <div className="flex items-stretch">
+                      <Link href={`/listing/${listing.id}`} className="flex min-w-0 flex-1 items-stretch">
+                        {/* Square image — aspect-ratio enforced */}
+                        <div className="relative aspect-square w-28 shrink-0 overflow-hidden sm:w-36 lg:w-44">
+                          {cardImage ? (
+                            <img
+                              src={cardImage}
+                              alt={listing.title}
+                              className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-blue-950 text-3xl text-white">
+                              {listing.category ? fallbackImageByCategory[listing.category] ?? "📦" : "📦"}
+                            </div>
+                          )}
+                          {isNew && (
+                            <span className="absolute left-2 top-2 rounded-full bg-emerald-500 px-2 py-0.5 text-[9px] font-bold text-white shadow-sm">
+                              Нов
+                            </span>
+                          )}
+                          {(listing.image_urls?.filter(Boolean).length ?? 0) > 1 && (
+                            <span className="absolute bottom-1.5 left-1.5 flex items-center gap-0.5 rounded-full bg-slate-950/60 px-1.5 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm">
+                              <Camera className="h-2.5 w-2.5" />
+                              {listing.image_urls!.filter(Boolean).length}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex min-w-0 flex-1 flex-col justify-between gap-1 px-3 py-3 lg:p-4">
+                          {/* Badges */}
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-950">
                               {listing.listing_type ?? "Обява"}
                             </span>
                             {!isNew && (() => {
                               const badge = conditionBadge(d.condition);
                               if (!badge) return null;
                               return (
-                                <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${badge.cls}`}>
+                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${badge.cls}`}>
                                   {badge.label}
                                 </span>
                               );
                             })()}
                           </div>
-                          <h2 className="text-base font-black text-slate-950 leading-snug">{listing.title}</h2>
-                        </div>
-                        <div>
-                          <div className="flex flex-wrap items-baseline gap-2">
-                            <p className="text-lg font-black text-blue-950">{formatDualPrice(listing.price)}</p>
+
+                          {/* Title */}
+                          <h2 className="line-clamp-2 text-sm font-black leading-snug text-slate-900 lg:text-base">
+                            {listing.title}
+                          </h2>
+
+                          {/* Price — dominant */}
+                          <div>
+                            <p className="text-[17px] font-black leading-tight text-blue-950 lg:text-lg">
+                              {formatDualPrice(listing.price)}
+                            </p>
+                            {sqmPrice && <p className="mt-0.5 text-[10px] font-semibold text-slate-400">{sqmPrice}</p>}
                           </div>
-                          {sqmPrice && <p className="text-xs font-semibold text-slate-400">{sqmPrice}</p>}
+
+                          {/* City + time on one clean line */}
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                            <span className="max-w-[90px] truncate font-medium lg:max-w-none">{listing.city ?? "—"}</span>
+                            <span className="text-slate-300">·</span>
+                            <span className="shrink-0">{timeAgo(listing.created_at)}</span>
+                          </div>
                         </div>
-                        <div className="flex flex-wrap gap-2 text-xs text-slate-500">
-                          <span>{listing.city ?? "Без град"}</span>
-                          <span>·</span>
-                          <span>{listing.category ?? "Без категория"}</span>
-                          <span>·</span>
-                          <span>{formatDate(listing.created_at)}</span>
-                        </div>
+                      </Link>
+
+                      {/* Heart — large touch target, right edge */}
+                      <div className="flex shrink-0 items-center pr-3 lg:pr-4">
+                        <button
+                          type="button"
+                          onClick={(e) => toggleFavorite(e, listing.id)}
+                          aria-label={favoriteIds.has(listing.id) ? "Премахни от любими" : "Добави в любими"}
+                          className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
+                            favoriteIds.has(listing.id)
+                              ? "bg-red-500 text-white shadow-sm"
+                              : "bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-400"
+                          }`}
+                        >
+                          <Heart className={`h-[18px] w-[18px] ${favoriteIds.has(listing.id) ? "fill-current" : ""}`} />
+                        </button>
                       </div>
-                    </Link>
+                    </div>
                   </article>
                 );
               }
-
               return (
                 <article
                   key={listing.id}
@@ -2361,11 +2447,11 @@ function ListingsPageContent() {
           </div>
 
           {visibleCount < listings.length && (
-            <div className="mt-10 flex justify-center">
+            <div className="mt-8 flex justify-center">
               <button
                 type="button"
                 onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
-                className="rounded-2xl border border-blue-950 px-8 py-3.5 text-sm font-black text-blue-950 transition hover:bg-blue-50"
+                className="w-full rounded-2xl border border-blue-950 py-4 text-sm font-black text-blue-950 transition active:bg-blue-50 hover:bg-blue-50 lg:w-auto lg:px-8 lg:py-3.5"
               >
                 Зареди повече ({listings.length - visibleCount} останали)
               </button>
