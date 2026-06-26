@@ -338,6 +338,15 @@ export default function ProfilePage() {
   };
 
   // -------------------------------------------------------------------------
+  // Sign out
+  // -------------------------------------------------------------------------
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  };
+
+  // -------------------------------------------------------------------------
   // Derived display values
   // -------------------------------------------------------------------------
 
@@ -349,37 +358,143 @@ export default function ProfilePage() {
   // -------------------------------------------------------------------------
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-white pb-24 lg:bg-slate-50 lg:pb-0">
       <Header />
 
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-16 text-white">
+      {/* Desktop hero */}
+      <section className="hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-16 text-white lg:block">
         <div className="mx-auto max-w-5xl">
           <p className="mb-2 text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">DaiVzemi</p>
           <h1 className="text-5xl font-black">Моят профил</h1>
-          <p className="mt-4 text-blue-100">
-            Управлявайте вашата лична информация и публичен профил.
-          </p>
+          <p className="mt-4 text-blue-100">Управлявайте вашата лична информация и публичен профил.</p>
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-6 py-12">
+      <section className="mx-auto max-w-5xl px-0 py-0 lg:px-6 lg:py-12">
+
+        {/* Hidden file input — always in DOM so the mobile camera button can trigger it */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".jpg,.jpeg,.png,.webp"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+
         {loading ? (
-          <div className="flex items-center justify-center rounded-3xl bg-white p-12 shadow-sm">
+          <div className="flex items-center justify-center bg-white p-16 lg:rounded-3xl lg:shadow-sm">
             <Loader2 className="h-6 w-6 animate-spin text-blue-950" />
           </div>
         ) : !userId ? (
-          <div className="rounded-3xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200">
-            <p className="text-xl font-black text-slate-900">
-              Трябва да влезете в профила си.
-            </p>
+          <div className="mx-4 mt-6 rounded-3xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200 lg:mx-0 lg:mt-0">
+            <p className="text-xl font-black text-slate-900">Трябва да влезете в профила си.</p>
           </div>
         ) : (
-          <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
+          <>
+            {/* ── Mobile: profile header ── */}
+            <div className="bg-gradient-to-b from-blue-950 to-blue-900 px-4 pb-8 pt-8 text-white lg:hidden">
+              {/* Avatar with camera overlay */}
+              <div className="relative mx-auto w-fit">
+                <div className="h-24 w-24 overflow-hidden rounded-full bg-white/15 ring-4 ring-white/20">
+                  {displayedAvatar ? (
+                    <img
+                      src={displayedAvatar}
+                      alt="Снимка на профила"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-4xl font-black text-white">
+                      {avatarLetter}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0.5 right-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-white text-blue-950 shadow-lg transition active:scale-95"
+                  aria-label="Смени снимката"
+                >
+                  <Camera className="h-4 w-4" />
+                </button>
+              </div>
 
-            {/* Recovery notice for orphaned accounts (auth user exists, no profile row) */}
+              {/* Name + handle + email */}
+              <div className="mt-4 text-center">
+                <p className="text-xl font-black leading-tight">
+                  {firstName && lastName
+                    ? `${firstName} ${lastName}`
+                    : username || "Потребител"}
+                </p>
+                {(firstName || lastName) && username && (
+                  <p className="text-sm text-blue-200">@{username}</p>
+                )}
+                <p className="mt-0.5 text-xs text-blue-300">{email}</p>
+              </div>
+
+              {/* Trust badge pills */}
+              {(hasGoogleLogin || phone || city) && (
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                  {hasGoogleLogin && (
+                    <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold text-white">
+                      ✓ Google
+                    </span>
+                  )}
+                  {phone && (
+                    <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold text-white">
+                      ✓ Телефон
+                    </span>
+                  )}
+                  {city && (
+                    <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold text-white">
+                      📍 {city}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Avatar preview notice */}
+              {avatarPreview && (
+                <div className="mt-4 flex items-center justify-center gap-3">
+                  <span className="text-[11px] text-blue-200">Предварителен преглед · не е запазено</span>
+                  <button
+                    type="button"
+                    onClick={() => { setAvatarFile(null); setAvatarPreview(null); }}
+                    className="text-[11px] font-bold text-white underline underline-offset-2"
+                  >
+                    Отмени
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* ── Mobile: quick links ── */}
+            <div className="grid grid-cols-3 gap-3 px-4 py-4 lg:hidden">
+              <Link
+                href={`/listings?seller=${userId}`}
+                className="flex flex-col items-center gap-1.5 rounded-2xl bg-white px-2 py-4 text-center shadow-sm ring-1 ring-slate-100 transition active:bg-slate-50"
+              >
+                <span className="text-2xl leading-none">📋</span>
+                <span className="text-xs font-bold text-slate-700">Обяви</span>
+              </Link>
+              <Link
+                href="/favorites"
+                className="flex flex-col items-center gap-1.5 rounded-2xl bg-white px-2 py-4 text-center shadow-sm ring-1 ring-slate-100 transition active:bg-slate-50"
+              >
+                <span className="text-2xl leading-none">❤️</span>
+                <span className="text-xs font-bold text-slate-700">Любими</span>
+              </Link>
+              <Link
+                href={`/user/${userId}`}
+                className="flex flex-col items-center gap-1.5 rounded-2xl bg-white px-2 py-4 text-center shadow-sm ring-1 ring-slate-100 transition active:bg-slate-50"
+              >
+                <span className="text-2xl leading-none">👤</span>
+                <span className="text-xs font-bold text-slate-700">Публичен</span>
+              </Link>
+            </div>
+
+            {/* Profile missing banner */}
             {profileMissing && (
-              <div className="col-span-full rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
+              <div className="mx-4 mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 lg:mx-0 lg:mb-8">
                 <p className="text-sm font-black text-amber-800">Профилът ви не е завършен</p>
                 <p className="mt-1 text-sm font-semibold text-amber-700">
                   Попълнете данните по-долу и натиснете „Запази", за да активирате профила си напълно.
@@ -392,354 +507,321 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* ── Left: Avatar card ── */}
-            <div className="flex flex-col gap-4">
-              <div className="rounded-[28px] bg-white p-8 shadow-sm ring-1 ring-slate-200">
-                <p className="mb-6 text-sm font-black text-blue-950">Снимка на профила</p>
+            {/* Desktop / content grid */}
+            <div className="grid gap-4 lg:gap-8 lg:grid-cols-[280px_1fr]">
 
-                {/* Avatar preview */}
-                <div className="relative mx-auto w-fit">
-                  <div className="h-32 w-32 overflow-hidden rounded-full bg-blue-950 ring-4 ring-slate-100">
-                    {displayedAvatar ? (
-                      <img
-                        src={displayedAvatar}
-                        alt="Снимка на профила"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-5xl font-black text-white">
-                        {avatarLetter}
-                      </div>
+              {/* ── Left sidebar — desktop only ── */}
+              <div className="hidden flex-col gap-4 lg:flex">
+                <div className="rounded-[28px] bg-white p-8 shadow-sm ring-1 ring-slate-200">
+                  <p className="mb-6 text-sm font-black text-blue-950">Снимка на профила</p>
+
+                  <div className="relative mx-auto w-fit">
+                    <div className="h-32 w-32 overflow-hidden rounded-full bg-blue-950 ring-4 ring-slate-100">
+                      {displayedAvatar ? (
+                        <img
+                          src={displayedAvatar}
+                          alt="Снимка на профила"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-5xl font-black text-white">
+                          {avatarLetter}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute bottom-1 right-1 flex h-9 w-9 items-center justify-center rounded-full bg-blue-950 text-white shadow-lg transition hover:bg-blue-800"
+                      title="Смени снимката"
+                    >
+                      <Camera className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="mt-6 space-y-2 text-center">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full rounded-2xl border border-blue-950 px-4 py-2.5 text-sm font-black text-blue-950 transition hover:bg-blue-50"
+                    >
+                      {displayedAvatar ? "Смени снимката" : "Качи снимка"}
+                    </button>
+                    {avatarPreview && (
+                      <button
+                        type="button"
+                        onClick={() => { setAvatarFile(null); setAvatarPreview(null); }}
+                        className="w-full rounded-2xl px-4 py-2 text-sm font-semibold text-slate-500 transition hover:text-slate-700"
+                      >
+                        Отмени промяната
+                      </button>
                     )}
                   </div>
 
-                  {/* Camera button overlay */}
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="absolute bottom-1 right-1 flex h-9 w-9 items-center justify-center rounded-full bg-blue-950 text-white shadow-lg transition hover:bg-blue-800"
-                    title="Смени снимката"
-                  >
-                    <Camera className="h-4 w-4" />
-                  </button>
-                </div>
-
-                {/* Hidden file input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".jpg,.jpeg,.png,.webp"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-
-                <div className="mt-6 space-y-2 text-center">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full rounded-2xl border border-blue-950 px-4 py-2.5 text-sm font-black text-blue-950 transition hover:bg-blue-50"
-                  >
-                    {displayedAvatar ? "Смени снимката" : "Качи снимка"}
-                  </button>
+                  <p className="mt-4 text-center text-xs text-slate-600">JPG, PNG или WEBP · макс. 5 MB</p>
 
                   {avatarPreview && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAvatarFile(null);
-                        setAvatarPreview(null);
-                      }}
-                      className="w-full rounded-2xl px-4 py-2 text-sm font-semibold text-slate-500 transition hover:text-slate-700"
-                    >
-                      Отмени промяната
-                    </button>
+                    <div className="mt-4 rounded-xl bg-blue-50 px-4 py-2.5 text-center text-xs font-bold text-blue-950">
+                      Предварителен преглед — снимката не е запазена
+                    </div>
                   )}
                 </div>
 
-                <p className="mt-4 text-center text-xs text-slate-600">
-                  JPG, PNG или WEBP · макс. 5 MB
-                </p>
-
-                {/* New preview badge */}
-                {avatarPreview && (
-                  <div className="mt-4 rounded-xl bg-blue-50 px-4 py-2.5 text-center text-xs font-bold text-blue-950">
-                    Предварителен преглед — снимката не е запазена
-                  </div>
-                )}
-              </div>
-
-              {/* Email display (read-only) */}
-              <div className="rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
-                    <User className="h-5 w-5 text-blue-950" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-slate-500">Имейл за вход</p>
-                    <p className="truncate text-sm font-black text-slate-900">{email}</p>
+                <div className="rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                      <User className="h-5 w-5 text-blue-950" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-slate-500">Имейл за вход</p>
+                      <p className="truncate text-sm font-black text-slate-900">{email}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Public profile link */}
-              {userId && (
                 <Link
                   href={`/user/${userId}`}
                   className="flex items-center justify-center gap-2 rounded-[28px] bg-white px-6 py-4 text-sm font-black text-blue-950 shadow-sm ring-1 ring-slate-200 transition hover:bg-blue-50"
                 >
                   Виж публичния профил →
                 </Link>
-              )}
 
-              {/* Seller tips */}
-              <SellerTips
-                avatarUrl={avatarUrl}
-                phone={phone}
-                city={city}
-                hasGoogleLogin={hasGoogleLogin}
-              />
-            </div>
+                <SellerTips avatarUrl={avatarUrl} phone={phone} city={city} hasGoogleLogin={hasGoogleLogin} />
+              </div>
 
-            {/* ── Right: Form ── */}
-            <div className="rounded-[28px] bg-white p-8 shadow-sm ring-1 ring-slate-200 md:p-10">
-              <h2 className="mb-8 text-2xl font-black text-blue-950">Лична информация</h2>
+              {/* ── Personal info form ── */}
+              <div className="rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-slate-200 mx-4 lg:mx-0 lg:p-10">
+                <h2 className="mb-6 text-xl font-black text-blue-950 lg:mb-8 lg:text-2xl">Лична информация</h2>
 
-              {/* Notice */}
-              {notice && (
-                <div
-                  className={`mb-6 flex items-start gap-3 rounded-2xl border p-4 text-sm font-semibold ${
+                {notice && (
+                  <div className={`mb-5 flex items-start gap-3 rounded-2xl border p-4 text-sm font-semibold ${
                     notice.type === "error"
                       ? "border-red-200 bg-red-50 text-red-700"
                       : "border-green-200 bg-green-50 text-green-800"
-                  }`}
-                >
-                  {notice.type === "error" ? (
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                  ) : (
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-                  )}
-                  {notice.message}
-                </div>
-              )}
-
-              <div className="grid gap-5 sm:grid-cols-2">
-
-                {/* Username */}
-                <label className="col-span-full space-y-2">
-                  <span className="block text-sm font-black text-blue-950">
-                    Потребителско име <span className="text-red-500">*</span>
-                  </span>
-                  <input
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="milcho123"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-                  />
-                  <p className="text-xs text-slate-600">
-                    Видимо публично. Само букви, цифри, _, . и -
-                  </p>
-                </label>
-
-                {/* First name */}
-                <label className="space-y-2">
-                  <span className="block text-sm font-black text-blue-950">Име</span>
-                  <input
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="Милчо"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-                  />
-                </label>
-
-                {/* Last name */}
-                <label className="space-y-2">
-                  <span className="block text-sm font-black text-blue-950">Фамилия</span>
-                  <input
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Милчев"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-                  />
-                </label>
-
-                {/* Phone */}
-                <label className="space-y-2">
-                  <span className="block text-sm font-black text-blue-950">Телефон</span>
-                  <input
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    type="tel"
-                    placeholder="+359..."
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-                  />
-                </label>
-
-                {/* City */}
-                <label className="space-y-2">
-                  <span className="block text-sm font-black text-blue-950">Град</span>
-                  <input
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="София"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-                  />
-                </label>
-
-              </div>
-
-              <button
-                type="button"
-                onClick={saveProfile}
-                disabled={saving}
-                className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-950 px-6 py-4 font-black text-white shadow-lg transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                {saving ? "Запазване..." : "Запази профила"}
-              </button>
-            </div>
-
-            {/* ── Change Password card (spans full width under the two columns) ── */}
-            {hasGoogleLogin && !hasEmailLogin ? (
-              <div className="rounded-[28px] bg-white p-8 shadow-sm ring-1 ring-slate-200 md:p-10 lg:col-span-2">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
-                    <Lock className="h-5 w-5 text-blue-950" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-blue-950">Смяна на парола</h2>
-                    <p className="mt-1 text-sm text-slate-600">
-                      Влизате чрез Google. Смяна на парола не е необходима за този профил.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <form
-                onSubmit={(e) => { e.preventDefault(); changePassword(); }}
-                className="rounded-[28px] bg-white p-8 shadow-sm ring-1 ring-slate-200 md:p-10 lg:col-span-2"
-              >
-                <div className="mb-8 flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
-                    <Lock className="h-5 w-5 text-blue-950" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-blue-950">Смяна на парола</h2>
-                    <p className="text-sm text-slate-500">Минимум 8 символа за новата парола.</p>
-                  </div>
-                </div>
-
-                {passwordNotice && (
-                  <div
-                    className={`mb-6 flex items-start gap-3 rounded-2xl border p-4 text-sm font-semibold ${
-                      passwordNotice.type === "error"
-                        ? "border-red-200 bg-red-50 text-red-700"
-                        : "border-green-200 bg-green-50 text-green-800"
-                    }`}
-                  >
-                    {passwordNotice.type === "error" ? (
+                  }`}>
+                    {notice.type === "error" ? (
                       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                     ) : (
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
                     )}
-                    {passwordNotice.message}
+                    {notice.message}
                   </div>
                 )}
 
-                <div className="grid gap-5 sm:grid-cols-3">
-                  <label className="space-y-2">
-                    <span className="block text-sm font-black text-blue-950">Текуща парола</span>
+                <div className="grid gap-4 sm:grid-cols-2 lg:gap-5">
+                  <label className="col-span-full space-y-2">
+                    <span className="block text-sm font-black text-blue-950">
+                      Потребителско име <span className="text-red-500">*</span>
+                    </span>
                     <input
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      type="password"
-                      placeholder="••••••••"
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="milcho123"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-base font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 lg:px-5 lg:py-4"
+                    />
+                    <p className="text-xs text-slate-500">Видимо публично. Само букви, цифри, _, . и -</p>
+                  </label>
+
+                  <label className="space-y-2">
+                    <span className="block text-sm font-black text-blue-950">Име</span>
+                    <input
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Милчо"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-base font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 lg:px-5 lg:py-4"
                     />
                   </label>
 
                   <label className="space-y-2">
-                    <span className="block text-sm font-black text-blue-950">Нова парола</span>
+                    <span className="block text-sm font-black text-blue-950">Фамилия</span>
                     <input
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      type="password"
-                      placeholder="Минимум 8 символа"
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Милчев"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-base font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 lg:px-5 lg:py-4"
                     />
                   </label>
 
                   <label className="space-y-2">
-                    <span className="block text-sm font-black text-blue-950">Потвърди новата парола</span>
+                    <span className="block text-sm font-black text-blue-950">Телефон</span>
                     <input
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      type="password"
-                      placeholder="Повтори паролата"
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      type="tel"
+                      placeholder="+359..."
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-base font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 lg:px-5 lg:py-4"
+                    />
+                  </label>
+
+                  <label className="space-y-2">
+                    <span className="block text-sm font-black text-blue-950">Град</span>
+                    <input
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="София"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-base font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 lg:px-5 lg:py-4"
                     />
                   </label>
                 </div>
 
                 <button
-                  type="submit"
-                  disabled={savingPassword}
-                  className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-blue-950 px-8 py-4 font-black text-white shadow-lg transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
+                  type="button"
+                  onClick={saveProfile}
+                  disabled={saving}
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-950 px-6 py-4 font-black text-white shadow-lg transition active:bg-blue-900 hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60 lg:mt-8"
                 >
-                  {savingPassword && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {savingPassword ? "Запазване..." : "Смени паролата"}
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {saving ? "Запазване..." : "Запази профила"}
                 </button>
-              </form>
-            )}
-          </div>
-        )}
+              </div>
 
-        {/* ── Danger zone: account deletion ── */}
-        <div className="mx-auto mt-12 max-w-2xl">
-          <div className="rounded-[28px] border border-red-100 bg-red-50/50 p-6">
-            <h2 className="text-base font-black text-red-700">Изтриване на акаунт</h2>
-            <p className="mt-2 text-sm font-semibold text-red-600">
-              Всички ваши обяви, съобщения и данни ще бъдат изтрити без възможност за
-              възстановяване.
-            </p>
+              {/* ── Change password ── */}
+              {hasGoogleLogin && !hasEmailLogin ? (
+                <div className="rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-slate-200 mx-4 lg:col-span-2 lg:mx-0 lg:p-10">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                      <Lock className="h-5 w-5 text-blue-950" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-black text-blue-950 lg:text-2xl">Смяна на парола</h2>
+                      <p className="mt-1 text-sm text-slate-600">
+                        Влизате чрез Google. Смяна на парола не е необходима за този профил.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); changePassword(); }}
+                  className="rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-slate-200 mx-4 lg:col-span-2 lg:mx-0 lg:p-10"
+                >
+                  <div className="mb-6 flex items-center gap-3 lg:mb-8">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                      <Lock className="h-5 w-5 text-blue-950" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-black text-blue-950 lg:text-2xl">Смяна на парола</h2>
+                      <p className="text-sm text-slate-500">Минимум 8 символа за новата парола.</p>
+                    </div>
+                  </div>
 
-            {!showDeleteConfirm ? (
+                  {passwordNotice && (
+                    <div className={`mb-5 flex items-start gap-3 rounded-2xl border p-4 text-sm font-semibold ${
+                      passwordNotice.type === "error"
+                        ? "border-red-200 bg-red-50 text-red-700"
+                        : "border-green-200 bg-green-50 text-green-800"
+                    }`}>
+                      {passwordNotice.type === "error" ? (
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                      ) : (
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                      )}
+                      {passwordNotice.message}
+                    </div>
+                  )}
+
+                  <div className="grid gap-4 sm:grid-cols-3 lg:gap-5">
+                    <label className="space-y-2">
+                      <span className="block text-sm font-black text-blue-950">Текуща парола</span>
+                      <input
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        type="password"
+                        placeholder="••••••••"
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-base font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 lg:px-5 lg:py-4"
+                      />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="block text-sm font-black text-blue-950">Нова парола</span>
+                      <input
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        type="password"
+                        placeholder="Минимум 8 символа"
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-base font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 lg:px-5 lg:py-4"
+                      />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="block text-sm font-black text-blue-950">Потвърди новата парола</span>
+                      <input
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        type="password"
+                        placeholder="Повтори паролата"
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-base font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 lg:px-5 lg:py-4"
+                      />
+                    </label>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={savingPassword}
+                    className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-blue-950 px-8 py-4 font-black text-white shadow-lg transition active:bg-blue-900 hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {savingPassword && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {savingPassword ? "Запазване..." : "Смени паролата"}
+                  </button>
+                </form>
+              )}
+            </div>
+
+            {/* ── Mobile: sign out ── */}
+            <div className="mt-4 px-4 lg:hidden">
               <button
                 type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                className="mt-4 rounded-2xl border border-red-300 bg-white px-5 py-3 text-sm font-black text-red-600 transition hover:bg-red-600 hover:text-white"
+                onClick={handleSignOut}
+                className="flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white py-4 text-sm font-black text-slate-600 transition active:bg-slate-50 hover:bg-slate-50"
               >
-                Изтрий акаунта ми
+                Изход от профила
               </button>
-            ) : (
-              <div className="mt-4 space-y-3">
-                <p className="text-sm font-black text-red-700">
-                  Сигурни ли сте? Това действие е необратимо.
-                </p>
-                {deleteError && (
-                  <p className="text-sm font-semibold text-red-600">{deleteError}</p>
-                )}
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={handleDeleteAccount}
-                    disabled={deletingAccount}
-                    className="flex items-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700 disabled:opacity-60"
-                  >
-                    {deletingAccount && <Loader2 className="h-4 w-4 animate-spin" />}
-                    {deletingAccount ? "Изтриване..." : "Да, изтрий завинаги"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setShowDeleteConfirm(false); setDeleteError(null); }}
-                    className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 transition hover:border-slate-400"
-                  >
-                    Отказ
-                  </button>
+            </div>
+          </>
+        )}
+
+        {/* Danger zone */}
+        {userId && (
+          <div className="mx-4 mt-4 lg:mx-auto lg:mt-12 lg:max-w-2xl">
+            <div className="rounded-[28px] border border-red-100 bg-red-50/50 p-6">
+              <h2 className="text-base font-black text-red-700">Изтриване на акаунт</h2>
+              <p className="mt-2 text-sm font-semibold text-red-600">
+                Всички ваши обяви, съобщения и данни ще бъдат изтрити без възможност за възстановяване.
+              </p>
+
+              {!showDeleteConfirm ? (
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="mt-4 rounded-2xl border border-red-300 bg-white px-5 py-3 text-sm font-black text-red-600 transition hover:bg-red-600 hover:text-white"
+                >
+                  Изтрий акаунта ми
+                </button>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  <p className="text-sm font-black text-red-700">Сигурни ли сте? Това действие е необратимо.</p>
+                  {deleteError && <p className="text-sm font-semibold text-red-600">{deleteError}</p>}
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={handleDeleteAccount}
+                      disabled={deletingAccount}
+                      className="flex items-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700 disabled:opacity-60"
+                    >
+                      {deletingAccount && <Loader2 className="h-4 w-4 animate-spin" />}
+                      {deletingAccount ? "Изтриване..." : "Да, изтрий завинаги"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowDeleteConfirm(false); setDeleteError(null); }}
+                      className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 transition hover:border-slate-400"
+                    >
+                      Отказ
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </section>
     </main>
   );
