@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Heart, MessageCircle, Plus, Search, User } from "lucide-react";
 
-const HIDDEN_PATHS = ["/publish", "/edit-listing", "/login", "/register", "/admin", "/listing/"];
+const HIDDEN_PATHS = ["/publish", "/edit-listing", "/login", "/register", "/admin", "/listing/", "/messages/"];
 
 type NavItem = {
   label: string | null;

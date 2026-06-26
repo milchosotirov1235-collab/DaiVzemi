@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import UnverifiedBanner from "@/components/UnverifiedBanner";
-import { ArrowLeft, CheckCheck, Loader2, Send } from "lucide-react";
+import { ArrowLeft, CheckCheck, Loader2, Paperclip, Send } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { checkMessageRateLimit, checkDuplicateMessage } from "@/lib/security/rateLimit";
 
@@ -314,9 +314,27 @@ export default function ConversationPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-slate-50">
-        <Header />
-        <div className="flex min-h-[60vh] items-center justify-center">
+      <main className="flex h-[100dvh] flex-col bg-white lg:min-h-screen lg:bg-slate-50">
+        <div className="hidden shrink-0 lg:block">
+          <Header />
+        </div>
+        <div className="shrink-0 bg-blue-950 px-4 py-3.5 lg:sticky lg:top-[72px] lg:z-10 lg:border-b lg:border-slate-200 lg:bg-white lg:py-3 lg:shadow-sm">
+          <div className="mx-auto flex max-w-3xl items-center gap-3">
+            <Link
+              href="/messages"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white/80 transition hover:bg-white/10 lg:text-slate-600 lg:hover:bg-slate-100"
+              aria-label="Назад"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <div className="h-9 w-9 shrink-0 animate-pulse rounded-full bg-white/20 lg:bg-slate-200" />
+            <div className="space-y-1.5">
+              <div className="h-3.5 w-24 animate-pulse rounded-full bg-white/20 lg:bg-slate-200" />
+              <div className="h-3 w-32 animate-pulse rounded-full bg-white/10 lg:bg-slate-100" />
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-1 items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-blue-950" />
         </div>
       </main>
@@ -327,16 +345,21 @@ export default function ConversationPage() {
   const avatarLetter = (otherUser?.username ?? "?").charAt(0).toUpperCase();
 
   return (
-    <main className="flex min-h-screen flex-col bg-slate-50">
-      <Header />
-      {isEmailVerified === false && <UnverifiedBanner />}
+    <main className="flex h-[100dvh] flex-col bg-white lg:min-h-screen lg:bg-slate-50">
 
-      {/* ── Chat header ── */}
-      <div className="sticky top-[var(--header-height,72px)] z-10 border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
+      {/* Site header + unverified banner — desktop only */}
+      <div className="hidden shrink-0 lg:block">
+        <Header />
+        {isEmailVerified === false && <UnverifiedBanner />}
+      </div>
+
+      {/* Chat header — blue on mobile, white on desktop */}
+      <div className="shrink-0 bg-blue-950 px-4 py-3.5 lg:sticky lg:top-[72px] lg:z-10 lg:border-b lg:border-slate-200 lg:bg-white lg:py-3 lg:shadow-sm">
         <div className="mx-auto flex max-w-3xl items-center gap-3">
           <Link
             href="/messages"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white/80 transition active:bg-white/20 hover:bg-white/10 lg:text-slate-600 lg:hover:bg-slate-100"
+            aria-label="Назад"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
@@ -345,47 +368,60 @@ export default function ConversationPage() {
             <img
               src={otherUser.avatar_url}
               alt={otherUser.username ?? ""}
-              className="h-10 w-10 rounded-full object-cover"
+              className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-white/30 lg:h-10 lg:w-10 lg:ring-slate-200"
             />
           ) : (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-950 text-sm font-black text-white">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20 text-sm font-black text-white lg:h-10 lg:w-10 lg:bg-blue-950">
               {avatarLetter}
             </div>
           )}
 
-          <div className="min-w-0">
-            <p className="truncate text-sm font-black text-slate-900">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-black text-white lg:text-slate-900">
               {otherUser?.username ?? "Потребител"}
             </p>
             {listingTitle && (
-              <p className="truncate text-xs font-semibold text-blue-950">
+              <p className="truncate text-xs font-semibold text-blue-200 lg:text-blue-950">
                 {listingTitle}
               </p>
             )}
           </div>
+
+          {conversation?.listing_id && (
+            <Link
+              href={`/listing/${conversation.listing_id}`}
+              className="hidden shrink-0 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 lg:flex"
+            >
+              Виж обявата →
+            </Link>
+          )}
         </div>
       </div>
 
-      {/* ── Messages ── */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
+      {/* Messages area */}
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-slate-50">
+        <div className="mx-auto max-w-3xl space-y-1 px-3 py-5 lg:px-4 lg:py-6">
           {groups.length === 0 ? (
-            <p className="text-center text-sm font-semibold text-slate-400">
-              Напишете първото съобщение по-долу.
-            </p>
+            <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-950/8 text-3xl">
+                💬
+              </div>
+              <p className="text-sm font-black text-slate-700">Разговорът е празен</p>
+              <p className="text-xs text-slate-400">Изпратете първото съобщение.</p>
+            </div>
           ) : (
             groups.map((group) => (
               <div key={group.date}>
                 {/* Date divider */}
-                <div className="mb-4 flex items-center gap-3">
+                <div className="my-5 flex items-center gap-3">
                   <div className="h-px flex-1 bg-slate-200" />
-                  <span className="text-xs font-semibold text-slate-400">
+                  <span className="rounded-full bg-slate-200 px-3 py-1 text-[11px] font-semibold text-slate-500">
                     {group.date}
                   </span>
                   <div className="h-px flex-1 bg-slate-200" />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {group.messages.map((msg) => {
                     const isOwn = msg.sender_id === userId;
                     return (
@@ -394,18 +430,18 @@ export default function ConversationPage() {
                         className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`max-w-[72%] rounded-[20px] px-4 py-3 shadow-sm ${
+                          className={`max-w-[78%] shadow-sm lg:max-w-[72%] ${
                             isOwn
-                              ? "rounded-br-md bg-blue-950 text-white"
-                              : "rounded-bl-md bg-white ring-1 ring-slate-200 text-slate-900"
+                              ? "rounded-[18px] rounded-br-[5px] bg-blue-950 text-white"
+                              : "rounded-[18px] rounded-bl-[5px] bg-white text-slate-900 ring-1 ring-slate-100"
                           }`}
                         >
-                          <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                          <p className="whitespace-pre-wrap px-4 pb-1 pt-2.5 text-[15px] leading-snug lg:text-sm lg:leading-relaxed">
                             {msg.content}
                           </p>
                           <div
-                            className={`mt-1 flex items-center gap-1 text-[11px] ${
-                              isOwn ? "justify-end text-blue-200" : "text-slate-400"
+                            className={`flex items-center gap-1 px-4 pb-2.5 text-[11px] ${
+                              isOwn ? "justify-end text-blue-200/70" : "text-slate-400"
                             }`}
                           >
                             <span>{formatTime(msg.created_at)}</span>
@@ -425,44 +461,70 @@ export default function ConversationPage() {
         </div>
       </div>
 
-      {/* ── Input ── */}
-      <div className="border-t border-slate-200 bg-white px-4 py-4">
+      {/* Input bar */}
+      <div
+        className="shrink-0 border-t border-slate-100 bg-white"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
         {isEmailVerified === false ? (
-          <div className="mx-auto max-w-3xl rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm font-semibold text-amber-800">
-            Потвърдете имейла си, за да изпращате съобщения.{" "}
-            <a href="/verify-email" className="font-black underline underline-offset-2 hover:text-amber-900">
-              Потвърди →
-            </a>
+          <div className="px-4 py-3 text-center">
+            <p className="text-sm font-semibold text-amber-700">
+              Потвърдете имейла си, за да изпращате съобщения.{" "}
+              <a
+                href="/verify-email"
+                className="font-black underline underline-offset-2 hover:text-amber-900"
+              >
+                Потвърди →
+              </a>
+            </p>
           </div>
         ) : (
-          <>
+          <div>
             {sendError && (
-              <p className="mx-auto mb-2 max-w-3xl rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-center text-sm font-semibold text-red-700">
+              <p className="border-b border-red-100 bg-red-50 px-4 py-2 text-center text-xs font-semibold text-red-700">
                 {sendError}
               </p>
             )}
-            <div className="mx-auto flex max-w-3xl items-end gap-3">
-              <textarea
-                ref={inputRef}
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Напишете съобщение… (Enter за изпращане)"
-                rows={1}
-                className="flex-1 resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-                style={{ maxHeight: "140px" }}
-                onInput={(e) => {
-                  const el = e.currentTarget;
-                  el.style.height = "auto";
-                  el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
-                }}
-              />
+            <div className="mx-auto flex max-w-3xl items-end gap-2 px-3 py-2.5">
+              {/* Attachment — visual placeholder, ready for image sending */}
+              <button
+                type="button"
+                aria-label="Прикачи снимка"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-slate-300 transition active:bg-slate-50 lg:hidden"
+              >
+                <Paperclip className="h-5 w-5" />
+              </button>
+
+              {/* Textarea in styled pill */}
+              <div className="flex flex-1 items-end rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-2.5 transition focus-within:border-blue-950 focus-within:ring-2 focus-within:ring-blue-950/10">
+                <textarea
+                  ref={inputRef}
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Съобщение..."
+                  rows={1}
+                  className="flex-1 resize-none bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400 lg:text-sm"
+                  style={{ maxHeight: "100px" }}
+                  onInput={(e) => {
+                    const el = e.currentTarget;
+                    el.style.height = "auto";
+                    el.style.height = `${Math.min(el.scrollHeight, 100)}px`;
+                  }}
+                />
+              </div>
+
+              {/* Send */}
               <button
                 type="button"
                 onClick={sendMessage}
                 disabled={!messageText.trim() || sending}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-950 text-white shadow-md transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Изпрати"
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition ${
+                  messageText.trim() && !sending
+                    ? "bg-blue-950 text-white shadow-md active:bg-blue-900 hover:bg-blue-900"
+                    : "bg-slate-100 text-slate-400"
+                } disabled:cursor-not-allowed`}
               >
                 {sending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -471,10 +533,10 @@ export default function ConversationPage() {
                 )}
               </button>
             </div>
-            <p className="mt-2 text-center text-[11px] text-slate-400">
+            <p className="hidden pb-1.5 text-center text-[11px] text-slate-400 lg:block">
               Shift + Enter за нов ред
             </p>
-          </>
+          </div>
         )}
       </div>
     </main>
