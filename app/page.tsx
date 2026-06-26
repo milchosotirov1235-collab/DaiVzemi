@@ -145,43 +145,43 @@ export default function Home() {
       <Header />
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 py-24 text-white">
+      <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 py-10 text-white md:py-24">
         <div className="mx-auto max-w-6xl px-6 text-center">
-          <h1 className="text-6xl font-black md:text-7xl">
+          <h1 className="text-4xl font-black sm:text-5xl md:text-6xl xl:text-7xl">
             Дай. Вземи. Продай.
           </h1>
 
-          <p className="mx-auto mt-6 max-w-3xl text-xl text-blue-100">
+          <p className="mx-auto mt-6 hidden max-w-3xl text-xl text-blue-100 md:block">
             Безплатни обяви за цяла България.
             Продавай, подарявай, разменяй и търси на едно място.
           </p>
 
           {Object.keys(categoryCounts).length > 0 && (
-            <p className="mt-3 text-sm font-semibold text-blue-300">
+            <p className="mt-2 hidden text-sm font-semibold text-blue-300 md:block">
               {Object.values(categoryCounts).reduce((a, b) => a + b, 0)} активни обяви в момента
             </p>
           )}
 
-          <div className="mx-auto mt-10 flex max-w-4xl flex-col gap-3 rounded-3xl bg-white p-3 shadow-2xl md:flex-row">
+          <div className="mx-auto mt-6 flex max-w-4xl flex-col gap-3 rounded-2xl bg-white p-2 shadow-2xl md:mt-10 md:flex-row md:rounded-3xl md:p-3">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
               placeholder="Какво търсите?"
-              className="flex-1 rounded-2xl bg-white px-5 py-4 text-lg font-bold text-slate-950 caret-blue-950 outline-none placeholder:text-slate-400"
+              className="flex-1 rounded-xl bg-white px-4 py-3 text-base font-bold text-slate-950 caret-blue-950 outline-none placeholder:text-slate-400 md:rounded-2xl md:px-5 md:py-4 md:text-lg"
             />
-
             <button
               type="button"
               onClick={handleSearch}
-              className="rounded-2xl bg-blue-950 px-8 py-4 text-lg font-black text-white"
+              className="rounded-xl bg-blue-950 px-6 py-3 text-base font-black text-white md:rounded-2xl md:px-8 md:py-4 md:text-lg"
             >
               Търси
             </button>
           </div>
 
-          {/* Popular search chips */}
-          <div className="mt-5 flex flex-wrap justify-center gap-2">
+          {/* Popular search chips — desktop only */}
+          <div className="mt-5 hidden flex-wrap justify-center gap-2 md:flex">
             {(Object.keys(categoryCounts).length > 0
               ? Object.entries(categoryCounts)
                   .sort((a, b) => b[1] - a[1])
@@ -203,8 +203,8 @@ export default function Home() {
       </section>
 
       {/* Actions */}
-      <section className="mx-auto max-w-7xl px-6 py-16">
-        <div className="grid gap-6 md:grid-cols-4">
+      <section className="mx-auto max-w-7xl px-6 py-6 md:py-16">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-6">
           {[
             ["💰", "Продавам"],
             ["🎁", "Подарявам"],
@@ -214,10 +214,10 @@ export default function Home() {
             <Link
               key={title}
               href={`/listings?type=${encodeURIComponent(title as string)}`}
-              className="rounded-3xl bg-white p-8 text-center shadow-md transition hover:shadow-xl"
+              className="rounded-2xl bg-white p-5 text-center shadow-md transition hover:shadow-xl md:rounded-3xl md:p-8"
             >
-              <div className="text-5xl">{icon}</div>
-              <h3 className="mt-4 text-2xl font-black text-blue-950">
+              <div className="text-3xl md:text-5xl">{icon}</div>
+              <h3 className="mt-2 text-base font-black text-blue-950 md:mt-4 md:text-2xl">
                 {title}
               </h3>
             </Link>
@@ -226,42 +226,66 @@ export default function Home() {
       </section>
 
       {/* Categories */}
-      <section className="mx-auto max-w-7xl px-6 pb-20">
-        <h2 className="mb-8 text-4xl font-black text-blue-950">
-          Категории
-        </h2>
+      {(() => {
+        const cats = [
+          { icon: HomeIcon,    label: "Имоти" },
+          { icon: Car,         label: "Автомобили" },
+          { icon: Wrench,      label: "Авточасти" },
+          { icon: Smartphone,  label: "Електроника" },
+          { icon: Baby,        label: "Детски стоки" },
+          { icon: Trees,       label: "Дом и градина" },
+          { icon: Shirt,       label: "Мода" },
+          { icon: Trophy,      label: "Спорт и хоби" },
+          { icon: PawPrint,    label: "Животни" },
+          { icon: Hammer,      label: "Услуги" },
+          { icon: Briefcase,   label: "Работа" },
+          { icon: BookOpen,    label: "Книги" },
+        ];
+        return (
+          <section className="pb-6 md:pb-20">
+            <div className="mx-auto max-w-7xl px-6">
+              <h2 className="mb-4 text-2xl font-black text-blue-950 md:mb-8 md:text-4xl">
+                Категории
+              </h2>
+            </div>
 
-        <div className="grid gap-5 md:grid-cols-4">
-          {[
-            { icon: HomeIcon, label: "Имоти" },
-            { icon: Car, label: "Автомобили" },
-            { icon: Wrench, label: "Авточасти" },
-            { icon: Smartphone, label: "Електроника" },
-            { icon: Baby, label: "Детски стоки" },
-            { icon: Trees, label: "Дом и градина" },
-            { icon: Shirt, label: "Мода" },
-            { icon: Trophy, label: "Спорт и хоби" },
-            { icon: PawPrint, label: "Животни" },
-            { icon: Hammer, label: "Услуги" },
-            { icon: Briefcase, label: "Работа" },
-            { icon: BookOpen, label: "Книги" },
-          ].map(({ icon: Icon, label }) => (
-            <Link
-              key={label}
-              href={`/listings?category=${encodeURIComponent(label)}`}
-              className="group rounded-2xl bg-white p-7 text-center shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-1 hover:ring-blue-300 hover:shadow-lg"
-            >
-              <Icon className="mx-auto h-9 w-9 text-blue-950" />
-              <div className="mt-5 text-[20px] font-extrabold text-slate-950">
-                {label}
-              </div>
-              <div className="mt-1.5 text-sm font-semibold text-slate-500">
-                {categoryCounts[label] ?? 0} обяви
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+            {/* Mobile — horizontal scroll circles */}
+            <div className="flex gap-5 overflow-x-auto pb-4 pl-6 pr-6 md:hidden">
+              {cats.map(({ icon: Icon, label }) => (
+                <Link
+                  key={label}
+                  href={`/listings?category=${encodeURIComponent(label)}`}
+                  className="flex shrink-0 flex-col items-center gap-2"
+                >
+                  <div className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-200 transition active:scale-95">
+                    <Icon className="h-7 w-7 text-blue-950" />
+                  </div>
+                  <span className="w-16 text-center text-[11px] font-semibold leading-tight text-slate-700">
+                    {label}
+                  </span>
+                </Link>
+              ))}
+            </div>
+
+            {/* Desktop — card grid */}
+            <div className="mx-auto hidden max-w-7xl px-6 md:grid md:grid-cols-4 md:gap-5">
+              {cats.map(({ icon: Icon, label }) => (
+                <Link
+                  key={label}
+                  href={`/listings?category=${encodeURIComponent(label)}`}
+                  className="group rounded-2xl bg-white p-7 text-center shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-1 hover:ring-blue-300 hover:shadow-lg"
+                >
+                  <Icon className="mx-auto h-9 w-9 text-blue-950" />
+                  <div className="mt-5 text-[20px] font-extrabold text-slate-950">{label}</div>
+                  <div className="mt-1.5 text-sm font-semibold text-slate-500">
+                    {categoryCounts[label] ?? 0} обяви
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Recently Viewed */}
       {recentlyViewed.length > 0 && (
@@ -292,18 +316,18 @@ export default function Home() {
       )}
 
       {/* Latest Listings */}
-      <section className="mx-auto max-w-7xl px-6 pb-24">
+      <section className="mx-auto max-w-7xl px-6 pb-6 md:pb-24">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <h2 className="text-4xl font-black text-blue-950">Последни обяви</h2>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600">
+            <h2 className="text-2xl font-black text-blue-950 md:text-4xl">Последни обяви</h2>
+            <p className="mt-1 hidden max-w-2xl text-sm text-slate-600 md:block">
               Прегледайте най-новите предложения в DaiVzemi, прегледани специално за вас.
             </p>
           </div>
         </div>
 
         {listingsLoading ? (
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 md:mt-10 md:gap-6 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
                 <div className="h-56 w-full animate-pulse bg-slate-200" />
@@ -335,7 +359,7 @@ export default function Home() {
             </Link>
           </div>
         ) : (
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 md:mt-10 md:gap-6 xl:grid-cols-4">
             {latestListings.map((listing, index) => {
               const isNew = !!listing.created_at && (Date.now() - new Date(listing.created_at).getTime()) < 86_400_000;
               return (
