@@ -39,13 +39,13 @@ function CategoryDetailFields({
   };
 
   return (
-    <div className="rounded-[28px] border border-blue-100 bg-blue-50/40 p-6">
-      <div className="mb-5 flex items-center gap-2">
-        <SlidersHorizontal className="h-5 w-5 text-blue-950" />
-        <span className="text-base font-black text-blue-950">Детайли за {category}</span>
+    <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-4 lg:rounded-[28px] lg:p-6">
+      <div className="mb-4 flex items-center gap-2 lg:mb-5">
+        <SlidersHorizontal className="h-4 w-4 text-blue-950 lg:h-5 lg:w-5" />
+        <span className="text-sm font-black text-blue-950 lg:text-base">Детайли за {category}</span>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:gap-5">
         {fields.map((field) => {
           const dependValue = field.dependsOn ? (details[field.dependsOn] ?? "") : "";
           const resolvedOptions = field.getOptions
@@ -434,12 +434,24 @@ export default function PublishPage() {
     });
   };
 
+  // ── Progress (computed — no extra state needed) ───────────────────────────
+  const requiredDetailFields = CATEGORY_DETAILS[category]?.filter((f) => f.required) ?? [];
+  const progressFilled = [
+    title.trim().length >= 3,
+    city.trim().length >= 2,
+    description.trim().length >= 10,
+    ...requiredDetailFields.map((f) => !!details[f.key]?.trim()),
+  ].filter(Boolean).length;
+  const progressTotal = 3 + requiredDetailFields.length;
+  const progressPct = Math.round((progressFilled / progressTotal) * 100);
+
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <main className="min-h-screen bg-white text-slate-900 lg:bg-slate-50">
       <Header />
       {isEmailVerified === false && <UnverifiedBanner />}
 
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-950 py-20 text-white">
+      {/* Desktop hero — hidden on mobile */}
+      <section className="relative hidden overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-950 py-20 text-white lg:block">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.12),transparent_32%)]" />
         <div className="relative mx-auto max-w-6xl px-6 text-center">
           <p className="mb-3 text-sm uppercase tracking-[0.35em] text-blue-200">DaiVzemi</p>
@@ -450,8 +462,28 @@ export default function PublishPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-16" onClick={(e) => e.stopPropagation()}>
-        {publishedListing ? (
+      {/* Mobile compact header + progress bar */}
+      <div className="border-b border-slate-100 px-4 pb-4 pt-5 lg:hidden">
+        <h1 className="text-2xl font-black text-slate-900">Нова обява</h1>
+        <p className="mt-0.5 text-sm text-slate-500">Безплатно · под 2 минути</p>
+        <div className="mt-4 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-400">Напредък</span>
+            <span className={`text-xs font-black transition-colors ${progressPct === 100 ? "text-green-600" : "text-blue-950"}`}>
+              {progressPct}%
+            </span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${progressPct === 100 ? "bg-green-500" : "bg-blue-950"}`}
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <section className="mx-auto max-w-6xl px-4 py-5 lg:px-6 lg:py-16" onClick={(e) => e.stopPropagation()}>
+        {publishedListing && (
           <div className="mx-auto max-w-2xl">
             <ListingAssistant
               listingId={publishedListing.id}
@@ -461,9 +493,12 @@ export default function PublishPage() {
               details={publishedListing.details}
             />
           </div>
-        ) : null}
-        <div className={publishedListing ? "hidden" : "rounded-[36px] bg-white p-8 shadow-2xl ring-1 ring-slate-200 md:p-12"}>
-          <div className="mb-10 flex items-start gap-4">
+        )}
+
+        <div className={publishedListing ? "hidden" : "lg:rounded-[36px] lg:bg-white lg:p-8 lg:shadow-2xl lg:ring-1 lg:ring-slate-200 xl:p-12"}>
+
+          {/* Desktop form header */}
+          <div className="mb-10 hidden items-start gap-4 lg:flex">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-950 text-white shadow-lg">
               <ImagePlus className="h-7 w-7" />
             </div>
@@ -475,75 +510,133 @@ export default function PublishPage() {
             </div>
           </div>
 
-          <form className="space-y-7" onSubmit={handleSubmit}>
-            {notice ? (
-              <div
-                className={`rounded-[28px] border p-5 shadow-sm ${
-                  notice.type === "error"
-                    ? "border-red-200 bg-red-50 text-red-700"
-                    : "border-green-200 bg-green-50 text-green-800"
-                }`}
-              >
+          <form id="publish-form" className="space-y-6 pb-28 lg:space-y-7 lg:pb-0" onSubmit={handleSubmit}>
+
+            {/* Notice banner */}
+            {notice && (
+              <div className={`rounded-2xl border p-4 lg:rounded-[28px] lg:p-5 ${
+                notice.type === "error"
+                  ? "border-red-200 bg-red-50 text-red-700"
+                  : "border-green-200 bg-green-50 text-green-800"
+              }`}>
                 <div className="flex gap-3">
-                  {notice.type === "error" ? (
-                    <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-                  ) : (
-                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
-                  )}
+                  {notice.type === "error"
+                    ? <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+                    : <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />}
                   <div>
-                    <p className="font-black">{notice.title}</p>
-                    <p className="mt-1 text-sm font-semibold opacity-90">{notice.message}</p>
+                    <p className="text-sm font-black lg:text-base">{notice.title}</p>
+                    <p className="mt-0.5 text-xs font-semibold opacity-90 lg:mt-1 lg:text-sm">{notice.message}</p>
                   </div>
                 </div>
               </div>
-            ) : null}
+            )}
 
-            {/* Title + Listing type */}
-            <div className="grid gap-5 lg:grid-cols-2">
-              <label ref={titleRef} className="space-y-2.5">
-                <span className={`block text-sm font-black ${fieldErrors.has("title") ? "text-red-600" : "text-blue-950"}`}>Заглавие *</span>
-                <input
-                  value={title}
-                  onChange={(e) => { setTitle(e.target.value); setFieldErrors((prev) => { const n = new Set(prev); n.delete("title"); return n; }); }}
-                  type="text"
-                  placeholder="Например: Модерен апартамент в центъра"
-                  className={`w-full rounded-2xl border px-5 py-4 font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:ring-4 ${fieldErrors.has("title") ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100" : "border-slate-200 bg-slate-50 focus:border-blue-950 focus:ring-blue-100"}`}
-                />
-              </label>
+            {/* ── Тип и категория ── */}
+            <div className="space-y-4">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 lg:hidden">Тип и категория</p>
 
-              <div className="space-y-2.5">
-                <span className="block text-sm font-black text-blue-950">Тип обява *</span>
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsListingTypeOpen((prev) => !prev)}
-                    className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-left shadow-sm transition hover:bg-white focus:border-blue-950 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              {/* Listing type */}
+              <div className="grid gap-5 lg:grid-cols-2">
+                {/* Title — left col on desktop */}
+                <label ref={titleRef} className="block space-y-2">
+                  <span className={`text-sm font-black ${fieldErrors.has("title") ? "text-red-600" : "text-blue-950"}`}>
+                    Заглавие *
+                  </span>
+                  <input
+                    value={title}
+                    onChange={(e) => { setTitle(e.target.value); setFieldErrors((prev) => { const n = new Set(prev); n.delete("title"); return n; }); }}
+                    type="text"
+                    inputMode="text"
+                    placeholder="Например: Модерен апартамент в центъра"
+                    className={`w-full rounded-2xl border px-4 py-3.5 text-base font-bold text-slate-900 shadow-sm outline-none transition placeholder:font-normal placeholder:text-slate-400 focus:ring-4 lg:px-5 lg:py-4 ${
+                      fieldErrors.has("title")
+                        ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100"
+                        : "border-slate-200 bg-slate-50 focus:border-blue-950 focus:ring-blue-100"
+                    }`}
+                  />
+                  {fieldErrors.has("title") && (
+                    <p className="text-xs font-semibold text-red-500">Минимум 3 символа.</p>
+                  )}
+                </label>
+
+                {/* Listing type — right col on desktop */}
+                <div className="space-y-2">
+                  <span className="block text-sm font-black text-blue-950">Тип обява *</span>
+                  {/* Mobile: segmented control */}
+                  <div className="grid gap-1 rounded-2xl bg-slate-100 p-1 lg:hidden" style={{ gridTemplateColumns: `repeat(${listingTypeOptions.length}, 1fr)` }}>
+                    {listingTypeOptions.map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setListingType(opt)}
+                        className={`rounded-xl py-3 text-[11px] font-black transition ${
+                          listingType === opt ? "bg-white text-blue-950 shadow-sm" : "text-slate-500 active:bg-white/60"
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Desktop: dropdown */}
+                  <div className="relative hidden lg:block">
+                    <button
+                      type="button"
+                      onClick={() => setIsListingTypeOpen((prev) => !prev)}
+                      className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-left shadow-sm transition hover:bg-white focus:border-blue-950 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                    >
+                      <span className="text-base font-bold text-slate-900">{listingType}</span>
+                      <ChevronDown className={`h-5 w-5 text-blue-950 transition ${isListingTypeOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    {isListingTypeOpen && (
+                      <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
+                        {listingTypeOptions.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => { setListingType(option); setIsListingTypeOpen(false); }}
+                            className={`flex w-full cursor-pointer items-center rounded-xl px-4 py-3 text-left text-sm font-bold transition hover:bg-slate-100 ${
+                              option === listingType ? "bg-slate-100 text-blue-950" : "text-slate-700"
+                            }`}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Category */}
+              <div className="grid gap-5 lg:hidden">
+                <div className="space-y-2">
+                  <span className="block text-sm font-black text-blue-950">Категория *</span>
+                  {/* Mobile: horizontal scrollable chips */}
+                  <div
+                    className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1"
+                    style={{ scrollbarWidth: "none" }}
                   >
-                    <span className="text-base font-bold text-slate-900">{listingType}</span>
-                    <ChevronDown className={`h-5 w-5 text-blue-950 transition ${isListingTypeOpen ? "rotate-180" : ""}`} />
-                  </button>
-                  {isListingTypeOpen ? (
-                    <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
-                      {listingTypeOptions.map((option) => (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() => { setListingType(option); setIsListingTypeOpen(false); }}
-                          className={`flex w-full cursor-pointer items-center rounded-xl px-4 py-3 text-left text-sm font-bold transition hover:bg-slate-100 ${
-                            option === listingType ? "bg-slate-100 text-blue-950" : "text-slate-700"
-                          }`}
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
+                    {categoryOptions.map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => handleCategoryChange(cat)}
+                        className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition ${
+                          category === cat
+                            ? "bg-blue-950 text-white shadow-sm"
+                            : "bg-slate-100 text-slate-700 active:bg-slate-200"
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Category + Price */}
-            <div className="grid gap-5 lg:grid-cols-2">
+            {/* ── Desktop: Category + Price row (grid) ── */}
+            <div className="hidden gap-5 lg:grid lg:grid-cols-2">
               <div className="space-y-2.5">
                 <span className="block text-sm font-black text-blue-950">Категория *</span>
                 <div className="relative">
@@ -555,7 +648,7 @@ export default function PublishPage() {
                     <span className="text-base font-bold text-slate-900">{category}</span>
                     <ChevronDown className={`h-5 w-5 text-blue-950 transition ${isCategoryOpen ? "rotate-180" : ""}`} />
                   </button>
-                  {isCategoryOpen ? (
+                  {isCategoryOpen && (
                     <div className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
                       {categoryOptions.map((option) => (
                         <button
@@ -570,7 +663,7 @@ export default function PublishPage() {
                         </button>
                       ))}
                     </div>
-                  ) : null}
+                  )}
                 </div>
               </div>
 
@@ -589,43 +682,84 @@ export default function PublishPage() {
                   <span className="mr-3 inline-flex items-center rounded-xl bg-white px-3 py-1.5 text-sm font-black text-blue-950">€</span>
                 </div>
                 <label className="flex cursor-pointer items-center gap-2.5">
-                  <input
-                    type="checkbox"
-                    checked={negotiable}
-                    onChange={(e) => { setNegotiable(e.target.checked); if (e.target.checked) setPrice(""); }}
-                    className="h-4 w-4 rounded accent-blue-950"
-                  />
+                  <input type="checkbox" checked={negotiable} onChange={(e) => { setNegotiable(e.target.checked); if (e.target.checked) setPrice(""); }} className="h-4 w-4 rounded accent-blue-950" />
                   <span className="text-sm font-semibold text-slate-700">Цената е договаряема</span>
                 </label>
                 <label className="flex cursor-pointer items-center gap-2.5">
-                  <input
-                    type="checkbox"
-                    checked={urgent}
-                    onChange={(e) => setUrgent(e.target.checked)}
-                    className="h-4 w-4 rounded accent-red-600"
-                  />
+                  <input type="checkbox" checked={urgent} onChange={(e) => setUrgent(e.target.checked)} className="h-4 w-4 rounded accent-red-600" />
                   <span className="text-sm font-semibold text-slate-700">Спешна продажба</span>
                 </label>
               </div>
             </div>
 
-            {/* City */}
-            <div ref={cityRef} className="space-y-2.5">
-              <span className={`block text-sm font-black ${fieldErrors.has("city") ? "text-red-600" : "text-blue-950"}`}>Град *</span>
-              <div className={fieldErrors.has("city") ? "rounded-2xl ring-2 ring-red-400" : ""}>
-                <SearchableSelect
-                  value={city}
-                  onChange={(v) => { setCity(v); setFieldErrors((prev) => { const n = new Set(prev); n.delete("city"); return n; }); }}
-                  options={BG_CITIES}
-                  placeholder="Например: София"
-                  size="md"
-                />
+            {/* ── Местоположение ── */}
+            <div className="space-y-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 lg:hidden">Местоположение</p>
+              <div ref={cityRef} className="space-y-2">
+                <span className={`block text-sm font-black ${fieldErrors.has("city") ? "text-red-600" : "text-blue-950"}`}>
+                  Град *
+                </span>
+                <div className={fieldErrors.has("city") ? "rounded-2xl ring-2 ring-red-400" : ""}>
+                  <SearchableSelect
+                    value={city}
+                    onChange={(v) => { setCity(v); setFieldErrors((prev) => { const n = new Set(prev); n.delete("city"); return n; }); }}
+                    options={BG_CITIES}
+                    placeholder="Избери град..."
+                    size="md"
+                  />
+                </div>
+                {fieldErrors.has("city") && (
+                  <p className="text-xs font-semibold text-red-500">Моля изберете град.</p>
+                )}
               </div>
             </div>
 
-            {/* Category-specific details panel */}
+            {/* ── Цена (mobile only) ── */}
+            <div className="space-y-3 lg:hidden">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Цена</p>
+              <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 shadow-sm transition focus-within:border-blue-950 focus-within:ring-4 focus-within:ring-blue-100">
+                <input
+                  value={price}
+                  onChange={(e) => { const v = e.target.value; if (/^\d*\.?\d*$/.test(v)) setPrice(v); }}
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="500"
+                  disabled={negotiable}
+                  className="w-full rounded-2xl bg-transparent px-4 py-3.5 text-base font-bold text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400 disabled:opacity-40"
+                />
+                <span className="mr-3 inline-flex items-center rounded-xl bg-white px-3 py-1.5 text-sm font-black text-blue-950 shadow-sm">€</span>
+              </div>
+              {/* Mobile toggle pills */}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setNegotiable(!negotiable); if (!negotiable) setPrice(""); }}
+                  className={`flex-1 rounded-2xl border py-3 text-xs font-black transition ${
+                    negotiable
+                      ? "border-blue-950 bg-blue-950 text-white"
+                      : "border-slate-200 bg-white text-slate-600 active:bg-slate-50"
+                  }`}
+                >
+                  По договаряне
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUrgent(!urgent)}
+                  className={`flex-1 rounded-2xl border py-3 text-xs font-black transition ${
+                    urgent
+                      ? "border-red-500 bg-red-50 text-red-700"
+                      : "border-slate-200 bg-white text-slate-600 active:bg-slate-50"
+                  }`}
+                >
+                  🔥 Спешна
+                </button>
+              </div>
+            </div>
+
+            {/* ── Детайли ── */}
             {CATEGORY_DETAILS[category] && (
-              <div ref={categoryDetailsRef}>
+              <div ref={categoryDetailsRef} className="space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 lg:hidden">Детайли</p>
                 <CategoryDetailFields
                   category={category}
                   details={details}
@@ -636,84 +770,156 @@ export default function PublishPage() {
               </div>
             )}
 
-            {/* Description */}
-            <label ref={descriptionRef} className="block space-y-2.5">
-              <span className={`block text-sm font-black ${fieldErrors.has("description") ? "text-red-600" : "text-blue-950"}`}>Описание *</span>
-              <textarea
-                value={description}
-                onChange={(e) => { setDescription(e.target.value); setFieldErrors((prev) => { const n = new Set(prev); n.delete("description"); return n; }); }}
-                rows={6}
-                placeholder="Опишете детайлно състоянието, характеристиките и допълнителните условия."
-                className={`w-full rounded-2xl border px-5 py-4 font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:ring-4 ${fieldErrors.has("description") ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100" : "border-slate-200 bg-slate-50 focus:border-blue-950 focus:ring-blue-100"}`}
-              />
-            </label>
-
-            {/* Images */}
-            <div className="rounded-[28px] border border-dashed border-blue-200 bg-blue-50/40 p-6 text-center">
-              <p className="text-base font-black text-blue-950">Снимки на обявата</p>
-              <p className="mt-2 text-sm font-semibold text-slate-500">
-                JPG, JPEG, PNG, WEBP · максимум 5MB на файл · до {imageLimit} снимки
-              </p>
-              <label className="mt-5 inline-flex cursor-pointer rounded-2xl bg-blue-950 px-6 py-3 text-sm font-black text-white shadow-lg transition hover:bg-blue-900">
-                Избери снимки
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  multiple
-                  className="hidden"
-                  onChange={handleImageChange}
+            {/* ── Описание ── */}
+            <div className="space-y-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 lg:hidden">Описание</p>
+              <label ref={descriptionRef} className="block space-y-2">
+                <span className={`text-sm font-black ${fieldErrors.has("description") ? "text-red-600" : "text-blue-950"}`}>
+                  Описание *
+                </span>
+                <textarea
+                  value={description}
+                  onChange={(e) => { setDescription(e.target.value); setFieldErrors((prev) => { const n = new Set(prev); n.delete("description"); return n; }); }}
+                  onInput={(e) => {
+                    const el = e.currentTarget;
+                    el.style.height = "auto";
+                    el.style.height = `${el.scrollHeight}px`;
+                  }}
+                  rows={4}
+                  placeholder="Опишете детайлно: за какво служи, в какво състояние е, защо продавате..."
+                  className={`w-full resize-none rounded-2xl border px-4 py-3.5 text-base font-bold text-slate-900 shadow-sm outline-none transition placeholder:font-normal placeholder:text-slate-400 focus:ring-4 lg:px-5 lg:py-4 lg:text-sm ${
+                    fieldErrors.has("description")
+                      ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100"
+                      : "border-slate-200 bg-slate-50 focus:border-blue-950 focus:ring-blue-100"
+                  }`}
                 />
+                {fieldErrors.has("description") && (
+                  <p className="text-xs font-semibold text-red-500">Минимум 10 символа.</p>
+                )}
               </label>
-
-              {imagePreviewUrls.length > 0 ? (
-                <>
-                  <p className={`mt-4 text-sm font-black ${selectedImages.length >= imageLimit ? "text-red-600" : "text-slate-500"}`}>
-                    {selectedImages.length} / {imageLimit} снимки
-                  </p>
-                  <div className="mt-2 grid gap-3 sm:grid-cols-3">
-                    {imagePreviewUrls.map((url, index) => (
-                      <div key={url} className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                        <img src={url} alt={`Preview ${index + 1}`} className="h-32 w-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition hover:bg-black/70 group-hover:opacity-100"
-                          aria-label="Изтрий снимка"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : null}
-
-              {uploadingImages ? (
-                <div className="mt-4 text-left">
-                  <div className="flex items-center justify-between text-sm font-bold text-slate-600">
-                    <span>Качване на снимки</span>
-                    <span>{uploadProgress}%</span>
-                  </div>
-                  <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
-                    <div
-                      className="h-full rounded-full bg-blue-950 transition-all duration-300"
-                      style={{ width: `${uploadProgress}%` }}
-                    />
-                  </div>
-                </div>
-              ) : null}
             </div>
 
+            {/* ── Снимки ── */}
+            <div className="space-y-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 lg:hidden">Снимки</p>
+              <div className={`rounded-2xl border-2 border-dashed p-4 lg:rounded-[28px] lg:p-6 ${
+                fieldErrors.has("images") ? "border-red-300 bg-red-50" : "border-slate-200 bg-slate-50 lg:border-blue-200 lg:bg-blue-50/40"
+              }`}>
+                {imagePreviewUrls.length === 0 ? (
+                  /* Empty state — whole area is tappable */
+                  <label className="block cursor-pointer">
+                    <div className="flex flex-col items-center justify-center gap-3 py-5 text-center">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-950/10 text-blue-950">
+                        <ImagePlus className="h-7 w-7" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-blue-950">Добави снимки</p>
+                        <p className="mt-1 text-xs font-semibold text-slate-500">JPG, PNG, WEBP · до 5MB · до {imageLimit} бр.</p>
+                      </div>
+                      <span className="rounded-2xl bg-blue-950 px-6 py-2.5 text-sm font-black text-white shadow-sm transition active:bg-blue-900 hover:bg-blue-900">
+                        Избери снимки
+                      </span>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      className="hidden"
+                      onChange={handleImageChange}
+                    />
+                  </label>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className={`text-xs font-black ${selectedImages.length >= imageLimit ? "text-red-600" : "text-slate-500"}`}>
+                        {selectedImages.length} / {imageLimit} снимки
+                      </p>
+                      {selectedImages.length < imageLimit && (
+                        <label className="cursor-pointer rounded-xl bg-blue-950 px-3 py-1.5 text-xs font-black text-white transition active:bg-blue-900 hover:bg-blue-900">
+                          + Добави
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            multiple
+                            className="hidden"
+                            onChange={handleImageChange}
+                          />
+                        </label>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 lg:gap-3">
+                      {imagePreviewUrls.map((url, index) => (
+                        <div key={url} className="relative overflow-hidden rounded-xl bg-white shadow-sm">
+                          <img src={url} alt={`Снимка ${index + 1}`} className="aspect-square w-full object-cover" />
+                          {/* Delete button — always visible on mobile (no hover dependency) */}
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white transition active:bg-black/80 lg:opacity-0 lg:group-hover:opacity-100"
+                            aria-label="Изтрий снимка"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                          {index === 0 && (
+                            <span className="absolute bottom-1.5 left-1.5 rounded-full bg-blue-950/75 px-1.5 py-0.5 text-[9px] font-black text-white">
+                              Главна
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {uploadingImages && (
+                  <div className="mt-3 space-y-1.5">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-600">
+                      <span>Качване...</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+                      <div
+                        className="h-full rounded-full bg-blue-950 transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Desktop submit */}
             <button
               type="submit"
               disabled={loading || uploadingImages}
-              className="w-full rounded-2xl bg-blue-950 px-6 py-4 text-base font-black text-white shadow-lg transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
+              className="hidden w-full rounded-2xl bg-blue-950 px-6 py-4 text-base font-black text-white shadow-lg transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60 lg:block"
             >
               {loading ? "Публикуване..." : "Публикувай"}
             </button>
           </form>
         </div>
       </section>
+
+      {/* Mobile sticky submit — uses form= to submit the form from outside */}
+      {!publishedListing && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-100 bg-white/96 px-4 pt-3 backdrop-blur-md lg:hidden"
+          style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
+        >
+          <button
+            form="publish-form"
+            type="submit"
+            disabled={loading || uploadingImages}
+            className="w-full rounded-2xl bg-blue-950 py-4 text-base font-black text-white shadow-lg transition active:bg-blue-900 disabled:opacity-60"
+          >
+            {loading
+              ? "Публикуване..."
+              : uploadingImages
+              ? `Качване ${uploadProgress}%`
+              : "Публикувай обявата →"}
+          </button>
+        </div>
+      )}
     </main>
   );
 }
