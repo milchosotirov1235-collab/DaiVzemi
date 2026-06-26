@@ -602,8 +602,8 @@ export default function ListingPageClient({ id }: { id: string }) {
         <div className="mx-auto max-w-7xl px-6 py-10">
           <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
             <div className="space-y-5">
-              <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
-                <div className="h-[420px] w-full animate-pulse bg-slate-200" />
+              <div className="-mx-4 overflow-hidden sm:-mx-6 lg:mx-0 lg:rounded-3xl lg:shadow-sm lg:ring-1 lg:ring-slate-200">
+                <div className="h-[300px] w-full animate-pulse bg-slate-200 lg:h-[420px]" />
               </div>
               <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 space-y-4">
                 <div className="h-5 w-1/4 animate-pulse rounded-full bg-slate-200" />
@@ -704,14 +704,14 @@ export default function ListingPageClient({ id }: { id: string }) {
   // ── Main render ──────────────────────────────────────────────────────────
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-20 lg:pb-0">
+    <main className="min-h-screen bg-slate-50 pb-28 lg:pb-0">
       <Header />
       {isEmailVerified === false && <UnverifiedBanner />}
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
 
-        {/* Breadcrumb */}
-        <nav className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500">
+        {/* Breadcrumb — desktop only; mobile uses floating back button in gallery */}
+        <nav className="mb-6 hidden items-center gap-2 text-sm font-semibold text-slate-500 lg:flex">
           <Link href="/listings" className="hover:text-blue-950">Обяви</Link>
           {listing.category && (
             <>
@@ -758,16 +758,54 @@ export default function ListingPageClient({ id }: { id: string }) {
           {/* ── LEFT ── */}
           <div className="space-y-5">
 
-            {/* GALLERY */}
-            <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
+            {/* GALLERY — full-bleed on mobile, card on desktop */}
+            <div className="-mx-4 overflow-hidden sm:-mx-6 lg:mx-0 lg:rounded-3xl lg:bg-white lg:shadow-sm lg:ring-1 lg:ring-slate-200">
               <div className="relative bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900">
+
+                {/* Mobile: floating back + share + heart — sits above the image */}
+                <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-3 lg:hidden">
+                  <Link
+                    href="/listings"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95"
+                    aria-label="Назад"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Link>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const url = window.location.href;
+                        if (navigator.share) {
+                          try { await navigator.share({ title: listing.title, text: `${listing.title} — DaiVzemi`, url }); return; } catch {}
+                        }
+                        setShareOpen((o) => !o);
+                      }}
+                      className="flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95"
+                      aria-label="Сподели"
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={toggleFavorite}
+                      className={`flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition active:scale-95 ${
+                        isFavorite ? "bg-red-500 text-white" : "bg-black/40 text-white"
+                      }`}
+                      aria-label={isFavorite ? "Премахни от любими" : "Добави в любими"}
+                    >
+                      <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
+                    </button>
+                  </div>
+                </div>
+
                 {hasImages && mainImage ? (
                   <>
                     <button type="button" onClick={() => setIsModalOpen(true)} className="block w-full">
                       <img
                         src={mainImage}
                         alt={listing.title}
-                        className="h-[400px] w-full object-cover sm:h-[500px]"
+                        className="h-[300px] w-full object-cover sm:h-[420px] lg:h-[500px]"
                       />
                     </button>
                     {hasMultipleImages && (
@@ -775,7 +813,7 @@ export default function ListingPageClient({ id }: { id: string }) {
                         <button
                           type="button"
                           onClick={goToPreviousImage}
-                          className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/50 text-white backdrop-blur transition hover:bg-slate-950/75"
+                          className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95 hover:bg-black/60"
                           aria-label="Предишна снимка"
                         >
                           <ChevronLeft className="h-5 w-5" />
@@ -783,19 +821,33 @@ export default function ListingPageClient({ id }: { id: string }) {
                         <button
                           type="button"
                           onClick={goToNextImage}
-                          className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/50 text-white backdrop-blur transition hover:bg-slate-950/75"
+                          className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95 hover:bg-black/60"
                           aria-label="Следваща снимка"
                         >
                           <ChevronRight className="h-5 w-5" />
                         </button>
-                        <div className="absolute bottom-3 right-3 rounded-full bg-slate-950/60 px-3 py-1 text-xs font-bold text-white backdrop-blur">
+                        {/* Mobile: dot indicators */}
+                        <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 lg:hidden">
+                          {images.map((_, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => setSelectedImageIndex(i)}
+                              className={`h-1.5 rounded-full transition-all ${
+                                i === selectedImageIndex ? "w-5 bg-white" : "w-1.5 bg-white/50"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        {/* Desktop: text counter */}
+                        <div className="absolute bottom-3 right-3 hidden rounded-full bg-slate-950/60 px-3 py-1 text-xs font-bold text-white backdrop-blur lg:block">
                           {selectedImageIndex + 1} / {images.length}
                         </div>
                       </>
                     )}
                   </>
                 ) : (
-                  <div className="relative flex h-[400px] items-center justify-center text-8xl sm:h-[500px]">
+                  <div className="relative flex h-[300px] items-center justify-center text-8xl sm:h-[420px] lg:h-[500px]">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent)]" />
                     <span className="relative z-10">{placeholderEmoji}</span>
                   </div>
@@ -804,29 +856,69 @@ export default function ListingPageClient({ id }: { id: string }) {
 
               {/* Thumbnail strip */}
               {hasImages && images.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto p-3 sm:grid sm:grid-cols-8 sm:overflow-visible">
+                <div className="flex gap-2 overflow-x-auto bg-white p-3 lg:grid lg:grid-cols-8 lg:overflow-visible" style={{ scrollbarWidth: "none" }}>
                   {images.map((img, idx) => (
                     <button
                       key={`${img}-${idx}`}
                       type="button"
                       onClick={() => setSelectedImageIndex(idx)}
-                      className={`shrink-0 overflow-hidden rounded-xl border-2 transition sm:shrink ${
+                      className={`shrink-0 overflow-hidden rounded-xl border-2 transition lg:shrink ${
                         selectedImageIndex === idx
                           ? "border-blue-950 ring-2 ring-blue-950/20"
                           : "border-transparent hover:border-slate-300"
                       }`}
                     >
-                      <img src={img} alt="" className="h-14 w-14 object-cover sm:h-12 sm:w-full" />
+                      <img src={img} alt="" className="h-14 w-14 object-cover lg:h-12 lg:w-full" />
                     </button>
                   ))}
                 </div>
               )}
             </div>
 
+            {/* Mobile compact seller trust row — shows right after gallery */}
+            {seller && (
+              <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-sm ring-1 ring-slate-100 lg:hidden">
+                {seller.avatar_url ? (
+                  <img
+                    src={seller.avatar_url}
+                    alt={sellerDisplayName}
+                    className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-950 text-sm font-black text-white">
+                    {sellerAvatarLetter}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <Link href={`/user/${seller.id}`} className="truncate text-sm font-black text-slate-900 hover:text-blue-950">
+                    {sellerDisplayName}
+                  </Link>
+                  <p className="text-xs text-slate-500">
+                    {[seller.city, seller.created_at ? `Активен от ${formatMonthYear(seller.created_at)}` : null]
+                      .filter(Boolean).join(" · ")}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col gap-1">
+                  {seller.phone && (
+                    <span className="flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700 ring-1 ring-green-200">
+                      <Check className="h-2.5 w-2.5" />
+                      Тел.
+                    </span>
+                  )}
+                  {seller.avatar_url && (
+                    <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 ring-1 ring-blue-200">
+                      <Check className="h-2.5 w-2.5" />
+                      Google
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* TITLE + PRICE */}
-            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <div className="rounded-2xl bg-white px-4 py-4 shadow-sm ring-1 ring-slate-100 lg:rounded-3xl lg:p-6 lg:ring-slate-200">
               {/* Type / category chips + share */}
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 lg:mb-4">
                 <div className="flex flex-wrap gap-2">
                   {listing.listing_type && (
                     <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700 ring-1 ring-blue-100">
@@ -840,8 +932,8 @@ export default function ListingPageClient({ id }: { id: string }) {
                   )}
                 </div>
 
-                {/* Share button */}
-                <div className="relative">
+                {/* Share button — desktop only (mobile uses gallery overlay) */}
+                <div className="relative hidden lg:block">
                   <button
                     type="button"
                     onClick={async () => {
@@ -907,12 +999,12 @@ export default function ListingPageClient({ id }: { id: string }) {
                 </div>
               </div>
 
-              <h1 className="text-2xl font-black leading-tight text-slate-900 sm:text-3xl">
+              <h1 className="text-xl font-black leading-tight text-slate-900 sm:text-2xl lg:text-3xl">
                 {listing.title}
               </h1>
 
-              <div className="mt-4 flex flex-wrap items-baseline gap-3">
-                <p className="text-3xl font-black text-blue-950 sm:text-4xl">
+              <div className="mt-3 flex flex-wrap items-baseline gap-3 lg:mt-4">
+                <p className="text-2xl font-black text-blue-950 sm:text-3xl lg:text-4xl">
                   {formatDualPrice(listing.price)}
                 </p>
                 {(listing.details as Record<string, string> | null)?.negotiable === "yes" && (
@@ -931,7 +1023,7 @@ export default function ListingPageClient({ id }: { id: string }) {
                 );
               })()}
 
-              <div className="mt-4 flex flex-wrap gap-4 text-xs font-semibold text-slate-500">
+              <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-slate-500 lg:mt-4 lg:gap-4">
                 {listing.city && (
                   <span className="flex items-center gap-1.5">
                     <MapPin className="h-3.5 w-3.5" />
@@ -953,8 +1045,8 @@ export default function ListingPageClient({ id }: { id: string }) {
             </div>
 
             {/* DESCRIPTION */}
-            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-              <h2 className="mb-3 text-base font-black text-slate-900">Описание</h2>
+            <div className="rounded-2xl bg-white px-4 py-4 shadow-sm ring-1 ring-slate-100 lg:rounded-3xl lg:p-6 lg:ring-slate-200">
+              <h2 className="mb-3 text-sm font-black text-slate-900 lg:text-base">Описание</h2>
               {(() => {
                 const text = listing.description || "";
                 const LIMIT = 500;
@@ -980,13 +1072,13 @@ export default function ListingPageClient({ id }: { id: string }) {
 
             {/* DETAILS — JSONB */}
             {detailEntries.length > 0 && (
-              <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                <h2 className="mb-5 text-base font-black text-slate-900">Характеристики</h2>
-                <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+              <div className="rounded-2xl bg-white px-4 py-4 shadow-sm ring-1 ring-slate-100 lg:rounded-3xl lg:p-6 lg:ring-slate-200">
+                <h2 className="mb-4 text-sm font-black text-slate-900 lg:mb-5 lg:text-base">Характеристики</h2>
+                <dl className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:gap-x-6 lg:gap-y-4">
                   {detailEntries.map(([label, value]) => (
-                    <div key={label} className="rounded-xl bg-slate-50 px-4 py-3">
-                      <dt className="text-[10px] font-black uppercase tracking-wider text-slate-500">{label}</dt>
-                      <dd className="mt-1 text-sm font-bold text-slate-900">{value}</dd>
+                    <div key={label} className="rounded-xl bg-slate-50 px-3 py-2.5 lg:px-4 lg:py-3">
+                      <dt className="text-[10px] font-black uppercase tracking-wider text-slate-400">{label}</dt>
+                      <dd className="mt-0.5 text-sm font-bold text-slate-900">{value}</dd>
                     </div>
                   ))}
                 </dl>
@@ -1066,8 +1158,8 @@ export default function ListingPageClient({ id }: { id: string }) {
             )}
           </div>
 
-          {/* ── RIGHT — STICKY SIDEBAR ── */}
-          <div className="space-y-4 lg:sticky lg:top-24">
+          {/* ── RIGHT — STICKY SIDEBAR (desktop only) ── */}
+          <div className="hidden space-y-4 lg:block lg:sticky lg:top-24">
 
             {/* SELLER CARD */}
             {seller && (
@@ -1241,9 +1333,9 @@ export default function ListingPageClient({ id }: { id: string }) {
 
         {/* SIMILAR LISTINGS */}
         {similar.length > 0 && (
-          <section className="mt-14">
-            <div className="mb-5 flex items-center justify-between gap-4">
-              <h2 className="text-lg font-black text-slate-900">Подобни обяви</h2>
+          <section className="mt-8 lg:mt-14">
+            <div className="mb-4 flex items-center justify-between gap-4 lg:mb-5">
+              <h2 className="text-base font-black text-slate-900 lg:text-lg">Подобни обяви</h2>
               {listing.category && (
                 <Link
                   href={`/listings?category=${encodeURIComponent(listing.category)}`}
@@ -1253,20 +1345,32 @@ export default function ListingPageClient({ id }: { id: string }) {
                 </Link>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {/* Mobile: horizontal scroll */}
+            <div
+              className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:hidden"
+              style={{ scrollbarWidth: "none" }}
+            >
+              {similar.map((s) => (
+                <div key={s.id} className="w-40 shrink-0">
+                  <SimilarCard listing={s} />
+                </div>
+              ))}
+            </div>
+            {/* Desktop: grid */}
+            <div className="hidden grid-cols-3 gap-4 lg:grid">
               {similar.map((s) => <SimilarCard key={s.id} listing={s} />)}
             </div>
           </section>
         )}
 
         {/* SAFETY TIPS */}
-        <section className="mt-10">
-          <div className="rounded-[28px] bg-amber-50 p-6 ring-1 ring-amber-200">
-            <div className="mb-4 flex items-center gap-3">
-              <Shield className="h-5 w-5 shrink-0 text-amber-600" />
-              <h2 className="text-sm font-black text-amber-800">Съвети за безопасна сделка</h2>
+        <section className="mt-6 lg:mt-10">
+          <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200 lg:rounded-[28px] lg:p-6">
+            <div className="mb-3 flex items-center gap-2 lg:mb-4 lg:gap-3">
+              <Shield className="h-4 w-4 shrink-0 text-amber-600 lg:h-5 lg:w-5" />
+              <h2 className="text-xs font-black text-amber-800 lg:text-sm">Съвети за безопасна сделка</h2>
             </div>
-            <ul className="space-y-2 text-sm font-semibold text-amber-700">
+            <ul className="space-y-1.5 text-xs font-semibold text-amber-700 lg:space-y-2 lg:text-sm">
               <li>• Никога не плащайте предварително, без да сте видели стоката.</li>
               <li>• Срещайте се на обществено и оживено място.</li>
               <li>• Проверете стоката внимателно преди плащане.</li>
@@ -1280,36 +1384,43 @@ export default function ListingPageClient({ id }: { id: string }) {
 
       {/* MOBILE STICKY CONTACT BAR */}
       {!isOwner && seller && !isExpired && (
-        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-2xl backdrop-blur-sm lg:hidden">
-          <div className="mx-auto flex max-w-lg gap-3">
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-100 bg-white/96 px-4 pt-3 shadow-2xl backdrop-blur-md lg:hidden"
+          style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
+        >
+          <div className="mx-auto flex max-w-lg items-center gap-2.5">
+
+            {/* Message — primary, always flex-1 */}
             <button
               type="button"
               onClick={handleContactSeller}
               disabled={contactingLoading}
-              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-blue-950 px-4 py-3.5 text-sm font-black text-white transition hover:bg-blue-900 disabled:opacity-60"
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-blue-950 py-4 text-sm font-black text-white transition active:bg-blue-900 disabled:opacity-60"
             >
               {contactingLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <MessageCircle className="h-4 w-4" />
+                <MessageCircle className="h-[18px] w-[18px]" />
               )}
-              Изпрати съобщение
+              Съобщение
             </button>
+
+            {/* Phone section */}
             {phoneRevealed ? (
               seller.phone ? (
                 <>
                   <a
                     href={`tel:${seller.phone}`}
-                    className="flex shrink-0 items-center justify-center gap-2 rounded-2xl border border-blue-950 bg-white px-4 py-3.5 text-sm font-black text-blue-950 transition hover:bg-blue-50"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-white py-4 text-sm font-black text-slate-800 transition active:bg-slate-50"
                   >
-                    <Phone className="h-4 w-4" />
-                    <span className="max-w-[100px] truncate">{seller.phone}</span>
+                    <Phone className="h-4 w-4 text-green-600 shrink-0" />
+                    <span className="max-w-[90px] truncate">{seller.phone}</span>
                   </a>
                   <a
                     href={`viber://contact?number=${encodeURIComponent(seller.phone.replace(/\s/g, ""))}`}
-                    className="flex shrink-0 items-center justify-center gap-2 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3.5 text-sm font-black text-violet-700 transition hover:bg-violet-100"
+                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 text-xl text-violet-700 transition active:bg-violet-100"
                   >
-                    <span className="text-base leading-none">📲</span>
+                    📲
                   </a>
                 </>
               ) : null
@@ -1323,9 +1434,10 @@ export default function ListingPageClient({ id }: { id: string }) {
                   }
                   setPhoneRevealed(true);
                 }}
-                className="flex shrink-0 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-black text-slate-700 transition hover:border-blue-950 hover:text-blue-950"
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition active:bg-slate-50"
+                aria-label="Покажи телефона"
               >
-                <Phone className="h-4 w-4" />
+                <Phone className="h-5 w-5" />
               </button>
             )}
           </div>
