@@ -387,16 +387,27 @@ export default function UserProfilePage() {
               <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-5">
                 <p className="mb-3 text-sm font-black text-slate-900">Докладвай потребател</p>
                 <div className="space-y-3">
-                  <select
-                    value={reportReason}
-                    onChange={(e) => setReportReason(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 outline-none focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 sm:w-72"
-                  >
-                    <option value="">Изберете причина</option>
+                  <div className="space-y-2">
                     {REPORT_REASONS.map((r) => (
-                      <option key={r} value={r}>{r}</option>
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setReportReason(r)}
+                        className={`flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-left text-sm font-semibold transition ${
+                          reportReason === r
+                            ? "bg-blue-950 text-white"
+                            : "bg-white text-slate-700 ring-1 ring-slate-200 active:bg-slate-50"
+                        }`}
+                      >
+                        <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
+                          reportReason === r ? "border-white" : "border-slate-300"
+                        }`}>
+                          {reportReason === r && <div className="h-2 w-2 rounded-full bg-white" />}
+                        </div>
+                        {r}
+                      </button>
                     ))}
-                  </select>
+                  </div>
 
                   <textarea
                     value={reportDescription}

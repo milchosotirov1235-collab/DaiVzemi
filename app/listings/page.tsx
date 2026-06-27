@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
-import { BookMarked, Camera, ChevronDown, Heart, LayoutGrid, LayoutList, Loader2, Search, SlidersHorizontal, X } from "lucide-react";
+import { BookMarked, Camera, Check, ChevronDown, Heart, LayoutGrid, LayoutList, Loader2, Search, SlidersHorizontal, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
@@ -683,6 +683,7 @@ function ListingsPageContent() {
 
   // Sort
   const [sort, setSort] = useState(searchParams.get("sort") ?? "newest");
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   // Generic filters
   const [searchInput, setSearchInput] = useState(searchParams.get("search") ?? "");
@@ -2138,22 +2139,46 @@ function ListingsPageContent() {
           </p>
           <div className="flex items-center gap-2 lg:gap-3">
             <span className="hidden text-sm font-semibold text-slate-500 lg:inline">Сортиране:</span>
-            <select
-              value={sort}
-              onChange={(e) => {
-                const newSort = e.target.value;
-                setSort(newSort);
-                const params = new URLSearchParams(searchParams.toString());
-                if (newSort === "newest") params.delete("sort");
-                else params.set("sort", newSort);
-                router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
-              }}
-              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-900 outline-none focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 lg:px-3 lg:py-2 lg:text-sm"
-            >
-              <option value="newest">Най-нови</option>
-              <option value="cheapest">Най-евтини</option>
-              <option value="priciest">Най-скъпи</option>
-            </select>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowSortMenu((v) => !v)}
+                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-900 transition hover:border-slate-300 lg:px-3 lg:py-2 lg:text-sm"
+              >
+                {({ newest: "Най-нови", cheapest: "Най-евтини", priciest: "Най-скъпи" } as Record<string, string>)[sort] ?? "Сортиране"}
+                <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${showSortMenu ? "rotate-180" : ""}`} />
+              </button>
+              {showSortMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowSortMenu(false)} />
+                  <div className="absolute right-0 top-full z-20 mt-1.5 min-w-[140px] overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200">
+                    {(["newest", "cheapest", "priciest"] as const).map((value) => {
+                      const label = { newest: "Най-нови", cheapest: "Най-евтини", priciest: "Най-скъпи" }[value];
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => {
+                            const params = new URLSearchParams(searchParams.toString());
+                            if (value === "newest") params.delete("sort");
+                            else params.set("sort", value);
+                            setSort(value);
+                            setShowSortMenu(false);
+                            router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
+                          }}
+                          className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition hover:bg-slate-50 ${
+                            sort === value ? "font-black text-blue-950" : "font-semibold text-slate-700"
+                          }`}
+                        >
+                          {label}
+                          {sort === value && <Check className="h-3.5 w-3.5 shrink-0 text-blue-950" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
             {/* View toggle — desktop only */}
             <div className="hidden items-center rounded-xl border border-slate-200 bg-white p-1 lg:flex">
               <button
