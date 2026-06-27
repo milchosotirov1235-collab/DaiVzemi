@@ -2226,10 +2226,10 @@ function ListingsPageContent() {
                   </div>
                 </div>
               ) : (
-                <div key={i} className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
-                  <div className="h-52 w-full animate-pulse bg-slate-200" />
-                  <div className="space-y-4 p-6">
-                    <div className="h-5 w-16 animate-pulse rounded-full bg-slate-200" />
+                <div key={i} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                  <div className="h-44 w-full animate-pulse bg-slate-200" />
+                  <div className="space-y-2.5 p-4">
+                    <div className="h-4 w-16 animate-pulse rounded-full bg-slate-200" />
                     <div className="space-y-2">
                       <div className="h-7 w-5/6 animate-pulse rounded-full bg-slate-200" />
                       <div className="h-7 w-2/5 animate-pulse rounded-full bg-slate-200" />
@@ -2379,7 +2379,7 @@ function ListingsPageContent() {
               return (
                 <article
                   key={listing.id}
-                  className="group cursor-pointer overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+                  className="group cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-[2px] hover:shadow-md"
                 >
                   <Link href={`/listing/${listing.id}`} className="block">
                     <div className="relative">
@@ -2387,10 +2387,10 @@ function ListingsPageContent() {
                         <img
                           src={cardImage}
                           alt={listing.title}
-                          className="h-52 w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                          className="h-44 w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                         />
                       ) : (
-                        <div className="flex h-52 items-center justify-center bg-blue-950 text-5xl text-white transition duration-300 group-hover:bg-blue-900">
+                        <div className="flex h-44 items-center justify-center bg-blue-950 text-4xl text-white transition duration-300 group-hover:bg-blue-900">
                           {listing.category ? fallbackImageByCategory[listing.category] ?? "📦" : "📦"}
                         </div>
                       )}
@@ -2398,37 +2398,37 @@ function ListingsPageContent() {
                         type="button"
                         onClick={(e) => toggleFavorite(e, listing.id)}
                         aria-label={favoriteIds.has(listing.id) ? "Премахни от любими" : "Добави в любими"}
-                        className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full shadow-md transition ${
+                        className={`absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full shadow-md transition ${
                           favoriteIds.has(listing.id)
                             ? "bg-red-500 text-white"
                             : "bg-white/85 text-slate-400 hover:text-red-500"
                         }`}
                       >
-                        <Heart className={`h-4 w-4 ${favoriteIds.has(listing.id) ? "fill-current" : ""}`} />
+                        <Heart className={`h-3.5 w-3.5 ${favoriteIds.has(listing.id) ? "fill-current" : ""}`} />
                       </button>
                       {(listing.image_urls?.filter(Boolean).length ?? 0) > 1 && (
-                        <span className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-slate-950/60 px-2 py-1 text-xs font-bold text-white backdrop-blur">
+                        <span className="absolute bottom-2.5 left-2.5 flex items-center gap-1 rounded-full bg-slate-950/60 px-2 py-0.5 text-[11px] font-bold text-white backdrop-blur">
                           <Camera className="h-3 w-3" />
                           {listing.image_urls!.filter(Boolean).length}
                         </span>
                       )}
                     </div>
 
-                    <div className="space-y-4 p-6">
-                      <div className="flex flex-wrap items-center gap-2">
+                    <div className="space-y-2.5 p-4">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         {isNew && (
-                          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
+                          <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-200">
                             Нов
                           </span>
                         )}
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-950">
+                        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-950">
                           {listing.listing_type ?? "Обява"}
                         </span>
                         {!isNew && (() => {
                           const badge = conditionBadge(d.condition);
                           if (!badge) return null;
                           return (
-                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${badge.cls}`}>
+                            <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ${badge.cls}`}>
                               {badge.label}
                             </span>
                           );
@@ -2436,32 +2436,32 @@ function ListingsPageContent() {
                       </div>
 
                       <div>
-                        <h2 className="text-2xl font-black text-slate-950">{listing.title}</h2>
-                        <div className="mt-2 flex flex-wrap items-baseline gap-2">
-                          <p className="text-2xl font-black text-blue-950">
+                        <h2 className="line-clamp-2 text-[15px] font-black leading-snug text-slate-950">{listing.title}</h2>
+                        <div className="mt-1 flex flex-wrap items-baseline gap-2">
+                          <p className="text-base font-extrabold text-blue-950">
                             {formatDualPrice(listing.price)}
                           </p>
                         </div>
-                        {sqmPrice && <p className="mt-0.5 text-sm font-semibold text-slate-400">{sqmPrice}</p>}
+                        {sqmPrice && <p className="text-xs font-semibold text-slate-400">{sqmPrice}</p>}
                       </div>
 
-                      <div className="flex flex-wrap gap-2 text-sm text-slate-600">
-                        <span className="rounded-full bg-slate-100 px-3 py-1">
+                      <div className="flex flex-wrap gap-1.5 text-xs text-slate-600">
+                        <span className="rounded-full bg-slate-100 px-2.5 py-0.5">
                           {listing.city ?? "Без град"}
                         </span>
-                        <span className="rounded-full bg-slate-100 px-3 py-1">
+                        <span className="rounded-full bg-slate-100 px-2.5 py-0.5">
                           {listing.category ?? "Без категория"}
                         </span>
                       </div>
 
-                      <p className="text-sm text-slate-500">{formatDate(listing.created_at)}</p>
+                      <p className="text-xs text-slate-400">{formatDate(listing.created_at)}</p>
                     </div>
                   </Link>
 
-                  <div className="px-6 pb-6">
+                  <div className="px-4 pb-4">
                     <Link
                       href={`/listing/${listing.id}`}
-                      className="inline-flex w-full items-center justify-center rounded-2xl bg-blue-950 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-900"
+                      className="inline-flex w-full items-center justify-center rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-black text-white transition hover:bg-blue-900"
                     >
                       Виж обявата
                     </Link>
