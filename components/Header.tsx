@@ -560,9 +560,9 @@ export default function Header() {
             <Link
               key={label}
               href={`/listings?category=${encodeURIComponent(label)}`}
-              className="flex shrink-0 flex-col items-center gap-0.5 px-3 py-2 text-center text-[11px] font-bold text-white/65 transition hover:bg-white/10 hover:text-white xl:px-4"
+              className="flex shrink-0 flex-col items-center gap-1 px-3.5 py-2.5 text-center text-[13px] font-bold text-white/70 transition hover:bg-white/10 hover:text-white xl:px-5"
             >
-              <Icon className="h-4 w-4" strokeWidth={1.8} />
+              <Icon className="h-5 w-5" strokeWidth={1.8} />
               <span className="whitespace-nowrap">{label}</span>
             </Link>
           ))}
