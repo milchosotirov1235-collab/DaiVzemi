@@ -37,6 +37,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { BG_CITIES } from "@/lib/data/cities";
 
 type UserProfile = {
   username: string | null;
@@ -146,6 +147,7 @@ export default function Header() {
   const [searchTerm, setSearchTerm] = useState("");
   const [locationCity, setLocationCity] = useState("");
   const [showLocationMenu, setShowLocationMenu] = useState(false);
+  const [citySearch, setCitySearch] = useState("");
   const [scrolled, setScrolled] = useState(false);
 
   const router = useRouter();
@@ -355,7 +357,7 @@ export default function Header() {
           <div className="relative shrink-0 border-l border-white/20" ref={locationMenuRef}>
             <button
               type="button"
-              onClick={() => setShowLocationMenu((v) => !v)}
+              onClick={() => { setShowLocationMenu((v) => !v); setCitySearch(""); }}
               className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:text-white"
             >
               <MapPin className="h-3.5 w-3.5 shrink-0 text-white/50" />
@@ -365,35 +367,95 @@ export default function Header() {
 
             {showLocationMenu && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowLocationMenu(false)} />
-                <div className="absolute right-0 top-full z-20 mt-2 w-52 overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
-                  <div className="p-2">
-                    <button
-                      type="button"
-                      onClick={() => { setLocationCity(""); setShowLocationMenu(false); }}
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm transition hover:bg-slate-50 ${
-                        locationCity === "" ? "font-black text-blue-950" : "font-semibold text-slate-700"
-                      }`}
-                    >
-                      🇧🇬 Цяла България
-                      {locationCity === "" && <Check className="h-4 w-4 text-blue-950" />}
-                    </button>
-                    <p className="px-3 pb-1.5 pt-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                      Популярни градове
-                    </p>
-                    {POPULAR_CITIES.map((c) => (
+                <div className="fixed inset-0 z-10" onClick={() => { setShowLocationMenu(false); setCitySearch(""); }} />
+                <div className="absolute right-0 top-full z-20 mt-2 flex w-64 flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+                  {/* Search input */}
+                  <div className="border-b border-slate-100 p-2">
+                    <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200 focus-within:ring-blue-300">
+                      <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                      <input
+                        type="text"
+                        value={citySearch}
+                        onChange={(e) => setCitySearch(e.target.value)}
+                        placeholder="Търси град..."
+                        autoFocus
+                        className="flex-1 bg-transparent text-sm font-semibold text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400"
+                      />
+                      {citySearch && (
+                        <button type="button" onClick={() => setCitySearch("")} className="text-slate-400 hover:text-slate-600">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* City list */}
+                  <div className="max-h-72 overflow-y-auto overscroll-contain p-1.5">
+                    {/* Цяла България — always first when not filtering */}
+                    {!citySearch.trim() && (
+                      <button
+                        type="button"
+                        onClick={() => { setLocationCity(""); setShowLocationMenu(false); setCitySearch(""); }}
+                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm transition hover:bg-slate-50 ${
+                          locationCity === "" ? "font-black text-blue-950" : "font-semibold text-slate-600"
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="text-base">🇧🇬</span>
+                          Цяла България
+                        </span>
+                        {locationCity === "" && <Check className="h-4 w-4 shrink-0 text-blue-950" />}
+                      </button>
+                    )}
+
+                    {/* Popular cities section (hidden while searching) */}
+                    {!citySearch.trim() && (
+                      <>
+                        <p className="px-3 pb-1 pt-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          Популярни
+                        </p>
+                        {POPULAR_CITIES.map((c) => (
+                          <button
+                            key={`pop-${c}`}
+                            type="button"
+                            onClick={() => { setLocationCity(c); setShowLocationMenu(false); setCitySearch(""); }}
+                            className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm transition hover:bg-slate-50 ${
+                              locationCity === c ? "font-black text-blue-950" : "font-semibold text-slate-700"
+                            }`}
+                          >
+                            {c}
+                            {locationCity === c && <Check className="h-4 w-4 shrink-0 text-blue-950" />}
+                          </button>
+                        ))}
+                        <div className="mx-2 my-1.5 border-t border-slate-100" />
+                        <p className="px-3 pb-1 pt-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          Всички градове
+                        </p>
+                      </>
+                    )}
+
+                    {/* Filtered / full list */}
+                    {(citySearch.trim()
+                      ? BG_CITIES.filter((c) => c.toLowerCase().includes(citySearch.toLowerCase()))
+                      : BG_CITIES
+                    ).map((c) => (
                       <button
                         key={c}
                         type="button"
-                        onClick={() => { setLocationCity(c); setShowLocationMenu(false); }}
+                        onClick={() => { setLocationCity(c); setShowLocationMenu(false); setCitySearch(""); }}
                         className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm transition hover:bg-slate-50 ${
                           locationCity === c ? "font-black text-blue-950" : "font-semibold text-slate-700"
                         }`}
                       >
                         {c}
-                        {locationCity === c && <Check className="h-4 w-4 text-blue-950" />}
+                        {locationCity === c && <Check className="h-4 w-4 shrink-0 text-blue-950" />}
                       </button>
                     ))}
+
+                    {citySearch.trim() &&
+                      BG_CITIES.filter((c) => c.toLowerCase().includes(citySearch.toLowerCase())).length === 0 && (
+                      <p className="px-3 py-4 text-center text-sm text-slate-400">Няма намерени градове</p>
+                    )}
                   </div>
                 </div>
               </>
