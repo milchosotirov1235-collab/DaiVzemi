@@ -369,36 +369,44 @@ export default function Header() {
           />
         </Link>
 
-        {/* Search bar — desktop only */}
-        <div className="hidden flex-1 items-center overflow-hidden rounded-xl bg-white/10 ring-1 ring-white/20 transition focus-within:bg-white/15 focus-within:ring-white/40 lg:flex">
-          <Search className="ml-3 h-4 w-4 shrink-0 text-white/50" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
-            placeholder="Какво търсите?"
-            className="flex-1 bg-transparent px-3 py-2.5 text-sm font-semibold text-white outline-none placeholder:font-normal placeholder:text-white/40"
-          />
+        {/* Search bar — desktop only.
+            Outer div is `relative` so the city dropdown can escape the
+            overflow-hidden pill and render below without being clipped. */}
+        <div className="relative hidden flex-1 lg:flex" ref={locationMenuRef}>
 
-          {/* Location selector */}
-          <div className="relative shrink-0 border-l border-white/20" ref={locationMenuRef}>
+          {/* Visual pill — overflow-hidden gives the rounded capsule shape */}
+          <div className="flex w-full items-center overflow-hidden rounded-xl bg-white/10 ring-1 ring-white/20 transition focus-within:bg-white/15 focus-within:ring-white/40">
+            <Search className="ml-3 h-4 w-4 shrink-0 text-white/50" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
+              placeholder="Какво търсите?"
+              className="flex-1 bg-transparent px-3 py-2.5 text-sm font-semibold text-white outline-none placeholder:font-normal placeholder:text-white/40"
+            />
+
+            {/* City selector trigger — visually part of the pill */}
             <button
               type="button"
               onClick={() => { setShowLocationMenu((v) => !v); setCitySearch(""); }}
-              className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:text-white"
+              className="flex shrink-0 items-center gap-1.5 border-l border-white/20 px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
             >
               <MapPin className="h-3.5 w-3.5 shrink-0 text-white/50" />
               <span className="max-w-[120px] truncate">{locationCity || "Цяла България"}</span>
               <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-white/50 transition-transform duration-200 ${showLocationMenu ? "rotate-180" : ""}`} />
             </button>
+          </div>
 
-            {showLocationMenu && (
+          {/* City dropdown — sibling of the pill, outside overflow-hidden */}
+          {showLocationMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => { setShowLocationMenu(false); setCitySearch(""); }} />
               <div className="absolute right-0 top-[calc(100%+8px)] z-50 flex w-64 flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200/80">
 
-                {/* Search input */}
+                {/* City search input */}
                 <div className="border-b border-slate-100 p-2">
-                  <label className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200 focus-within:ring-blue-400 transition">
+                  <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200 focus-within:ring-blue-400 transition">
                     <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                     <input
                       ref={citySearchRef}
@@ -413,12 +421,11 @@ export default function Header() {
                         <X className="h-3.5 w-3.5" />
                       </button>
                     )}
-                  </label>
+                  </div>
                 </div>
 
                 {/* City list */}
                 <div className="max-h-72 overflow-y-auto overscroll-contain p-1.5">
-                  {/* "Цяла България" — always visible when not filtering */}
                   {!citySearch && (
                     <button
                       type="button"
@@ -432,7 +439,6 @@ export default function Header() {
                     </button>
                   )}
 
-                  {/* Popular section */}
                   {!citySearch && (
                     <>
                       <p className="px-3 pb-1 pt-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Популярни</p>
@@ -452,7 +458,6 @@ export default function Header() {
                     </>
                   )}
 
-                  {/* Filtered / full list */}
                   {BG_CITIES.filter((c) => cityMatches(c, citySearch)).map((c) => (
                     <button key={c} type="button"
                       onClick={() => { setLocationCity(c); setShowLocationMenu(false); setCitySearch(""); }}
@@ -465,14 +470,13 @@ export default function Header() {
                     </button>
                   ))}
 
-                  {/* Empty state */}
                   {citySearch && BG_CITIES.filter((c) => cityMatches(c, citySearch)).length === 0 && (
                     <p className="px-3 py-5 text-center text-sm text-slate-400">Няма намерени градове</p>
                   )}
                 </div>
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
 
         {/* Търси button — desktop only */}
