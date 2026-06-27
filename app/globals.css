@@ -53,6 +53,13 @@ select:disabled,
   cursor: not-allowed !important;
 }
 
+/* ── Custom animations ──────────────────────────────────────────────────────*/
+
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-14px); }
+}
+
 /* ── Stop cursor flicker on interactive elements ────────────────────────────
    Every SVG (and its child <path>/<circle>/etc.) inside a button or link has
    its own pointer hit-box. The browser re-evaluates the cursor each time the

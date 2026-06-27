@@ -146,6 +146,7 @@ export default function Header() {
   const [searchTerm, setSearchTerm] = useState("");
   const [locationCity, setLocationCity] = useState("");
   const [showLocationMenu, setShowLocationMenu] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const router = useRouter();
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -287,6 +288,12 @@ export default function Header() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setCurrentUserEmail(null);
@@ -311,7 +318,11 @@ export default function Header() {
   const triggerLabel = profile.username ?? "Профил";
 
   return (
-    <header className="sticky top-0 z-50 bg-blue-950 text-white shadow-xl shadow-blue-950/40 ring-1 ring-white/5">
+    <header className={`sticky top-0 z-50 text-white ring-1 ring-white/5 transition-all duration-300 ${
+      scrolled
+        ? "bg-blue-950/90 shadow-lg shadow-blue-950/30 backdrop-blur-md"
+        : "bg-blue-950 shadow-xl shadow-blue-950/40"
+    }`}>
 
       {/* ── Main row ─────────────────────────────────────────────────────── */}
       <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 lg:gap-3 lg:px-6 lg:py-3">
@@ -324,7 +335,7 @@ export default function Header() {
             width={320}
             height={90}
             priority
-            className="h-auto w-[130px] sm:w-[160px] lg:w-[170px]"
+            className="h-auto w-[140px] sm:w-[175px] lg:w-[210px]"
           />
         </Link>
 

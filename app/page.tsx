@@ -74,107 +74,116 @@ const TYPE_BADGE: Record<string, string> = {
   Продавам: "bg-blue-600",
 };
 
-// ── Bulgaria network map SVG ─────────────────────────────────────────────────
+// ── Constellation hero graphic ────────────────────────────────────────────────
 
-function BulgariaMap() {
-  const nodes: [number, number, string, number][] = [
-    [68, 108, "София",         0   ],
-    [138, 118, "Пловдив",      0.3 ],
-    [184, 106, "Ст. Загора",   0.6 ],
-    [246, 128, "Бургас",       0.9 ],
-    [254, 70,  "Варна",        1.2 ],
-    [223, 50,  "Шумен",        1.5 ],
-    [188, 32,  "Русе",         1.8 ],
-    [136, 50,  "Плевен",       2.1 ],
-    [28,  68,  "Видин",        2.4 ],
-    [74,  152, "Благоевград",  2.7 ],
-    [178, 146, "Хасково",      3.0 ],
-    [212, 110, "Сливен",       3.3 ],
+function ConstellationHero() {
+  // Node positions across a 520×480 canvas — loosely Bulgaria-shaped cluster
+  const nodes: [number, number, number][] = [
+    // [x, y, pulse-delay]
+    [ 80,  72, 0.0], [210,  40, 0.4], [355,  88, 0.8], [475,  52, 1.2],
+    [510, 195, 1.6], [488, 348, 2.0], [398, 445, 2.4], [248, 418, 2.8],
+    [105, 382, 3.2], [ 30, 248, 3.6], [155, 198, 0.2], [320, 248, 0.6],
+    [448, 295, 1.0], [375, 148, 1.4], [218, 295, 1.8], [480, 175, 2.2],
+    [145, 135, 2.6], [302, 362, 3.0], [438, 148, 3.4], [178, 338, 0.1],
+    [270, 165, 0.5], [410, 390, 0.9],
   ];
 
-  const edges: [number, number, number, number, number][] = [
-    [68, 108, 138, 118, 0   ],  // Sofia - Plovdiv
-    [68, 108, 136, 50,  0.4 ],  // Sofia - Pleven
-    [68, 108, 28,  68,  0.8 ],  // Sofia - Vidin
-    [68, 108, 74,  152, 1.2 ],  // Sofia - Blagoevgrad
-    [138, 118, 184, 106, 0.2],  // Plovdiv - Stara Zagora
-    [138, 118, 178, 146, 0.6],  // Plovdiv - Haskovo
-    [184, 106, 212, 110, 0.3],  // Stara Zagora - Sliven
-    [212, 110, 246, 128, 0.7],  // Sliven - Burgas
-    [246, 128, 254, 70,  0.5],  // Burgas - Varna
-    [254, 70,  223, 50,  0.9],  // Varna - Shumen
-    [223, 50,  188, 32,  1.3],  // Shumen - Ruse
-    [188, 32,  136, 50,  0.1],  // Ruse - Pleven
-    [136, 50,  184, 106, 1.6],  // Pleven - Stara Zagora
-    [178, 146, 74,  152, 1.1],  // Haskovo - Blagoevgrad (south)
+  const edges: [number, number][] = [
+    [0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],
+    [10,11],[11,12],[12,5],[11,13],[13,2],[14,7],[14,10],[15,4],[15,13],
+    [16,0],[16,10],[17,6],[17,11],[18,3],[18,13],[19,8],[19,14],
+    [20,1],[20,11],[20,13],[21,6],[21,12],
   ];
 
   return (
-    <svg viewBox="0 0 300 190" xmlns="http://www.w3.org/2000/svg" className="w-full drop-shadow-[0_0_24px_rgba(96,165,250,0.4)]">
-      {/* Glow filter */}
-      <defs>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
-          <feMerge>
-            <feMergeNode in="coloredBlur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-        <filter id="nodeglow">
-          <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-          <feMerge>
-            <feMergeNode in="coloredBlur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
+    <div
+      className="pointer-events-none select-none"
+      style={{ animation: "hero-float 8s ease-in-out infinite" }}
+    >
+      <svg
+        viewBox="0 0 520 480"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full"
+        aria-hidden="true"
+      >
+        <defs>
+          <filter id="cg">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
 
-      {/* Connection edges */}
-      {edges.map(([x1, y1, x2, y2, delay], i) => (
-        <line
-          key={i}
-          x1={x1} y1={y1} x2={x2} y2={y2}
-          stroke="#3b82f6"
-          strokeWidth="1"
-          strokeOpacity="0.5"
-          strokeDasharray="6 4"
-          filter="url(#glow)"
-        >
-          <animate
-            attributeName="stroke-dashoffset"
-            from="100"
-            to="0"
-            dur={`${3 + delay * 0.4}s`}
-            begin={`${delay}s`}
-            repeatCount="indefinite"
-          />
-          <animate
-            attributeName="stroke-opacity"
-            values="0.3;0.7;0.3"
-            dur={`${2.5 + delay * 0.3}s`}
-            begin={`${delay}s`}
-            repeatCount="indefinite"
-          />
-        </line>
-      ))}
+        {/* Connection lines */}
+        {edges.map(([a, b], i) => {
+          const [x1, y1] = nodes[a];
+          const [x2, y2] = nodes[b];
+          return (
+            <line
+              key={i}
+              x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke="#93c5fd"
+              strokeWidth="0.75"
+              strokeOpacity="0.35"
+              strokeDasharray="5 4"
+            >
+              <animate
+                attributeName="stroke-dashoffset"
+                from="90"
+                to="0"
+                dur={`${9 + i * 0.25}s`}
+                begin={`${(i * 0.18) % 4}s`}
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="stroke-opacity"
+                values="0.2;0.5;0.2"
+                dur={`${5 + i * 0.2}s`}
+                begin={`${(i * 0.15) % 3}s`}
+                repeatCount="indefinite"
+              />
+            </line>
+          );
+        })}
 
-      {/* City nodes */}
-      {nodes.map(([x, y, , delay], i) => (
-        <g key={i} filter="url(#nodeglow)">
-          {/* Outer pulse ring */}
-          <circle cx={x} cy={y} r="8" fill="#3b82f6" fillOpacity="0.12">
-            <animate attributeName="r" values="6;13;6" dur={`${2 + (delay as number) * 0.3}s`} begin={`${delay}s`} repeatCount="indefinite" />
-            <animate attributeName="fill-opacity" values="0.15;0.04;0.15" dur={`${2 + (delay as number) * 0.3}s`} begin={`${delay}s`} repeatCount="indefinite" />
-          </circle>
-          {/* Node dot */}
-          <circle cx={x} cy={y} r="3.5" fill="#93c5fd">
-            <animate attributeName="r" values="3;4.5;3" dur={`${2 + (delay as number) * 0.3}s`} begin={`${delay}s`} repeatCount="indefinite" />
-          </circle>
-          {/* Bright center */}
-          <circle cx={x} cy={y} r="1.5" fill="white" fillOpacity="0.95" />
-        </g>
-      ))}
-    </svg>
+        {/* Nodes */}
+        {nodes.map(([x, y, delay], i) => (
+          <g key={i} filter="url(#cg)">
+            {/* Outer pulse halo */}
+            <circle cx={x} cy={y} r="9" fill="#3b82f6" fillOpacity="0.1">
+              <animate
+                attributeName="r"
+                values="7;16;7"
+                dur={`${3.5 + (delay * 0.6)}s`}
+                begin={`${delay}s`}
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="fill-opacity"
+                values="0.12;0.03;0.12"
+                dur={`${3.5 + (delay * 0.6)}s`}
+                begin={`${delay}s`}
+                repeatCount="indefinite"
+              />
+            </circle>
+            {/* Node dot */}
+            <circle cx={x} cy={y} r="3" fill="#93c5fd" fillOpacity="0.85">
+              <animate
+                attributeName="r"
+                values="2.5;4;2.5"
+                dur={`${3.5 + (delay * 0.6)}s`}
+                begin={`${delay}s`}
+                repeatCount="indefinite"
+              />
+            </circle>
+            {/* White hot center */}
+            <circle cx={x} cy={y} r="1.2" fill="white" fillOpacity="0.9" />
+          </g>
+        ))}
+      </svg>
+    </div>
   );
 }
 
@@ -353,9 +362,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Desktop hero — three columns */}
-        <div className="mx-auto hidden max-w-7xl items-center gap-10 px-6 py-14 lg:grid lg:grid-cols-[1fr_300px_1fr] xl:gap-14 xl:py-16">
-          {/* Left: headline + action pills */}
+        {/* Desktop hero — two columns */}
+        <div className="mx-auto hidden max-w-7xl items-center gap-10 px-6 py-14 lg:grid lg:grid-cols-[1fr_1fr] xl:gap-16 xl:py-16">
+          {/* Left: headline + action pills + compact feature list */}
           <div>
             <h1 className="text-5xl font-black leading-tight text-white xl:text-6xl">
               Дай.<br />Вземи.<br />Продай.
@@ -379,32 +388,23 @@ export default function Home() {
                 </Link>
               ))}
             </div>
-          </div>
-
-          {/* Center: Bulgaria network map */}
-          <div className="flex items-center justify-center">
-            <div className="w-full max-w-[300px]">
-              <BulgariaMap />
+            <div className="mt-7 space-y-2.5">
+              {[
+                { emoji: "🆓", label: "Публикувай безплатно" },
+                { emoji: "🔒", label: "Сигурност и доверие" },
+                { emoji: "📱", label: "Мобилно навсякъде" },
+              ].map(({ emoji, label }) => (
+                <div key={label} className="flex items-center gap-2.5">
+                  <span className="text-base leading-none">{emoji}</span>
+                  <span className="text-sm font-semibold text-blue-200">{label}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Right: feature cards */}
-          <div className="space-y-3">
-            {[
-              { emoji: "🆓", title: "Публикувай безплатно", desc: "Продай, подари или размени без никакви такси. Бързо и лесно." },
-              { emoji: "🔒", title: "Сигурност и доверие",  desc: "Верифицирани профили, сигурна комуникация и надеждни транзакции." },
-              { emoji: "📱", title: "Мобилно навсякъде",    desc: "Управлявай обявите си от телефон, таблет или компютър." },
-            ].map(({ emoji, title, desc }) => (
-              <div key={title} className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/20 backdrop-blur-sm">
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 text-2xl">{emoji}</span>
-                  <div>
-                    <p className="text-sm font-black text-white">{title}</p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-blue-200">{desc}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+          {/* Right: constellation graphic */}
+          <div className="flex items-center justify-center opacity-80">
+            <ConstellationHero />
           </div>
         </div>
       </section>
@@ -429,12 +429,12 @@ export default function Home() {
                     <Link
                       key={title}
                       href={`/listings?type=${encodeURIComponent(type)}`}
-                      className="rounded-2xl bg-white p-5 text-center shadow-sm ring-1 ring-blue-100 transition active:scale-[0.97] hover:shadow-md hover:ring-blue-200 lg:rounded-2xl lg:p-6 lg:shadow-md lg:hover:shadow-lg"
+                      className="rounded-2xl bg-white p-5 text-center shadow-sm ring-1 ring-blue-100 transition-all duration-200 active:scale-[0.97] hover:-translate-y-[2px] hover:shadow-lg hover:shadow-blue-100/60 hover:ring-blue-200 lg:rounded-[18px] lg:p-7 lg:shadow-md"
                     >
                       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-blue-950/5 text-2xl">
                         {icon}
                       </div>
-                      <h3 className="mt-2 text-sm font-black text-blue-950 lg:text-base">{title}</h3>
+                      <h3 className="mt-3 text-sm font-black text-blue-950 lg:text-base">{title}</h3>
                       <p className="mt-0.5 text-[11px] text-slate-500 lg:hidden">{sub}</p>
                     </Link>
                   ))}
@@ -467,9 +467,9 @@ export default function Home() {
                     {/* Desktop skeleton */}
                     <div className="mt-4 hidden space-y-3 lg:block">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="flex gap-4 rounded-2xl bg-white p-3 ring-1 ring-slate-200">
-                          <div className="h-24 w-32 animate-pulse rounded-xl bg-slate-200" />
-                          <div className="flex-1 space-y-2 py-2">
+                        <div key={i} className="flex gap-5 rounded-[18px] bg-white p-4 ring-1 ring-slate-200">
+                          <div className="h-[152px] w-[152px] animate-pulse rounded-[14px] bg-slate-200" />
+                          <div className="flex flex-1 flex-col justify-center space-y-2.5 py-2">
                             <div className="h-4 w-3/5 animate-pulse rounded-full bg-slate-200" />
                             <div className="h-5 w-2/5 animate-pulse rounded-full bg-slate-200" />
                             <div className="h-3 w-1/3 animate-pulse rounded-full bg-slate-200" />
@@ -537,7 +537,7 @@ export default function Home() {
                     </div>
 
                     {/* Desktop — horizontal list cards */}
-                    <div className="mt-4 hidden space-y-2.5 lg:block">
+                    <div className="mt-4 hidden space-y-3 lg:block">
                       {latestListings.map((listing, index) => {
                         const cardImage = listing.image_urls?.find(Boolean) ?? listing.image_url;
                         const isNew = !!listing.created_at && (Date.now() - new Date(listing.created_at).getTime()) < 86_400_000;
@@ -545,44 +545,44 @@ export default function Home() {
                         return (
                           <article
                             key={listing.id ?? `d-${index}`}
-                            className="group overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200 transition hover:shadow-md hover:ring-blue-200"
+                            className="group overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:-translate-y-[3px] hover:shadow-lg hover:shadow-blue-100/60 hover:ring-blue-200"
                           >
-                            <Link href={`/listing/${listing.id}`} className="flex gap-4 p-3">
-                              {/* Thumbnail */}
-                              <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-xl">
+                            <Link href={`/listing/${listing.id}`} className="flex gap-5 p-4">
+                              {/* Thumbnail — ~150×150 */}
+                              <div className="relative h-[152px] w-[152px] shrink-0 overflow-hidden rounded-[14px]">
                                 {cardImage ? (
                                   <img
                                     src={cardImage}
                                     alt={listing.title}
-                                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                                    className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.06]"
                                   />
                                 ) : (
-                                  <div className="flex h-full w-full items-center justify-center bg-blue-950 text-2xl text-white">
+                                  <div className="flex h-full w-full items-center justify-center bg-blue-950 text-3xl text-white">
                                     {fallbackImageByCategory[listing.category ?? ""] ?? "📦"}
                                   </div>
                                 )}
                                 {isNew ? (
-                                  <span className="absolute left-1.5 top-1.5 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-black text-white">
+                                  <span className="absolute left-2 top-2 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm">
                                     Нов
                                   </span>
                                 ) : (
-                                  <span className={`absolute left-1.5 top-1.5 rounded-full px-2 py-0.5 text-[10px] font-black text-white ${badgeClass}`}>
+                                  <span className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-black text-white shadow-sm ${badgeClass}`}>
                                     {listing.listing_type ?? "Обява"}
                                   </span>
                                 )}
                                 {(listing.image_urls?.filter(Boolean).length ?? 0) > 1 && (
-                                  <span className="absolute bottom-1.5 left-1.5 flex items-center gap-0.5 rounded-full bg-slate-950/60 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur">
+                                  <span className="absolute bottom-2 left-2 flex items-center gap-0.5 rounded-full bg-slate-950/60 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur">
                                     <Camera className="h-2.5 w-2.5" />
                                     {listing.image_urls!.filter(Boolean).length}
                                   </span>
                                 )}
                               </div>
 
-                              {/* Content */}
-                              <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
-                                <h3 className="truncate text-sm font-black text-slate-900">{listing.title}</h3>
-                                <p className="text-base font-extrabold text-blue-950">{formatDualPrice(listing.price)}</p>
-                                <p className="text-xs text-slate-500">
+                              {/* Content — more breathing room */}
+                              <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
+                                <h3 className="line-clamp-2 text-[15px] font-black leading-snug text-slate-900">{listing.title}</h3>
+                                <p className="text-lg font-extrabold text-blue-950">{formatDualPrice(listing.price)}</p>
+                                <p className="text-xs font-medium text-slate-400">
                                   {listing.city ?? "—"}
                                   {listing.category ? ` · ${listing.category}` : ""}
                                 </p>
@@ -593,10 +593,10 @@ export default function Home() {
                                 type="button"
                                 onClick={(e) => toggleFavorite(e, listing.id)}
                                 aria-label={favoriteIds.has(listing.id) ? "Премахни от любими" : "Добави в любими"}
-                                className={`shrink-0 self-center rounded-full p-2 transition ${
+                                className={`shrink-0 self-center rounded-full p-2.5 transition-all duration-150 ${
                                   favoriteIds.has(listing.id)
-                                    ? "bg-red-500 text-white"
-                                    : "text-slate-300 hover:text-red-400"
+                                    ? "bg-red-500 text-white shadow-sm"
+                                    : "text-slate-300 hover:bg-red-50 hover:text-red-400"
                                 }`}
                               >
                                 <Heart className={`h-4 w-4 ${favoriteIds.has(listing.id) ? "fill-current" : ""}`} />
