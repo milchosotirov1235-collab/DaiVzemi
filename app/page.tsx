@@ -775,23 +775,8 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Mobile app CTA */}
-                <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-blue-950 to-blue-800 p-5 text-white">
-                  <p className="text-sm font-black">📱 Мобилно приложение</p>
-                  <p className="mt-1 text-xs text-blue-200">
-                    Управлявай обявите си от всяко устройство
-                  </p>
-                  <div className="mt-3 flex gap-2">
-                    <div className="flex items-center gap-1.5 rounded-xl bg-black/50 px-3 py-2 text-[11px] font-bold text-white ring-1 ring-white/10">
-                      🍎 App Store
-                    </div>
-                    <div className="flex items-center gap-1.5 rounded-xl bg-black/50 px-3 py-2 text-[11px] font-bold text-white ring-1 ring-white/10">
-                      ▶ Google Play
-                    </div>
-                  </div>
-                </div>
 
-              </div>
+</div>
             </aside>
 
           </div>
