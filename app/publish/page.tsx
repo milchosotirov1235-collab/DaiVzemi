@@ -391,6 +391,15 @@ export default function PublishPage() {
     setUploadingImages(false);
     setUploadProgress(0);
 
+    // Fire-and-forget AI moderation — non-blocking, user never waits for this
+    if (!insertError && insertData?.id) {
+      fetch("/api/ai/moderate-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listingId: insertData.id }),
+      }).catch(() => { /* silent — moderation is best-effort */ });
+    }
+
     if (insertError) {
       const message = insertError.message;
       if (message.includes("listings_city_min_length")) {

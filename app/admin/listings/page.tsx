@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle, Eye, EyeOff, Loader2, XCircle } from "lucide-react";
+import { Bot, CheckCircle, Eye, EyeOff, Loader2, XCircle } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import type { AIRecommendation } from "@/lib/ai/moderator";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -21,6 +22,11 @@ type AdminListing = {
   expires_at: string | null;
   hidden: boolean;
   moderation_status: ModerationStatus;
+  // AI moderation — admin-only, never shown publicly
+  ai_risk_score: number | null;
+  ai_recommendation: AIRecommendation | null;
+  ai_reason: string | null;
+  ai_checked_at: string | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -41,6 +47,27 @@ function ModerationBadge({ status }: { status: ModerationStatus }) {
   return <span className="text-xs text-slate-400">—</span>;
 }
 
+function AIBadge({ rec, score, reason }: { rec: AIRecommendation | null; score: number | null; reason: string | null }) {
+  if (!rec) return <span className="text-xs text-slate-300">—</span>;
+  const base = "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-black ring-1";
+  const styles: Record<AIRecommendation, string> = {
+    approve:       `${base} bg-green-50 text-green-700 ring-green-200`,
+    manual_review: `${base} bg-amber-50 text-amber-700 ring-amber-200`,
+    reject:        `${base} bg-red-50 text-red-600 ring-red-200`,
+  };
+  const labels: Record<AIRecommendation, string> = {
+    approve:       "Одобри",
+    manual_review: "Прегледай",
+    reject:        "Отхвърли",
+  };
+  return (
+    <span title={`Риск: ${score ?? "?"}/100 — ${reason ?? ""}`} className={styles[rec]}>
+      <Bot className="h-3 w-3 shrink-0" />
+      {labels[rec]}
+    </span>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Filter types
 // ---------------------------------------------------------------------------
@@ -48,6 +75,7 @@ function ModerationBadge({ status }: { status: ModerationStatus }) {
 type ModerationFilter = "all" | "pending" | "approved" | "rejected";
 type HiddenFilter = "all" | "visible" | "hidden";
 type ExpiryFilter = "all" | "active" | "expired";
+type AIFilter = "all" | "approve" | "manual_review" | "reject" | "unchecked";
 
 // ---------------------------------------------------------------------------
 // Page
@@ -66,6 +94,8 @@ export default function AdminListings() {
   const [modFilter, setModFilter] = useState<ModerationFilter>("all");
   const [hidFilter, setHidFilter] = useState<HiddenFilter>("all");
   const [expFilter, setExpFilter] = useState<ExpiryFilter>("all");
+  const [aiFilter,  setAiFilter]  = useState<AIFilter>("all");
+  const [recheckId, setRecheckId] = useState<number | null>(null);
 
   useEffect(() => { load(0, true); }, []);
 
@@ -75,7 +105,7 @@ export default function AdminListings() {
     const to = from + PAGE_SIZE - 1;
     const { data } = await supabase
       .from("listings")
-      .select("id, title, category, city, user_id, created_at, expires_at, hidden, moderation_status")
+      .select("id, title, category, city, user_id, created_at, expires_at, hidden, moderation_status, ai_risk_score, ai_recommendation, ai_reason, ai_checked_at")
       .order("created_at", { ascending: false })
       .range(from, to);
     const rows = (data as AdminListing[]) ?? [];
@@ -86,6 +116,38 @@ export default function AdminListings() {
   };
 
   const loadMore = () => load(page + 1, false);
+
+  const recheckAI = async (listing: AdminListing) => {
+    setRecheckId(listing.id);
+    try {
+      const res = await fetch("/api/ai/moderate-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listingId: listing.id }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.result) {
+          setListings((prev) =>
+            prev.map((l) =>
+              l.id === listing.id
+                ? {
+                    ...l,
+                    ai_risk_score:     json.result.score,
+                    ai_recommendation: json.result.recommendation,
+                    ai_reason:         json.result.reason,
+                    ai_checked_at:     new Date().toISOString(),
+                  }
+                : l
+            )
+          );
+        }
+      }
+    } catch {
+      // silent
+    }
+    setRecheckId(null);
+  };
 
   const toggleHidden = async (listing: AdminListing) => {
     setActionId(listing.id);
@@ -131,6 +193,8 @@ export default function AdminListings() {
     if (hidFilter === "hidden" && !l.hidden) return false;
     if (expFilter === "active" && l.expires_at && new Date(l.expires_at) < now) return false;
     if (expFilter === "expired" && !(l.expires_at && new Date(l.expires_at) < now)) return false;
+    if (aiFilter === "unchecked" && l.ai_recommendation !== null) return false;
+    if (aiFilter !== "all" && aiFilter !== "unchecked" && l.ai_recommendation !== aiFilter) return false;
     return true;
   });
 
@@ -177,6 +241,15 @@ export default function AdminListings() {
             </button>
           ))}
         </div>
+        {/* AI recommendation */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs font-black uppercase tracking-wider text-slate-400">AI препоръка</span>
+          {(["all","approve","manual_review","reject","unchecked"] as AIFilter[]).map((f) => (
+            <button key={f} type="button" onClick={() => setAiFilter(f)} className={filterBtn(aiFilter === f)}>
+              {f === "all" ? "Всички" : f === "approve" ? "Одобри" : f === "manual_review" ? "Прегледай" : f === "reject" ? "Отхвърли" : "Непроверени"}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-[20px] bg-white shadow-sm ring-1 ring-slate-200">
@@ -196,6 +269,7 @@ export default function AdminListings() {
                   <th className="px-4 py-3.5 text-xs font-black uppercase tracking-wider text-slate-500">Дата</th>
                   <th className="px-4 py-3.5 text-xs font-black uppercase tracking-wider text-slate-500">Изтича</th>
                   <th className="px-4 py-3.5 text-xs font-black uppercase tracking-wider text-slate-500">Модерация</th>
+                  <th className="px-4 py-3.5 text-xs font-black uppercase tracking-wider text-slate-500">AI</th>
                   <th className="px-4 py-3.5 text-xs font-black uppercase tracking-wider text-slate-500">Видимост</th>
                   <th className="px-4 py-3.5 text-xs font-black uppercase tracking-wider text-slate-500">Действия</th>
                 </tr>
@@ -223,6 +297,14 @@ export default function AdminListings() {
                         ) : <span className="text-slate-400">—</span>}
                       </td>
                       <td className="px-4 py-3.5"><ModerationBadge status={l.moderation_status} /></td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex flex-col gap-1">
+                          <AIBadge rec={l.ai_recommendation} score={l.ai_risk_score} reason={l.ai_reason} />
+                          {l.ai_risk_score !== null && (
+                            <span className="text-[10px] text-slate-400">Риск: {l.ai_risk_score}/100</span>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-4 py-3.5">
                         {l.hidden
                           ? <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-black text-red-600 ring-1 ring-red-200">Скрита</span>
@@ -252,6 +334,12 @@ export default function AdminListings() {
                             className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:border-blue-950 hover:text-blue-950 disabled:opacity-50">
                             {l.hidden ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
                             {l.hidden ? "Покажи" : "Скрий"}
+                          </button>
+                          <button type="button" onClick={() => recheckAI(l)} disabled={recheckId === l.id || busy}
+                            className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:border-blue-950 hover:text-blue-950 disabled:opacity-50"
+                            title="Провери отново с AI">
+                            {recheckId === l.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bot className="h-3 w-3" />}
+                            AI
                           </button>
                         </div>
                       </td>
