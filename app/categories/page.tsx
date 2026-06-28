@@ -5,16 +5,21 @@ import {
   Baby,
   BookOpen,
   Briefcase,
+  Building2,
   Car,
   Gamepad2,
   Gem,
   Hammer,
   Home as HomeIcon,
+  Landmark,
   PawPrint,
   Shirt,
   Smartphone,
+  Sprout,
+  Tractor,
   Trophy,
   Trees,
+  Wheat,
   Wrench,
 } from "lucide-react";
 
@@ -37,8 +42,13 @@ const CATEGORIES = [
   { icon: Gem,        label: "Бижута и ценности", hints: "Пръстени · Гривни · Часовници" },
   { icon: Hammer,     label: "Услуги",            hints: "Ремонти · Транспорт · Почистване" },
   { icon: Briefcase,  label: "Работа",            hints: "IT · Маркетинг · Строителство" },
-  { icon: PawPrint,   label: "Животни",           hints: "Кучета · Котки · Птици" },
-  { icon: BookOpen,   label: "Книги",             hints: "Художествена · Техническа · Детска" },
+  { icon: PawPrint,   label: "Животни",                   hints: "Кучета · Котки · Птици" },
+  { icon: BookOpen,   label: "Книги",                     hints: "Художествена · Техническа · Детска" },
+  { icon: Landmark,   label: "Антики и колекции",         hints: "Монети · Картини · Военни предмети" },
+  { icon: Wheat,      label: "Храни и местни продукти",   hints: "Мед · Сладка · Подправки · Ядки" },
+  { icon: Sprout,     label: "Земеделие",                 hints: "Семена · Разсад · Фиданки · Торове" },
+  { icon: Tractor,    label: "Селскостопанска техника",   hints: "Трактори · Косачки · Машини" },
+  { icon: Building2,  label: "Бизнес оборудване",         hints: "Офис · Кафе · Хладилни витрини" },
 ] as const;
 
 export default function CategoriesPage() {
