@@ -393,11 +393,18 @@ export default function PublishPage() {
 
     // Fire-and-forget AI moderation — non-blocking, user never waits for this
     if (!insertError && insertData?.id) {
-      fetch("/api/ai/moderate-listing", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ listingId: insertData.id }),
-      }).catch(() => { /* silent — moderation is best-effort */ });
+      supabase.auth.getSession().then(({ data: sessionData }) => {
+        const token = sessionData?.session?.access_token;
+        if (!token) return;
+        fetch("/api/ai/moderate-listing", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ listingId: insertData.id }),
+        }).catch(() => { /* silent — moderation is best-effort */ });
+      });
     }
 
     if (insertError) {

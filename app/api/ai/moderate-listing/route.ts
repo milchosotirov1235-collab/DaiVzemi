@@ -3,10 +3,15 @@ import { createClient } from "@supabase/supabase-js";
 import { fetchAISettings, isFeatureEnabled } from "@/lib/ai/settings";
 import { runRules } from "@/lib/ai/moderator";
 
-// Uses service-role key so it can write back to the listings row.
-// If service key is absent (local dev without it), falls back to anon key —
-// update will silently fail RLS but the route won't crash.
-function getAdminClient() {
+function getAnonClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
+}
+
+// Service-role client — only used for the final write after auth is confirmed.
+function getServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const key =
     process.env.SUPABASE_SERVICE_ROLE_KEY ??
@@ -16,23 +21,48 @@ function getAdminClient() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { listingId } = await req.json();
-    if (!listingId) {
-      return NextResponse.json({ error: "Missing listingId" }, { status: 400 });
+    // ── Auth guard ────────────────────────────────────────────────────────────
+    // Require a valid session token. Caller must be the listing's own author
+    // OR an admin. This prevents anonymous/third-party manipulation of AI scores.
+    const authHeader = req.headers.get("Authorization");
+    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
+    if (!token) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
 
-    // Respect the AI feature flag
+    const anonClient = getAnonClient();
+    const { data: { user }, error: authError } = await anonClient.auth.getUser(token);
+    if (authError || !user) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
+
+    // Check if caller is admin
+    const { data: profile } = await anonClient
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    const isAdmin = profile?.role === "admin";
+
+    // ── Feature flag ──────────────────────────────────────────────────────────
     const aiSettings = await fetchAISettings();
     if (!isFeatureEnabled(aiSettings, "ai_moderator_assistant_enabled")) {
       return NextResponse.json({ skipped: true, reason: "moderator disabled" });
     }
 
-    const db = getAdminClient();
+    // ── Parse body ────────────────────────────────────────────────────────────
+    const body = await req.json().catch(() => null);
+    const listingId = body?.listingId;
+    if (!listingId) {
+      return NextResponse.json({ error: "Missing listingId" }, { status: 400 });
+    }
 
-    // Fetch the listing
+    // ── Fetch listing ─────────────────────────────────────────────────────────
+    const db = getServiceClient();
     const { data: listing, error: fetchError } = await db
       .from("listings")
-      .select("id, title, description, price, listing_type, image_url, image_urls")
+      .select("id, user_id, title, description, price, listing_type, image_url, image_urls")
       .eq("id", listingId)
       .maybeSingle();
 
@@ -40,11 +70,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Listing not found" }, { status: 404 });
     }
 
-    // Run the rule engine
+    // Caller must be admin or the listing's own author
+    if (!isAdmin && listing.user_id !== user.id) {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
+
+    // ── Run rule engine ───────────────────────────────────────────────────────
     const result = runRules(listing);
 
-    // Write results back — NEVER changes moderation_status, hidden, or any
-    // public-facing field. Only the four AI columns are touched.
+    // ── Write AI columns only — never touches moderation_status or hidden ─────
     const { error: updateError } = await db
       .from("listings")
       .update({

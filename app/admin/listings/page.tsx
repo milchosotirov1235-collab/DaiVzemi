@@ -120,9 +120,14 @@ export default function AdminListings() {
   const recheckAI = async (listing: AdminListing) => {
     setRecheckId(listing.id);
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token ?? "";
       const res = await fetch("/api/ai/moderate-listing", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify({ listingId: listing.id }),
       });
       if (res.ok) {
