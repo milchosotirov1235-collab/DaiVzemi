@@ -62,7 +62,7 @@ export default function CategoriesPage() {
               <Link
                 key={label}
                 href={`/listings?category=${encodeURIComponent(label)}`}
-                className="group flex flex-col items-center gap-3.5 rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md hover:shadow-blue-100/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:py-7"
+                className="group flex flex-col items-center gap-3.5 rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-100/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:py-7"
               >
                 <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-50 transition-all duration-200 group-hover:bg-blue-50 group-hover:scale-105">
                   <Icon
