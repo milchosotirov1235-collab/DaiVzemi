@@ -466,20 +466,8 @@ export default function PublishPage() {
       <Header />
       {isEmailVerified === false && <UnverifiedBanner />}
 
-      {/* Desktop hero — hidden on mobile */}
-      <section className="relative hidden overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-950 py-20 text-white lg:block">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.12),transparent_32%)]" />
-        <div className="relative mx-auto max-w-6xl px-6 text-center">
-          <p className="mb-3 text-sm uppercase tracking-[0.35em] text-blue-200">DaiVzemi</p>
-          <h1 className="text-5xl font-black md:text-6xl">Публикувай обява</h1>
-          <p className="mx-auto mt-6 max-w-3xl text-lg text-blue-100">
-            Създай своята обява безплатно за няколко минути.
-          </p>
-        </div>
-      </section>
-
-      {/* Mobile compact header + progress bar */}
-      <div className="border-b border-slate-100 px-4 pb-4 pt-5 lg:hidden">
+      {/* Compact page header — shared desktop + mobile */}
+      <div className="border-b border-slate-100 bg-white px-4 pb-4 pt-5 lg:px-6">
         <h1 className="text-2xl font-black text-slate-900">Нова обява</h1>
         <p className="mt-0.5 text-sm text-slate-500">Безплатно · под 2 минути</p>
         <div className="mt-4 space-y-1.5">

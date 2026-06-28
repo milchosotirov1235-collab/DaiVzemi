@@ -67,16 +67,14 @@ export default function FavoritesPage() {
     <main className="min-h-screen bg-slate-50">
       <Header />
 
-      <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-16 text-white">
-        <div className="mx-auto max-w-6xl text-center">
-          <h1 className="text-5xl font-black">Любими обяви</h1>
-          <p className="mt-4 text-blue-100">
-            Всички обяви, които сте запазили.
-          </p>
+      <div className="border-b border-slate-100 bg-white px-4 py-5 lg:px-6">
+        <div className="mx-auto max-w-7xl">
+          <h1 className="text-xl font-black text-slate-900">Любими обяви</h1>
+          <p className="mt-0.5 text-sm text-slate-500">Всички обяви, които сте запазили.</p>
         </div>
-      </section>
+      </div>
 
-      <section className="mx-auto max-w-7xl px-6 py-12">
+      <section className="mx-auto max-w-7xl px-4 py-6 lg:px-6 lg:py-8">
         {loading ? (
           <p className="text-center text-lg font-semibold">
             Зареждане...

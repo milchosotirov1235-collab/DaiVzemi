@@ -230,26 +230,8 @@ export default function MessagesPage() {
     <main className="min-h-screen bg-white lg:bg-slate-50">
       <Header />
 
-      {/* Desktop hero */}
-      <section className="hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-16 text-white lg:block">
-        <div className="mx-auto max-w-4xl">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">
-            DaiVzemi
-          </p>
-          <div className="flex items-center gap-4">
-            <h1 className="text-5xl font-black">Съобщения</h1>
-            {totalUnread > 0 && (
-              <span className="flex h-9 min-w-[36px] items-center justify-center rounded-full bg-white px-2.5 text-sm font-black text-blue-950">
-                {totalUnread}
-              </span>
-            )}
-          </div>
-          <p className="mt-4 text-blue-100">Всички ваши разговори с купувачи и продавачи.</p>
-        </div>
-      </section>
-
-      {/* Mobile compact header */}
-      <div className="border-b border-slate-100 px-4 py-4 lg:hidden">
+      {/* Compact page header — shared desktop + mobile */}
+      <div className="border-b border-slate-100 bg-white px-4 py-5 lg:px-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-black text-slate-900">Съобщения</h1>
           {totalUnread > 0 && (

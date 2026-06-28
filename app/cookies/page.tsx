@@ -11,15 +11,14 @@ export default function CookiesPage() {
     <main className="min-h-screen bg-slate-50">
       <Header />
 
-      <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-16 text-white">
+      <div className="border-b border-slate-100 bg-white px-4 py-5 lg:px-6">
         <div className="mx-auto max-w-5xl">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">DaiVzemi</p>
-          <h1 className="text-5xl font-black">Политика за бисквитките</h1>
-          <p className="mt-4 text-blue-100">Последна актуализация: юни 2025 г.</p>
+          <h1 className="text-xl font-black text-slate-900">Политика за бисквитките</h1>
+          <p className="mt-0.5 text-sm text-slate-500">Последна актуализация: юни 2025 г.</p>
         </div>
-      </section>
+      </div>
 
-      <section className="mx-auto max-w-5xl px-6 py-16">
+      <section className="mx-auto max-w-5xl px-4 py-8 lg:px-6 lg:py-12">
         <div className="prose-slate prose prose-lg max-w-none rounded-3xl bg-white px-8 py-12 shadow-sm ring-1 ring-slate-200 md:px-16">
           <h2>1. Какво са бисквитките</h2>
           <p>

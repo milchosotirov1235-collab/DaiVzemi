@@ -167,26 +167,21 @@ export default function NotificationsPage() {
     <main className="min-h-screen bg-slate-50">
       <Header />
 
-      <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-16 text-white">
+      <div className="border-b border-slate-100 bg-white px-4 py-5 lg:px-6">
         <div className="mx-auto max-w-4xl">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">
-            DaiVzemi
-          </p>
-          <div className="flex flex-wrap items-center gap-4">
-            <h1 className="text-5xl font-black">Известия</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-black text-slate-900">Известия</h1>
             {unreadCount > 0 && (
-              <span className="flex h-9 min-w-[36px] items-center justify-center rounded-full bg-white px-2.5 text-sm font-black text-blue-950">
+              <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-blue-950 px-1.5 text-[11px] font-black text-white">
                 {unreadCount}
               </span>
             )}
           </div>
-          <p className="mt-4 text-blue-100">
-            Всички известия за вашия акаунт.
-          </p>
+          <p className="mt-0.5 text-sm text-slate-500">Всички известия за вашия акаунт.</p>
         </div>
-      </section>
+      </div>
 
-      <section className="mx-auto max-w-4xl px-6 py-10">
+      <section className="mx-auto max-w-4xl px-4 py-6 lg:px-6 lg:py-8">
         {loading ? (
           <div className="flex items-center justify-center rounded-3xl bg-white p-12 shadow-sm ring-1 ring-slate-200">
             <Loader2 className="h-6 w-6 animate-spin text-blue-950" />

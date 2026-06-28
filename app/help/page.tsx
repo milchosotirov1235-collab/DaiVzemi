@@ -86,17 +86,14 @@ export default function HelpPage() {
     <main className="min-h-screen bg-slate-50">
       <Header />
 
-      <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-16 text-white">
+      <div className="border-b border-slate-100 bg-white px-4 py-5 lg:px-6">
         <div className="mx-auto max-w-4xl">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">
-            ДайВземи
-          </p>
-          <h1 className="text-5xl font-black">Помощен център</h1>
-          <p className="mt-4 text-blue-100">Отговори на най-честите въпроси.</p>
+          <h1 className="text-xl font-black text-slate-900">Помощен център</h1>
+          <p className="mt-0.5 text-sm text-slate-500">Отговори на най-честите въпроси.</p>
         </div>
-      </section>
+      </div>
 
-      <section className="mx-auto max-w-4xl space-y-12 px-6 py-14">
+      <section className="mx-auto max-w-4xl space-y-12 px-4 py-8 lg:px-6 lg:py-12">
         {FAQ.map((group) => (
           <div key={group.section}>
             <h2 className="mb-6 text-2xl font-black text-blue-950">{group.section}</h2>

@@ -187,15 +187,14 @@ export default function SavedSearchesPage() {
     <main className="min-h-screen bg-slate-50">
       <Header />
 
-      <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-16 text-white">
+      <div className="border-b border-slate-100 bg-white px-4 py-5 lg:px-6">
         <div className="mx-auto max-w-5xl">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">DaiVzemi</p>
-          <h1 className="text-5xl font-black">Запазени търсения</h1>
-          <p className="mt-4 text-blue-100">Бързо отваряйте любимите си търсения с един клик.</p>
+          <h1 className="text-xl font-black text-slate-900">Запазени търсения</h1>
+          <p className="mt-0.5 text-sm text-slate-500">Бързо отваряйте любимите си търсения с един клик.</p>
         </div>
-      </section>
+      </div>
 
-      <section className="mx-auto max-w-5xl px-6 py-10">
+      <section className="mx-auto max-w-5xl px-4 py-6 lg:px-6 lg:py-8">
         {loading ? (
           <div className="grid gap-4 sm:grid-cols-2">
             {[1, 2, 3, 4].map((i) => (

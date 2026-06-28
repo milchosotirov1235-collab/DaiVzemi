@@ -196,16 +196,13 @@ export default function MyListingsPage() {
     <main className="min-h-screen bg-slate-50">
       <Header />
 
-      <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-16 text-white">
-        <div className="mx-auto max-w-6xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">
-            DaiVzemi
-          </p>
-          <h1 className="mt-3 text-4xl font-black md:text-5xl">Моите обяви</h1>
+      <div className="border-b border-slate-100 bg-white px-4 py-5 lg:px-6">
+        <div className="mx-auto max-w-7xl">
+          <h1 className="text-xl font-black text-slate-900">Моите обяви</h1>
         </div>
-      </section>
+      </div>
 
-      <section className="mx-auto max-w-7xl px-6 py-12">
+      <section className="mx-auto max-w-7xl px-4 py-6 lg:px-6 lg:py-8">
         {loading ? (
           <div className="rounded-3xl bg-white p-8 text-center shadow-sm">
             <p className="text-base font-semibold text-slate-600">Зареждане...</p>
