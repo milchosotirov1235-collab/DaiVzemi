@@ -981,19 +981,24 @@ function ListingsPageContent() {
     !dismissedExplorer.has(category);
 
   // Auto-expand advanced filters when arriving with advanced filter params in URL
+  // Auto-expand "Още филтри" only for deep filter params — explorer top-level params
+  // (vehicleType, propertyType, elDeviceType, etc.) are excluded because those come
+  // from subcategory navigation and should NOT force-open the panel.
   const hasActiveAdvancedFilters = Boolean(
-    urlPropertyPurpose || urlPropertyType || urlRooms || urlFloor || urlSqmMin || urlSqmMax ||
+    minPrice || maxPrice || urlCondition ||
+    urlPropertyPurpose || urlRooms || urlFloor || urlSqmMin || urlSqmMax ||
     urlFurnished || urlHeating || urlConstructionType || urlPropertyCondition || urlElevator || urlParking ||
-    urlVehicleType || urlCarMake || urlCarModel || urlYearFrom || urlYearTo || urlFuel || urlTransmission ||
+    urlCarMake || urlCarModel || urlYearFrom || urlYearTo || urlFuel || urlTransmission ||
     urlMileageFrom || urlMileageTo || urlEngineSizeFrom || urlEngineSizeTo || urlPowerFrom || urlPowerTo ||
-    urlEuroStandard || urlBodyType || urlDriveType || urlCarColor || urlCarCondition || urlPartType ||
-    urlElDeviceType || urlElBrand || urlElModel || urlElCondition || urlElStorage || urlElRam || urlElColor ||
-    urlServiceCategory || urlOnlineService || urlProviderType || urlJobCategory || urlEmploymentType ||
-    urlExperience || urlRemote || urlSalaryFrom || urlSalaryTo || urlCompType || urlCompBrand || urlCompCondition ||
-    urlKidsItemType || urlKidsAgeGroup || urlKidsGender || urlKidsCondition ||
-    urlHomeSubcategory || urlHomeCondition || urlFashionType || urlFashionGender || urlFashionSize ||
-    urlFashionCondition || urlSportCategory || urlSportCondition || urlBookGenre || urlBookCondition ||
-    urlBookLanguage || urlAnimalType || urlAnimalGender || urlAnimalVaccinated || urlAnimalPedigree,
+    urlEuroStandard || urlBodyType || urlDriveType || urlCarColor || urlCarCondition ||
+    urlElBrand || urlElModel || urlElCondition || urlElStorage || urlElRam || urlElColor ||
+    urlOnlineService || urlProviderType ||
+    urlEmploymentType || urlExperience || urlRemote || urlSalaryFrom || urlSalaryTo ||
+    urlCompBrand || urlCompCondition ||
+    urlKidsAgeGroup || urlKidsGender || urlKidsCondition ||
+    urlHomeCondition || urlFashionGender || urlFashionSize || urlFashionCondition ||
+    urlSportCondition || urlBookCondition || urlBookLanguage ||
+    urlAnimalGender || urlAnimalVaccinated || urlAnimalPedigree,
   );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { if (hasActiveAdvancedFilters) setShowAdvancedFilters(true); }, []);
@@ -1904,14 +1909,14 @@ function ListingsPageContent() {
 
         <div className="p-4 lg:rounded-[28px] lg:bg-white lg:p-5 lg:shadow-sm lg:ring-1 lg:ring-slate-200">
 
-          {/* Row 1: search, city, category, type, button */}
-          <div className="grid gap-4 lg:grid-cols-6">
+          {/* Row 1: Search + City + Apply */}
+          <div className="flex flex-col gap-3 sm:flex-row">
             <input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && applyFilters()}
               placeholder="Търси обява"
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 lg:col-span-2"
+              className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
             />
             <SearchableSelect
               value={cityInput}
@@ -1919,194 +1924,215 @@ function ListingsPageContent() {
               options={BG_CITIES}
               placeholder="Град"
             />
-            <CustomDropdown
-              value={categoryInput}
-              placeholder="Всички категории"
-              options={categories}
-              isOpen={openDropdown === "category"}
-              onToggle={() => setOpenDropdown(openDropdown === "category" ? null : "category")}
-              onSelect={(v) => {
-                if (v !== categoryInput) {
-                  setCarMake("");
-                  setCarModel("");
-                  setPropertyType("");
-                  setPartType("");
-                  setCondition("");
-                  setServiceType("");
-                  setEmploymentType("");
-                }
-                setCategoryInput(v);
-                setOpenDropdown(null);
-              }}
-            />
-            <CustomDropdown
-              value={typeInput}
-              placeholder="Всички типове"
-              options={listingTypes}
-              isOpen={openDropdown === "type"}
-              onToggle={() => setOpenDropdown(openDropdown === "type" ? null : "type")}
-              onSelect={(v) => { setTypeInput(v); setOpenDropdown(null); }}
-            />
             <button
               type="button"
               onClick={applyFilters}
-              className="rounded-2xl bg-blue-950 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-900"
+              className="shrink-0 rounded-2xl bg-blue-950 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-900"
             >
-              Филтрирай
+              Търси
             </button>
           </div>
 
-          {/* Row 2: price range + condition + clear */}
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <input
-              value={minPriceInput}
-              onChange={(e) => setMinPriceInput(e.target.value)}
-              placeholder="Цена от"
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-            />
-            <input
-              value={maxPriceInput}
-              onChange={(e) => setMaxPriceInput(e.target.value)}
-              placeholder="Цена до"
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
-            />
-            <CustomDropdown
-              value={condition}
-              placeholder="Всяко състояние"
-              options={["Ново", "Употребявано"]}
-              isOpen={openDropdown === "condition"}
-              onToggle={() => setOpenDropdown(openDropdown === "condition" ? null : "condition")}
-              onSelect={(v) => { setCondition(v); setOpenDropdown(null); }}
-            />
+          {/* Row 2: Transaction type chips + Още филтри toggle */}
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              {listingTypes.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => {
+                    const newType = typeInput === t ? "" : t;
+                    setTypeInput(newType);
+                    if (!filterDrawerOpen) {
+                      const params = new URLSearchParams(searchParams.toString());
+                      if (newType) params.set("type", newType);
+                      else params.delete("type");
+                      router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
+                    }
+                  }}
+                  className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                    typeInput === t
+                      ? "bg-blue-950 text-white shadow-sm"
+                      : "border border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-950"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
-              onClick={clearFilters}
-              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+              onClick={() => setShowAdvancedFilters((v) => !v)}
+              className={`flex shrink-0 items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                showAdvancedFilters ? "bg-slate-100 text-slate-900" : "text-slate-500 hover:text-slate-900"
+              }`}
             >
-              Изчисти филтрите
+              <SlidersHorizontal className="h-4 w-4" />
+              <span>Още филтри</span>
+              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showAdvancedFilters ? "rotate-180" : ""}`} />
             </button>
           </div>
 
-          {/* Save search row — only when filters are active */}
-          {hasFilters && (
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={saveSearch}
-                disabled={savingSearch}
-                className="flex items-center gap-2 rounded-2xl border border-blue-950 px-4 py-2.5 text-sm font-black text-blue-950 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {savingSearch ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <BookMarked className="h-4 w-4" />
-                )}
-                Запази търсенето
-              </button>
+          {/* Advanced section — collapsed by default */}
+          {showAdvancedFilters && (
+            <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
 
-              {saveNotice === "saved" && (
-                <span className="text-sm font-bold text-green-700">✓ Търсенето е запазено</span>
-              )}
-              {saveNotice === "duplicate" && (
-                <span className="text-sm font-bold text-amber-700">Това търсене вече е запазено</span>
-              )}
-              {saveNotice === "error" && (
-                <span className="text-sm font-bold text-red-600">Влезте в профила си, за да запазите търсенето</span>
-              )}
-            </div>
-          )}
+              {/* Category + Price range + Condition */}
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <CustomDropdown
+                  value={categoryInput}
+                  placeholder="Всички категории"
+                  options={categories}
+                  isOpen={openDropdown === "category"}
+                  onToggle={() => setOpenDropdown(openDropdown === "category" ? null : "category")}
+                  onSelect={(v) => {
+                    if (v !== categoryInput) {
+                      setCarMake(""); setCarModel(""); setPropertyType("");
+                      setPartType(""); setCondition(""); setServiceType(""); setEmploymentType("");
+                    }
+                    setCategoryInput(v);
+                    setOpenDropdown(null);
+                  }}
+                />
+                <input
+                  value={minPriceInput}
+                  onChange={(e) => setMinPriceInput(e.target.value)}
+                  placeholder="Цена от"
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                />
+                <input
+                  value={maxPriceInput}
+                  onChange={(e) => setMaxPriceInput(e.target.value)}
+                  placeholder="Цена до"
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                />
+                <CustomDropdown
+                  value={condition}
+                  placeholder="Всяко състояние"
+                  options={["Ново", "Употребявано"]}
+                  isOpen={openDropdown === "condition"}
+                  onToggle={() => setOpenDropdown(openDropdown === "condition" ? null : "condition")}
+                  onSelect={(v) => { setCondition(v); setOpenDropdown(null); }}
+                />
+              </div>
 
-          {/* Row 3: category-specific advanced filters (collapsed by default) */}
-          {hasSpecificFilters && (
-            <>
-              <div className="mt-5 border-t border-slate-100 pt-4">
+              {/* Category-specific deep filters */}
+              {hasSpecificFilters && (
+                <CategoryFilters
+                  category={categoryInput}
+                  propertyPurpose={propertyPurpose} onPropertyPurpose={setPropertyPurpose}
+                  propertyType={propertyType} onPropertyType={setPropertyType}
+                  rooms={rooms} onRooms={setRooms}
+                  floor={floor} onFloor={setFloor}
+                  sqmMin={sqmMin} onSqmMin={setSqmMin}
+                  sqmMax={sqmMax} onSqmMax={setSqmMax}
+                  furnished={furnished} onFurnished={setFurnished}
+                  heating={heating} onHeating={setHeating}
+                  constructionType={constructionType} onConstructionType={setConstructionType}
+                  propertyCondition={propertyCondition} onPropertyCondition={setPropertyCondition}
+                  elevator={elevator} onElevator={setElevator}
+                  parking={parking} onParking={setParking}
+                  vehicleType={vehicleType} onVehicleType={setVehicleType}
+                  carMake={carMake} onCarMake={setCarMake}
+                  carModel={carModel} onCarModel={setCarModel}
+                  yearFrom={yearFrom} onYearFrom={setYearFrom}
+                  yearTo={yearTo} onYearTo={setYearTo}
+                  fuel={fuel} onFuel={setFuel}
+                  transmission={transmission} onTransmission={setTransmission}
+                  mileageFrom={mileageFrom} onMileageFrom={setMileageFrom}
+                  mileageTo={mileageTo} onMileageTo={setMileageTo}
+                  engineSizeFrom={engineSizeFrom} onEngineSizeFrom={setEngineSizeFrom}
+                  engineSizeTo={engineSizeTo} onEngineSizeTo={setEngineSizeTo}
+                  powerFrom={powerFrom} onPowerFrom={setPowerFrom}
+                  powerTo={powerTo} onPowerTo={setPowerTo}
+                  euroStandard={euroStandard} onEuroStandard={setEuroStandard}
+                  bodyType={bodyType} onBodyType={setBodyType}
+                  driveType={driveType} onDriveType={setDriveType}
+                  carColor={carColor} onCarColor={setCarColor}
+                  carCondition={carCondition} onCarCondition={setCarCondition}
+                  partType={partType} onPartType={setPartType}
+                  elDeviceType={elDeviceType} onElDeviceType={setElDeviceType}
+                  elBrand={elBrand} onElBrand={setElBrand}
+                  elModel={elModel} onElModel={setElModel}
+                  elCondition={elCondition} onElCondition={setElCondition}
+                  elStorage={elStorage} onElStorage={setElStorage}
+                  elRam={elRam} onElRam={setElRam}
+                  elColor={elColor} onElColor={setElColor}
+                  electronicsSubcat={electronicsSubcat} onElectronicsSubcat={setElectronicsSubcat}
+                  condition={condition} onCondition={setCondition}
+                  brand={brand} onBrand={setBrand}
+                  serviceType={serviceType} onServiceType={setServiceType}
+                  serviceCategory={serviceCategory} onServiceCategory={setServiceCategory}
+                  onlineService={onlineService} onOnlineService={setOnlineService}
+                  providerType={providerType} onProviderType={setProviderType}
+                  jobCategory={jobCategory} onJobCategory={setJobCategory}
+                  employmentType={employmentType} onEmploymentType={setEmploymentType}
+                  experience={experience} onExperience={setExperience}
+                  remote={remote} onRemote={setRemote}
+                  salaryFrom={salaryFrom} onSalaryFrom={setSalaryFrom}
+                  salaryTo={salaryTo} onSalaryTo={setSalaryTo}
+                  compType={compType} onCompType={setCompType}
+                  compBrand={compBrand} onCompBrand={setCompBrand}
+                  compCondition={compCondition} onCompCondition={setCompCondition}
+                  kidsItemType={kidsItemType} onKidsItemType={setKidsItemType}
+                  kidsAgeGroup={kidsAgeGroup} onKidsAgeGroup={setKidsAgeGroup}
+                  kidsGender={kidsGender} onKidsGender={setKidsGender}
+                  kidsCondition={kidsCondition} onKidsCondition={setKidsCondition}
+                  homeSubcategory={homeSubcategory} onHomeSubcategory={setHomeSubcategory}
+                  homeCondition={homeCondition} onHomeCondition={setHomeCondition}
+                  fashionType={fashionType} onFashionType={setFashionType}
+                  fashionGender={fashionGender} onFashionGender={setFashionGender}
+                  fashionSize={fashionSize} onFashionSize={setFashionSize}
+                  fashionCondition={fashionCondition} onFashionCondition={setFashionCondition}
+                  sportCategory={sportCategory} onSportCategory={setSportCategory}
+                  sportCondition={sportCondition} onSportCondition={setSportCondition}
+                  bookGenre={bookGenre} onBookGenre={setBookGenre}
+                  bookCondition={bookCondition} onBookCondition={setBookCondition}
+                  bookLanguage={bookLanguage} onBookLanguage={setBookLanguage}
+                  animalType={animalType} onAnimalType={setAnimalType}
+                  animalGender={animalGender} onAnimalGender={setAnimalGender}
+                  animalVaccinated={animalVaccinated} onAnimalVaccinated={setAnimalVaccinated}
+                  animalPedigree={animalPedigree} onAnimalPedigree={setAnimalPedigree}
+                />
+              )}
+
+              {/* Footer: Clear + Save search (secondary action) */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowAdvancedFilters((v) => !v)}
-                  className="flex items-center gap-2 text-sm font-black text-blue-950 transition hover:text-blue-700"
+                  onClick={clearFilters}
+                  className="rounded-2xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-black text-slate-700 transition hover:bg-slate-50"
                 >
-                  <SlidersHorizontal className="h-4 w-4" />
-                  <span>{showAdvancedFilters ? "По-малко филтри" : "Още филтри"}</span>
-                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showAdvancedFilters ? "rotate-180" : ""}`} />
+                  Изчисти филтрите
                 </button>
+                {hasFilters && (
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={saveSearch}
+                      disabled={savingSearch}
+                      className="flex items-center gap-2 rounded-2xl border border-blue-950 px-4 py-2.5 text-sm font-black text-blue-950 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {savingSearch ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <BookMarked className="h-4 w-4" />
+                      )}
+                      Запази търсенето
+                    </button>
+                    {saveNotice === "saved" && (
+                      <span className="text-sm font-bold text-green-700">✓ Запазено</span>
+                    )}
+                    {saveNotice === "duplicate" && (
+                      <span className="text-sm font-bold text-amber-700">Вече е запазено</span>
+                    )}
+                    {saveNotice === "error" && (
+                      <span className="text-sm font-bold text-red-600">Влезте в профила</span>
+                    )}
+                  </div>
+                )}
               </div>
-              {showAdvancedFilters && <CategoryFilters
-                category={categoryInput}
-                propertyPurpose={propertyPurpose} onPropertyPurpose={setPropertyPurpose}
-                propertyType={propertyType} onPropertyType={setPropertyType}
-                rooms={rooms} onRooms={setRooms}
-                floor={floor} onFloor={setFloor}
-                sqmMin={sqmMin} onSqmMin={setSqmMin}
-                sqmMax={sqmMax} onSqmMax={setSqmMax}
-                furnished={furnished} onFurnished={setFurnished}
-                heating={heating} onHeating={setHeating}
-                constructionType={constructionType} onConstructionType={setConstructionType}
-                propertyCondition={propertyCondition} onPropertyCondition={setPropertyCondition}
-                elevator={elevator} onElevator={setElevator}
-                parking={parking} onParking={setParking}
-                vehicleType={vehicleType} onVehicleType={setVehicleType}
-                carMake={carMake} onCarMake={setCarMake}
-                carModel={carModel} onCarModel={setCarModel}
-                yearFrom={yearFrom} onYearFrom={setYearFrom}
-                yearTo={yearTo} onYearTo={setYearTo}
-                fuel={fuel} onFuel={setFuel}
-                transmission={transmission} onTransmission={setTransmission}
-                mileageFrom={mileageFrom} onMileageFrom={setMileageFrom}
-                mileageTo={mileageTo} onMileageTo={setMileageTo}
-                engineSizeFrom={engineSizeFrom} onEngineSizeFrom={setEngineSizeFrom}
-                engineSizeTo={engineSizeTo} onEngineSizeTo={setEngineSizeTo}
-                powerFrom={powerFrom} onPowerFrom={setPowerFrom}
-                powerTo={powerTo} onPowerTo={setPowerTo}
-                euroStandard={euroStandard} onEuroStandard={setEuroStandard}
-                bodyType={bodyType} onBodyType={setBodyType}
-                driveType={driveType} onDriveType={setDriveType}
-                carColor={carColor} onCarColor={setCarColor}
-                carCondition={carCondition} onCarCondition={setCarCondition}
-                partType={partType} onPartType={setPartType}
-                elDeviceType={elDeviceType} onElDeviceType={setElDeviceType}
-                elBrand={elBrand} onElBrand={setElBrand}
-                elModel={elModel} onElModel={setElModel}
-                elCondition={elCondition} onElCondition={setElCondition}
-                elStorage={elStorage} onElStorage={setElStorage}
-                elRam={elRam} onElRam={setElRam}
-                elColor={elColor} onElColor={setElColor}
-                electronicsSubcat={electronicsSubcat} onElectronicsSubcat={setElectronicsSubcat}
-                condition={condition} onCondition={setCondition}
-                brand={brand} onBrand={setBrand}
-                serviceType={serviceType} onServiceType={setServiceType}
-                serviceCategory={serviceCategory} onServiceCategory={setServiceCategory}
-                onlineService={onlineService} onOnlineService={setOnlineService}
-                providerType={providerType} onProviderType={setProviderType}
-                jobCategory={jobCategory} onJobCategory={setJobCategory}
-                employmentType={employmentType} onEmploymentType={setEmploymentType}
-                experience={experience} onExperience={setExperience}
-                remote={remote} onRemote={setRemote}
-                salaryFrom={salaryFrom} onSalaryFrom={setSalaryFrom}
-                salaryTo={salaryTo} onSalaryTo={setSalaryTo}
-                compType={compType} onCompType={setCompType}
-                compBrand={compBrand} onCompBrand={setCompBrand}
-                compCondition={compCondition} onCompCondition={setCompCondition}
-                kidsItemType={kidsItemType} onKidsItemType={setKidsItemType}
-                kidsAgeGroup={kidsAgeGroup} onKidsAgeGroup={setKidsAgeGroup}
-                kidsGender={kidsGender} onKidsGender={setKidsGender}
-                kidsCondition={kidsCondition} onKidsCondition={setKidsCondition}
-                homeSubcategory={homeSubcategory} onHomeSubcategory={setHomeSubcategory}
-                homeCondition={homeCondition} onHomeCondition={setHomeCondition}
-                fashionType={fashionType} onFashionType={setFashionType}
-                fashionGender={fashionGender} onFashionGender={setFashionGender}
-                fashionSize={fashionSize} onFashionSize={setFashionSize}
-                fashionCondition={fashionCondition} onFashionCondition={setFashionCondition}
-                sportCategory={sportCategory} onSportCategory={setSportCategory}
-                sportCondition={sportCondition} onSportCondition={setSportCondition}
-                bookGenre={bookGenre} onBookGenre={setBookGenre}
-                bookCondition={bookCondition} onBookCondition={setBookCondition}
-                bookLanguage={bookLanguage} onBookLanguage={setBookLanguage}
-                animalType={animalType} onAnimalType={setAnimalType}
-                animalGender={animalGender} onAnimalGender={setAnimalGender}
-                animalVaccinated={animalVaccinated} onAnimalVaccinated={setAnimalVaccinated}
-                animalPedigree={animalPedigree} onAnimalPedigree={setAnimalPedigree}
-              />}
-            </>
+            </div>
           )}
 
           {/* Active filter chips */}
