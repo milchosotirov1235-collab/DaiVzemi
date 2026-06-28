@@ -27,6 +27,7 @@ import {
   ANIMAL_TYPES, ANIMAL_GENDERS,
 } from "@/lib/data/categoryData";
 import SearchableSelect from "@/components/SearchableSelect";
+import CategoryExplorer, { SUBCAT_PARAM } from "@/components/CategoryExplorer";
 import { formatDualPrice } from "@/lib/formatPrice";
 
 // ---------------------------------------------------------------------------
@@ -794,6 +795,10 @@ function ListingsPageContent() {
   // Dropdown open state (tracks which key is open)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
+  // Explorer state — tracks which categories the user has explicitly dismissed
+  const [dismissedExplorer, setDismissedExplorer] = useState<Set<string>>(new Set());
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
   // Save search state
   const [savingSearch, setSavingSearch] = useState(false);
   const [saveNotice, setSaveNotice] = useState<"saved" | "duplicate" | "error" | null>(null);
@@ -963,6 +968,35 @@ function ListingsPageContent() {
     urlAnimalPedigree.length > 0;
 
   const hasSpecificFilters = CATEGORY_SPECIFIC.includes(categoryInput);
+
+  // ── Explorer logic ────────────────────────────────────────────────────────
+  const subcatParamKey = category ? SUBCAT_PARAM[category] : "";
+  const activeSub = subcatParamKey ? (searchParams.get(subcatParamKey) ?? "") : "";
+  // Show explorer when: category is selected, no subcategory chosen yet, not dismissed, not in search mode
+  const showExplorer =
+    Boolean(category) &&
+    Boolean(subcatParamKey) &&
+    !activeSub &&
+    !search &&
+    !dismissedExplorer.has(category);
+
+  // Auto-expand advanced filters when arriving with advanced filter params in URL
+  const hasActiveAdvancedFilters = Boolean(
+    urlPropertyPurpose || urlPropertyType || urlRooms || urlFloor || urlSqmMin || urlSqmMax ||
+    urlFurnished || urlHeating || urlConstructionType || urlPropertyCondition || urlElevator || urlParking ||
+    urlVehicleType || urlCarMake || urlCarModel || urlYearFrom || urlYearTo || urlFuel || urlTransmission ||
+    urlMileageFrom || urlMileageTo || urlEngineSizeFrom || urlEngineSizeTo || urlPowerFrom || urlPowerTo ||
+    urlEuroStandard || urlBodyType || urlDriveType || urlCarColor || urlCarCondition || urlPartType ||
+    urlElDeviceType || urlElBrand || urlElModel || urlElCondition || urlElStorage || urlElRam || urlElColor ||
+    urlServiceCategory || urlOnlineService || urlProviderType || urlJobCategory || urlEmploymentType ||
+    urlExperience || urlRemote || urlSalaryFrom || urlSalaryTo || urlCompType || urlCompBrand || urlCompCondition ||
+    urlKidsItemType || urlKidsAgeGroup || urlKidsGender || urlKidsCondition ||
+    urlHomeSubcategory || urlHomeCondition || urlFashionType || urlFashionGender || urlFashionSize ||
+    urlFashionCondition || urlSportCategory || urlSportCondition || urlBookGenre || urlBookCondition ||
+    urlBookLanguage || urlAnimalType || urlAnimalGender || urlAnimalVaccinated || urlAnimalPedigree,
+  );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (hasActiveAdvancedFilters) setShowAdvancedFilters(true); }, []);
 
   // Sync local state when category changes (clear category-specific fields)
   useEffect(() => {
@@ -1792,12 +1826,47 @@ function ListingsPageContent() {
         />
       )}
 
+      {/* ── Category Explorer ── */}
+      {showExplorer && (
+        <CategoryExplorer
+          category={category}
+          onDismiss={() => setDismissedExplorer((prev) => new Set([...prev, category]))}
+        />
+      )}
+
+      {/* ── Mini search bar when explorer is showing (desktop only) ── */}
+      {showExplorer && (
+        <div className="hidden border-b border-slate-100 bg-white lg:block">
+          <div className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3">
+            <div className="flex flex-1 items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/10">
+              <Search className="h-4 w-4 shrink-0 text-slate-400" />
+              <input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && applyFilters()}
+                placeholder={`Търси в ${category}…`}
+                className="flex-1 bg-transparent text-sm font-semibold text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={applyFilters}
+              className="shrink-0 rounded-2xl bg-blue-950 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-900"
+            >
+              Търси
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Filter bar ── */}
       <section
         className={
           filterDrawerOpen
             ? "fixed inset-x-0 bottom-0 z-50 max-h-[88vh] overflow-y-auto rounded-t-[28px] bg-white shadow-2xl lg:static lg:mx-auto lg:max-w-7xl lg:max-h-none lg:overflow-visible lg:rounded-none lg:bg-transparent lg:shadow-none lg:px-6 lg:py-8"
-            : "hidden lg:block lg:mx-auto lg:max-w-7xl lg:px-6 lg:py-8"
+            : showExplorer
+              ? "hidden"
+              : "hidden lg:block lg:mx-auto lg:max-w-7xl lg:px-6 lg:py-8"
         }
         onClick={(e) => e.stopPropagation()}
       >
@@ -1930,16 +1999,21 @@ function ListingsPageContent() {
             </div>
           )}
 
-          {/* Row 3: category-specific filters */}
+          {/* Row 3: category-specific advanced filters (collapsed by default) */}
           {hasSpecificFilters && (
             <>
-              <div className="mt-5 flex items-center gap-2 border-t border-slate-100 pt-5">
-                <SlidersHorizontal className="h-4 w-4 text-blue-950" />
-                <span className="text-sm font-black text-blue-950">
-                  Филтри за {categoryInput}
-                </span>
+              <div className="mt-5 border-t border-slate-100 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedFilters((v) => !v)}
+                  className="flex items-center gap-2 text-sm font-black text-blue-950 transition hover:text-blue-700"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  <span>{showAdvancedFilters ? "По-малко филтри" : "Още филтри"}</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showAdvancedFilters ? "rotate-180" : ""}`} />
+                </button>
               </div>
-              <CategoryFilters
+              {showAdvancedFilters && <CategoryFilters
                 category={categoryInput}
                 propertyPurpose={propertyPurpose} onPropertyPurpose={setPropertyPurpose}
                 propertyType={propertyType} onPropertyType={setPropertyType}
@@ -2014,7 +2088,7 @@ function ListingsPageContent() {
                 animalGender={animalGender} onAnimalGender={setAnimalGender}
                 animalVaccinated={animalVaccinated} onAnimalVaccinated={setAnimalVaccinated}
                 animalPedigree={animalPedigree} onAnimalPedigree={setAnimalPedigree}
-              />
+              />}
             </>
           )}
 
