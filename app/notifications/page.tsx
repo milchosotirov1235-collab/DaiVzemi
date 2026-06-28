@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
@@ -77,9 +77,9 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [markingAll, setMarkingAll] = useState(false);
 
-  useEffect(() => {
-    let channel: ReturnType<typeof supabase.channel> | null = null;
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
+  useEffect(() => {
     const load = async () => {
       const { data: authData } = await supabase.auth.getUser();
       const user = authData?.user ?? null;
@@ -102,7 +102,7 @@ export default function NotificationsPage() {
       setLoading(false);
 
       // Realtime: prepend new notifications as they arrive
-      channel = supabase
+      channelRef.current = supabase
         .channel("notifications-page")
         .on(
           "postgres_changes",
@@ -122,7 +122,10 @@ export default function NotificationsPage() {
     load();
 
     return () => {
-      if (channel) supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [router]);
 
