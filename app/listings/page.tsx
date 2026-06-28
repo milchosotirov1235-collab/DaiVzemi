@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
-import { BookMarked, Camera, Check, ChevronDown, Heart, LayoutGrid, LayoutList, Loader2, Search, SlidersHorizontal, X } from "lucide-react";
+import { BookMarked, Camera, Check, ChevronDown, ChevronRight, Heart, LayoutGrid, LayoutList, Loader2, Search, SlidersHorizontal, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { ORDERED_CAR_BRANDS, getModelsForBrand } from "@/lib/data/vehicles";
 import {
@@ -1432,8 +1432,12 @@ function ListingsPageContent() {
       if (type.trim()) query = query.eq("listing_type", type.trim());
       if (city.trim()) query = query.ilike("city", `%${city.trim()}%`);
       if (search.trim()) {
-        const sv = `%${search.trim()}%`;
-        query = query.or(`title.ilike.${sv},description.ilike.${sv}`);
+        // PostgREST .or() uses * as wildcard (not %), and each word is ANDed
+        // so "светкавицата маккуин" requires both words to appear somewhere
+        const words = search.trim().split(/\s+/).filter(Boolean);
+        for (const word of words) {
+          query = query.or(`title.ilike.*${word}*,description.ilike.*${word}*`);
+        }
       }
 
       // Sort at DB level for "newest" (the dominant case)
@@ -1717,27 +1721,40 @@ function ListingsPageContent() {
     <main className="min-h-screen bg-slate-50" onClick={() => setOpenDropdown(null)}>
       <Header />
 
-      {/* Hero — desktop only */}
-      <section className="hidden bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 px-6 py-20 text-white lg:block">
-        <div className="mx-auto max-w-6xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">DaiVzemi</p>
-          <h1 className="mt-3 text-4xl font-black md:text-5xl">{heroTitle()}</h1>
-          <p className="mt-4 text-base text-blue-100 md:text-lg">{heroSubtitle()}</p>
-        </div>
-      </section>
-
-      {/* ── Free publish CTA strip — desktop only ── */}
+      {/* ── Compact page header — desktop only ── */}
       <div className="hidden border-b border-slate-100 bg-white lg:block">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3">
-          <p className="text-sm font-semibold text-slate-600">
-            Продаваш нещо? <span className="font-black text-blue-950">Публикуването е безплатно.</span>
-          </p>
-          <Link
-            href="/publish"
-            className="shrink-0 rounded-xl bg-blue-950 px-4 py-2 text-xs font-black text-white transition hover:bg-blue-900"
-          >
-            Публикувай сега →
-          </Link>
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
+          {/* Left: accent bar + breadcrumb + title */}
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="h-8 w-1 shrink-0 rounded-full bg-blue-950" />
+            <div className="min-w-0">
+              {category && (
+                <nav className="mb-0.5 flex items-center gap-1 text-[11px] font-medium text-slate-400">
+                  <Link href="/listings" className="transition-colors hover:text-blue-950">
+                    Всички обяви
+                  </Link>
+                  <ChevronRight className="h-3 w-3 shrink-0" />
+                  <span className="truncate text-slate-600">{category}</span>
+                </nav>
+              )}
+              <h1 className="truncate text-xl font-black text-slate-900">{heroTitle()}</h1>
+            </div>
+          </div>
+
+          {/* Right: listing count + publish CTA */}
+          <div className="flex shrink-0 items-center gap-4">
+            {!loading && listings.length > 0 && (
+              <span className="text-sm font-semibold text-slate-400">
+                {listings.length >= 200 ? "200+" : listings.length}&nbsp;обяви
+              </span>
+            )}
+            <Link
+              href="/publish"
+              className="rounded-xl bg-blue-950 px-4 py-2 text-xs font-black text-white transition hover:bg-blue-900"
+            >
+              Публикувай сега →
+            </Link>
+          </div>
         </div>
       </div>
 
