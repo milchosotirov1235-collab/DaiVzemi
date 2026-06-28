@@ -279,13 +279,13 @@ export default function Home() {
   const totalCount = Object.values(categoryCounts).reduce((a, b) => a + b, 0);
 
   const cats = [
-    { icon: HomeIcon,   label: "Имоти" },
-    { icon: Car,        label: "Автомобили" },
-    { icon: Wrench,     label: "Авточасти" },
     { icon: Smartphone, label: "Електроника" },
+    { icon: Car,        label: "Автомобили" },
+    { icon: HomeIcon,   label: "Имоти" },
+    { icon: Shirt,      label: "Мода" },
+    { icon: Wrench,     label: "Авточасти" },
     { icon: Baby,       label: "Детски стоки" },
     { icon: Trees,      label: "Дом и градина" },
-    { icon: Shirt,      label: "Мода" },
     { icon: Trophy,     label: "Спорт и хоби" },
     { icon: PawPrint,   label: "Животни" },
     { icon: Hammer,     label: "Услуги" },
