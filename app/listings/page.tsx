@@ -1933,49 +1933,182 @@ function ListingsPageContent() {
             </button>
           </div>
 
-          {/* Row 2: Transaction type chips + Още филтри toggle */}
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-2">
-              {listingTypes.map((t) => (
+          {/* Row 2: Context-aware primary filters when category selected, type chips otherwise */}
+          {categoryInput ? (
+            <div className="mt-3">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                {/* ── Електроника ── */}
+                {categoryInput === "Електроника" && <>
+                  <SearchableSelect value={elBrand} onChange={setElBrand} options={ELECTRONICS_BRANDS} placeholder="Марка" />
+                  <SearchableSelect value={elStorage} onChange={setElStorage} options={ELECTRONICS_STORAGE_OPTIONS} placeholder="Памет" />
+                  <SearchableSelect value={elCondition} onChange={setElCondition} options={ITEM_CONDITIONS} placeholder="Състояние" />
+                </>}
+                {/* ── Автомобили ── */}
+                {categoryInput === "Автомобили" && <>
+                  <SearchableSelect value={carMake} onChange={(v) => { setCarMake(v); setCarModel(""); }} options={ORDERED_CAR_BRANDS} placeholder="Марка" />
+                  <SearchableSelect value={carModel} onChange={setCarModel} options={getModelsForBrand(carMake)} placeholder="Модел" disabled={!carMake} disabledPlaceholder="Изберете марка" />
+                  <SearchableSelect value={fuel} onChange={setFuel} options={FUEL_TYPES} placeholder="Гориво" />
+                  <SearchableSelect value={transmission} onChange={setTransmission} options={TRANSMISSION_TYPES} placeholder="Скоростна кутия" />
+                </>}
+                {/* ── Авточасти ── */}
+                {categoryInput === "Авточасти" && <>
+                  <SearchableSelect value={carMake} onChange={(v) => { setCarMake(v); setCarModel(""); }} options={ORDERED_CAR_BRANDS} placeholder="Марка на автомобила" />
+                  <SearchableSelect value={partType} onChange={setPartType} options={AUTO_PART_CATEGORIES} placeholder="Вид на частта" />
+                  <SearchableSelect value={condition} onChange={setCondition} options={PART_CONDITIONS} placeholder="Състояние" />
+                </>}
+                {/* ── Имоти ── */}
+                {categoryInput === "Имоти" && <>
+                  <SearchableSelect value={propertyType} onChange={setPropertyType} options={PROPERTY_TYPES} placeholder="Тип имот" />
+                  <SearchableSelect value={rooms} onChange={setRooms} options={ROOM_OPTIONS} placeholder="Стаи" />
+                  <SearchableSelect value={furnished} onChange={setFurnished} options={FURNISHING_OPTIONS} placeholder="Обзавеждане" />
+                  <SearchableSelect value={heating} onChange={setHeating} options={HEATING_OPTIONS} placeholder="Отопление" />
+                </>}
+                {/* ── Мода ── */}
+                {categoryInput === "Мода" && <>
+                  <SearchableSelect value={fashionType} onChange={setFashionType} options={FASHION_TYPES} placeholder="Вид" />
+                  <SearchableSelect value={fashionGender} onChange={setFashionGender} options={FASHION_GENDERS} placeholder="За" />
+                  <SearchableSelect value={fashionSize} onChange={setFashionSize} options={FASHION_SIZES} placeholder="Размер" />
+                  <SearchableSelect value={fashionCondition} onChange={setFashionCondition} options={ITEM_CONDITIONS} placeholder="Състояние" />
+                </>}
+                {/* ── Книги ── */}
+                {categoryInput === "Книги" && <>
+                  <SearchableSelect value={bookGenre} onChange={setBookGenre} options={BOOK_GENRES} placeholder="Жанр" />
+                  <SearchableSelect value={bookLanguage} onChange={setBookLanguage} options={BOOK_LANGUAGES} placeholder="Език" />
+                  <SearchableSelect value={bookCondition} onChange={setBookCondition} options={BOOK_CONDITIONS} placeholder="Състояние" />
+                </>}
+                {/* ── Детски стоки ── */}
+                {categoryInput === "Детски стоки" && <>
+                  <SearchableSelect value={kidsItemType} onChange={setKidsItemType} options={KIDS_ITEM_TYPES} placeholder="Вид" />
+                  <SearchableSelect value={kidsAgeGroup} onChange={setKidsAgeGroup} options={KIDS_AGE_GROUPS} placeholder="Възрастова група" />
+                  <SearchableSelect value={kidsGender} onChange={setKidsGender} options={KIDS_GENDERS} placeholder="За" />
+                  <SearchableSelect value={kidsCondition} onChange={setKidsCondition} options={ITEM_CONDITIONS} placeholder="Състояние" />
+                </>}
+                {/* ── Дом и градина ── */}
+                {categoryInput === "Дом и градина" && <>
+                  <SearchableSelect value={homeSubcategory} onChange={setHomeSubcategory} options={HOME_GARDEN_SUBCATEGORIES} placeholder="Подкатегория" />
+                  <SearchableSelect value={homeCondition} onChange={setHomeCondition} options={ITEM_CONDITIONS} placeholder="Състояние" />
+                </>}
+                {/* ── Спорт и хоби ── */}
+                {categoryInput === "Спорт и хоби" && <>
+                  <SearchableSelect value={sportCategory} onChange={setSportCategory} options={SPORT_CATEGORIES} placeholder="Категория" />
+                  <SearchableSelect value={sportCondition} onChange={setSportCondition} options={ITEM_CONDITIONS} placeholder="Състояние" />
+                </>}
+                {/* ── Животни ── */}
+                {categoryInput === "Животни" && <>
+                  <SearchableSelect value={animalType} onChange={setAnimalType} options={ANIMAL_TYPES} placeholder="Вид животно" />
+                  <SearchableSelect value={animalGender} onChange={setAnimalGender} options={ANIMAL_GENDERS} placeholder="Пол" />
+                  <SearchableSelect value={animalVaccinated} onChange={setAnimalVaccinated} options={["Да", "Не", "Частично"]} placeholder="Ваксинирано" />
+                </>}
+                {/* ── Компютри ── */}
+                {categoryInput === "Компютри" && <>
+                  <SearchableSelect value={compType} onChange={setCompType} options={COMPUTER_TYPES} placeholder="Тип" />
+                  <SearchableSelect value={compBrand} onChange={setCompBrand} options={COMPUTER_BRANDS} placeholder="Марка" />
+                  <SearchableSelect value={compCondition} onChange={setCompCondition} options={ITEM_CONDITIONS} placeholder="Състояние" />
+                </>}
+                {/* ── Услуги ── */}
+                {categoryInput === "Услуги" && <>
+                  <SearchableSelect value={serviceCategory} onChange={setServiceCategory} options={SERVICE_CATEGORIES} placeholder="Категория услуга" />
+                  <SearchableSelect value={onlineService} onChange={setOnlineService} options={["Да", "Не"]} placeholder="Онлайн услуга" />
+                  <SearchableSelect value={providerType} onChange={setProviderType} options={PROVIDER_TYPES} placeholder="Фирма / Частно лице" />
+                </>}
+                {/* ── Работа ── */}
+                {categoryInput === "Работа" && <>
+                  <SearchableSelect value={jobCategory} onChange={setJobCategory} options={JOB_CATEGORIES} placeholder="Категория работа" />
+                  <SearchableSelect value={employmentType} onChange={setEmploymentType} options={EMPLOYMENT_TYPES} placeholder="Тип заетост" />
+                  <SearchableSelect value={remote} onChange={setRemote} options={["Да", "Не"]} placeholder="Дистанционна" />
+                </>}
+              </div>
+              <div className="mt-2 flex justify-end">
                 <button
-                  key={t}
                   type="button"
-                  onClick={() => {
-                    const newType = typeInput === t ? "" : t;
-                    setTypeInput(newType);
-                    if (!filterDrawerOpen) {
-                      const params = new URLSearchParams(searchParams.toString());
-                      if (newType) params.set("type", newType);
-                      else params.delete("type");
-                      router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
-                    }
-                  }}
-                  className={`rounded-full px-4 py-2 text-sm font-bold transition ${
-                    typeInput === t
-                      ? "bg-blue-950 text-white shadow-sm"
-                      : "border border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-950"
+                  onClick={() => setShowAdvancedFilters((v) => !v)}
+                  className={`flex items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                    showAdvancedFilters ? "bg-slate-100 text-slate-900" : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  {t}
+                  <SlidersHorizontal className="h-4 w-4" />
+                  <span>Още филтри</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showAdvancedFilters ? "rotate-180" : ""}`} />
                 </button>
-              ))}
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowAdvancedFilters((v) => !v)}
-              className={`flex shrink-0 items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-bold transition ${
-                showAdvancedFilters ? "bg-slate-100 text-slate-900" : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              <span>Още филтри</span>
-              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showAdvancedFilters ? "rotate-180" : ""}`} />
-            </button>
-          </div>
+          ) : (
+            /* No category selected: type chips + toggle */
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap gap-2">
+                {listingTypes.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => {
+                      const newType = typeInput === t ? "" : t;
+                      setTypeInput(newType);
+                      if (!filterDrawerOpen) {
+                        const params = new URLSearchParams(searchParams.toString());
+                        if (newType) params.set("type", newType);
+                        else params.delete("type");
+                        router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
+                      }
+                    }}
+                    className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                      typeInput === t
+                        ? "bg-blue-950 text-white shadow-sm"
+                        : "border border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-950"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAdvancedFilters((v) => !v)}
+                className={`flex shrink-0 items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                  showAdvancedFilters ? "bg-slate-100 text-slate-900" : "text-slate-500 hover:text-slate-900"
+                }`}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span>Още филтри</span>
+                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showAdvancedFilters ? "rotate-180" : ""}`} />
+              </button>
+            </div>
+          )}
 
           {/* Advanced section — collapsed by default */}
           {showAdvancedFilters && (
             <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
+
+              {/* Transaction type chips — shown here when browsing a category (moved from primary row) */}
+              {categoryInput && (
+                <div>
+                  <p className="mb-2 text-[11px] font-black uppercase tracking-wider text-slate-400">Тип обява</p>
+                  <div className="flex flex-wrap gap-2">
+                    {listingTypes.map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => {
+                          const newType = typeInput === t ? "" : t;
+                          setTypeInput(newType);
+                          if (!filterDrawerOpen) {
+                            const params = new URLSearchParams(searchParams.toString());
+                            if (newType) params.set("type", newType);
+                            else params.delete("type");
+                            router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
+                          }
+                        }}
+                        className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                          typeInput === t
+                            ? "bg-blue-950 text-white shadow-sm"
+                            : "border border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-950"
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Category + Price range + Condition */}
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
