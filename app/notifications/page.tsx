@@ -78,10 +78,17 @@ export default function NotificationsPage() {
   const [markingAll, setMarkingAll] = useState(false);
 
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  // Unique per mount — avoids Supabase deduplication collisions when
+  // removeChannel() hasn't fully resolved before StrictMode re-runs the effect
+  const mountId = useRef(`notif-${Date.now()}-${Math.random()}`).current;
 
   useEffect(() => {
+    let cancelled = false;
+
     const load = async () => {
       const { data: authData } = await supabase.auth.getUser();
+      if (cancelled) return;
+
       const user = authData?.user ?? null;
 
       if (!user) {
@@ -95,15 +102,16 @@ export default function NotificationsPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
+      if (cancelled) return;
+
       if (!error && data) {
         setNotifications(data as Notification[]);
       }
 
       setLoading(false);
 
-      // Realtime: prepend new notifications as they arrive
       channelRef.current = supabase
-        .channel("notifications-page")
+        .channel(mountId)
         .on(
           "postgres_changes",
           {
@@ -122,6 +130,7 @@ export default function NotificationsPage() {
     load();
 
     return () => {
+      cancelled = true;
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;

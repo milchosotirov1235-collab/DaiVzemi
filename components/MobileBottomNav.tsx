@@ -30,13 +30,16 @@ export default function MobileBottomNav() {
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const msgChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const notifChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  // Unique per mount — prevents Supabase channel deduplication from colliding
+  // when removeChannel() is async and StrictMode re-runs the effect immediately
+  const mountId = useRef(`nav-${Date.now()}-${Math.random()}`).current;
 
   useEffect(() => {
-    let userId: string | null = null;
+    let cancelled = false;
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.user) return;
-      userId = session.user.id;
+      if (cancelled || !session?.user) return;
+      const userId = session.user.id;
 
       // Initial counts
       supabase
@@ -44,18 +47,18 @@ export default function MobileBottomNav() {
         .select("id", { count: "exact", head: true })
         .eq("recipient_id", userId)
         .eq("read", false)
-        .then(({ count }) => setUnreadMessages(count ?? 0));
+        .then(({ count }) => { if (!cancelled) setUnreadMessages(count ?? 0); });
 
       supabase
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
         .eq("read", false)
-        .then(({ count }) => setUnreadNotifications(count ?? 0));
+        .then(({ count }) => { if (!cancelled) setUnreadNotifications(count ?? 0); });
 
       // Realtime: messages
       msgChannelRef.current = supabase
-        .channel("mobile-nav-messages")
+        .channel(`${mountId}-messages`)
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "messages", filter: `recipient_id=eq.${userId}` },
@@ -63,16 +66,16 @@ export default function MobileBottomNav() {
             supabase
               .from("messages")
               .select("id", { count: "exact", head: true })
-              .eq("recipient_id", userId!)
+              .eq("recipient_id", userId)
               .eq("read", false)
-              .then(({ count }) => setUnreadMessages(count ?? 0));
+              .then(({ count }) => { if (!cancelled) setUnreadMessages(count ?? 0); });
           },
         )
         .subscribe();
 
       // Realtime: notifications
       notifChannelRef.current = supabase
-        .channel("mobile-nav-notifications")
+        .channel(`${mountId}-notifications`)
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
@@ -80,15 +83,16 @@ export default function MobileBottomNav() {
             supabase
               .from("notifications")
               .select("id", { count: "exact", head: true })
-              .eq("user_id", userId!)
+              .eq("user_id", userId)
               .eq("read", false)
-              .then(({ count }) => setUnreadNotifications(count ?? 0));
+              .then(({ count }) => { if (!cancelled) setUnreadNotifications(count ?? 0); });
           },
         )
         .subscribe();
     });
 
     return () => {
+      cancelled = true;
       if (msgChannelRef.current) {
         supabase.removeChannel(msgChannelRef.current);
         msgChannelRef.current = null;
