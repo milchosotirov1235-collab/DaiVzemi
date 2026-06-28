@@ -22,19 +22,20 @@ import {
   Wrench,
 } from "lucide-react";
 
-// Custom ring-with-diamond icon — no equivalent exists in lucide-react
+// Custom solitaire ring icon — no equivalent exists in lucide-react
 function RingIcon({ className, strokeWidth = 1.8 }: { className?: string; strokeWidth?: number }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth}
       strokeLinecap="round" strokeLinejoin="round" className={className}>
-      {/* Diamond crown */}
-      <path d="M6 9L12 3L18 9" />
-      {/* Table (girdle line) */}
-      <line x1="6" y1="9" x2="18" y2="9" />
-      {/* Pavilion → culet */}
-      <path d="M6 9L12 14L18 9" />
-      {/* Ring shank */}
-      <path d="M8.5 14C7 15 6.5 16.5 6.5 18C6.5 20.2 9 22 12 22C15 22 17.5 20.2 17.5 18C17.5 16.5 17 15 15.5 14" />
+      {/* Diamond kite outline */}
+      <path d="M12 2L17 8L12 13L7 8Z" />
+      {/* Table (girdle) */}
+      <line x1="7" y1="8" x2="17" y2="8" />
+      {/* Crown facet lines — makes it read as a gemstone */}
+      <line x1="7" y1="8" x2="12" y2="5" />
+      <line x1="17" y1="8" x2="12" y2="5" />
+      {/* Ring shank — round U-band beneath the stone */}
+      <path d="M9 13C6.5 14.5 5.5 17 5.5 18.5C5.5 21 8.5 22.5 12 22.5C15.5 22.5 18.5 21 18.5 18.5C18.5 17 17.5 14.5 15 13" />
     </svg>
   );
 }
