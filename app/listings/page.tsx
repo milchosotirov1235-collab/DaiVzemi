@@ -67,18 +67,21 @@ type Listing = {
 // ---------------------------------------------------------------------------
 
 const categories = [
-  "Имоти",
-  "Автомобили",
-  "Авточасти",
   "Електроника",
+  "Автомобили",
+  "Имоти",
+  "Мода",
+  "Авточасти",
   "Детски стоки",
   "Дом и градина",
-  "Мода",
   "Спорт и хоби",
+  "Гейминг",
+  "Бижута и ценности",
   "Услуги",
   "Работа",
-  "Компютри",
+  "Животни",
   "Книги",
+  "Компютри",
 ];
 
 const listingTypes = ["Продавам", "Подарявам", "Разменям", "Търся"];
@@ -97,6 +100,8 @@ const fallbackImageByCategory: Record<string, string> = {
   Работа: "💼",
   Компютри: "💻",
   Книги: "📚",
+  Гейминг: "🎮",
+  "Бижута и ценности": "💎",
 };
 
 // Categories that have their own dedicated filter panel
@@ -2004,6 +2009,15 @@ function ListingsPageContent() {
                   <SearchableSelect value={compType} onChange={setCompType} options={COMPUTER_TYPES} placeholder="Тип" />
                   <SearchableSelect value={compBrand} onChange={setCompBrand} options={COMPUTER_BRANDS} placeholder="Марка" />
                   <SearchableSelect value={compCondition} onChange={setCompCondition} options={ITEM_CONDITIONS} placeholder="Състояние" />
+                </>}
+                {/* ── Гейминг ── */}
+                {categoryInput === "Гейминг" && <>
+                  <SearchableSelect value={elBrand} onChange={setElBrand} options={ELECTRONICS_BRANDS} placeholder="Марка" />
+                  <SearchableSelect value={elCondition} onChange={setElCondition} options={ITEM_CONDITIONS} placeholder="Състояние" />
+                </>}
+                {/* ── Бижута и ценности ── */}
+                {categoryInput === "Бижута и ценности" && <>
+                  <SearchableSelect value={condition} onChange={setCondition} options={ITEM_CONDITIONS} placeholder="Състояние" />
                 </>}
                 {/* ── Услуги ── */}
                 {categoryInput === "Услуги" && <>

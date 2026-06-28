@@ -15,10 +15,13 @@ import {
   Check,
   ChevronDown,
   FileText,
+  Gamepad2,
+  Gem,
   Hammer,
   Heart,
   HelpCircle,
   Home as HomeIcon,
+  LayoutGrid,
   LayoutList,
   LogOut,
   MapPin,
@@ -66,17 +69,35 @@ function cityMatches(city: string, q: string): boolean {
 }
 
 const CATEGORY_NAV = [
-  { icon: HomeIcon,   label: "Имоти" },
-  { icon: Car,        label: "Автомобили" },
-  { icon: Wrench,     label: "Авточасти" },
   { icon: Smartphone, label: "Електроника" },
+  { icon: Car,        label: "Автомобили" },
+  { icon: HomeIcon,   label: "Имоти" },
+  { icon: Shirt,      label: "Мода" },
+  { icon: Wrench,     label: "Авточасти" },
   { icon: Baby,       label: "Детски стоки" },
   { icon: Trees,      label: "Дом и градина" },
-  { icon: Shirt,      label: "Мода" },
   { icon: Trophy,     label: "Спорт и хоби" },
-  { icon: PawPrint,   label: "Животни" },
+  { icon: Gamepad2,   label: "Гейминг" },
+  { icon: Gem,        label: "Бижута и ценности" },
   { icon: Hammer,     label: "Услуги" },
   { icon: Briefcase,  label: "Работа" },
+];
+
+// All categories — shown in the "Още" panel (primary nav + overflow)
+const ALL_CATEGORIES = [
+  { icon: Smartphone, label: "Електроника" },
+  { icon: Car,        label: "Автомобили" },
+  { icon: HomeIcon,   label: "Имоти" },
+  { icon: Shirt,      label: "Мода" },
+  { icon: Wrench,     label: "Авточасти" },
+  { icon: Baby,       label: "Детски стоки" },
+  { icon: Trees,      label: "Дом и градина" },
+  { icon: Trophy,     label: "Спорт и хоби" },
+  { icon: Gamepad2,   label: "Гейминг" },
+  { icon: Gem,        label: "Бижута и ценности" },
+  { icon: Hammer,     label: "Услуги" },
+  { icon: Briefcase,  label: "Работа" },
+  { icon: PawPrint,   label: "Животни" },
   { icon: BookOpen,   label: "Книги" },
 ];
 
@@ -164,6 +185,7 @@ export default function Header() {
   const [showLocationMenu, setShowLocationMenu] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [scrolled, setScrolled] = useState(false);
+  const [showCategoryBrowser, setShowCategoryBrowser] = useState(false);
 
   const router = useRouter();
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -323,6 +345,12 @@ export default function Header() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setShowCategoryBrowser(false); };
+    if (showCategoryBrowser) document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [showCategoryBrowser]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -638,18 +666,107 @@ export default function Header() {
             <Link
               key={label}
               href={`/listings?category=${encodeURIComponent(label)}`}
+              onClick={() => setShowCategoryBrowser(false)}
               className="flex shrink-0 flex-col items-center gap-1 px-3.5 py-2.5 text-center text-[13px] font-bold text-white/70 transition hover:bg-white/10 hover:text-white xl:px-5"
             >
               <Icon className="h-5 w-5" strokeWidth={1.8} />
               <span className="whitespace-nowrap">{label}</span>
             </Link>
           ))}
+
+          {/* ── Още ▾ ── */}
+          <button
+            type="button"
+            onClick={() => setShowCategoryBrowser((v) => !v)}
+            className={`flex shrink-0 flex-col items-center gap-1 px-3.5 py-2.5 text-center text-[13px] font-bold transition xl:px-5 ${
+              showCategoryBrowser
+                ? "bg-white/10 text-white"
+                : "text-white/70 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            <LayoutGrid className="h-5 w-5" strokeWidth={1.8} />
+            <span className="flex items-center gap-0.5 whitespace-nowrap">
+              Още
+              <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${showCategoryBrowser ? "rotate-180" : ""}`} />
+            </span>
+          </button>
         </div>
       </nav>
+
+      {/* ── Category browser panel ────────────────────────────────────────── */}
+      {showCategoryBrowser && (
+        <>
+          {/* Click-outside backdrop */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setShowCategoryBrowser(false)}
+          />
+          {/* Panel */}
+          <div className="absolute inset-x-0 top-full z-50 border-t border-slate-200/60 bg-white shadow-2xl shadow-slate-900/10">
+            <div className="mx-auto max-w-7xl px-4 py-6 lg:px-6">
+
+              {/* Header row */}
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <h2 className="text-sm font-black text-slate-900">Всички категории</h2>
+                  <p className="mt-0.5 text-[11px] text-slate-400">Изберете категория за разглеждане</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCategoryBrowser(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                  aria-label="Затвори"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Category grid — 7 per row on desktop = 2 clean rows for all 14 */}
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-7 lg:grid-cols-7">
+                {ALL_CATEGORIES.map(({ icon: Icon, label }) => (
+                  <Link
+                    key={label}
+                    href={`/listings?category=${encodeURIComponent(label)}`}
+                    onClick={() => setShowCategoryBrowser(false)}
+                    className="group flex flex-col items-center gap-2.5 rounded-2xl border border-slate-100 p-3 text-center transition-all duration-150 hover:border-blue-200 hover:bg-blue-50/60 hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-50 transition duration-150 group-hover:bg-white group-hover:shadow-sm">
+                      <Icon className="h-[18px] w-[18px] text-blue-950 transition-transform duration-150 group-hover:scale-110" strokeWidth={1.8} />
+                    </div>
+                    <span className="text-[11px] font-bold leading-tight text-slate-600 transition-colors group-hover:text-blue-950">
+                      {label}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ── Mobile menu ──────────────────────────────────────────────────── */}
       {mobileMenuOpen && (
         <div className="border-t border-white/10 bg-blue-950 px-6 pb-6 pt-4 lg:hidden">
+
+          {/* Category grid — mobile */}
+          <div className="mb-4 border-b border-white/10 pb-4">
+            <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-white/40">Категории</p>
+            <div className="grid grid-cols-4 gap-2">
+              {ALL_CATEGORIES.map(({ icon: Icon, label }) => (
+                <Link
+                  key={label}
+                  href={`/listings?category=${encodeURIComponent(label)}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="group flex flex-col items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 p-2.5 text-center transition hover:border-white/30 hover:bg-white/15"
+                >
+                  <Icon className="h-5 w-5 text-white/70 transition group-hover:text-white" strokeWidth={1.8} />
+                  <span className="text-[10px] font-bold leading-tight text-white/60 group-hover:text-white">{label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
           <div className="mt-0">
             {isLoggedIn ? (
               <div className="space-y-0.5">
