@@ -185,7 +185,6 @@ export default function Header() {
   const [showLocationMenu, setShowLocationMenu] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [scrolled, setScrolled] = useState(false);
-  const [showCategoryBrowser, setShowCategoryBrowser] = useState(false);
 
   const router = useRouter();
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -346,11 +345,6 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setShowCategoryBrowser(false); };
-    if (showCategoryBrowser) document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [showCategoryBrowser]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -661,89 +655,31 @@ export default function Header() {
 
       {/* ── Category nav — desktop only ─────────────────────────────────── */}
       <nav className="hidden border-t border-white/10 lg:block" aria-label="Категории">
-        <div className="mx-auto flex max-w-7xl items-center overflow-x-auto px-4 xl:px-6">
+        <div
+          className="mx-auto flex max-w-7xl items-center overflow-x-auto px-4 xl:px-6"
+          style={{ scrollbarWidth: "none" }}
+        >
           {CATEGORY_NAV.map(({ icon: Icon, label }) => (
             <Link
               key={label}
               href={`/listings?category=${encodeURIComponent(label)}`}
-              onClick={() => setShowCategoryBrowser(false)}
-              className="flex shrink-0 flex-col items-center gap-1 px-3.5 py-2.5 text-center text-[13px] font-bold text-white/70 transition hover:bg-white/10 hover:text-white xl:px-5"
+              className="flex shrink-0 flex-col items-center gap-1 px-3 py-2.5 text-center text-[12px] font-bold text-white/70 transition hover:bg-white/10 hover:text-white xl:px-4"
             >
-              <Icon className="h-5 w-5" strokeWidth={1.8} />
+              <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
               <span className="whitespace-nowrap">{label}</span>
             </Link>
           ))}
 
-          {/* ── Още ▾ ── */}
-          <button
-            type="button"
-            onClick={() => setShowCategoryBrowser((v) => !v)}
-            className={`flex shrink-0 flex-col items-center gap-1 px-3.5 py-2.5 text-center text-[13px] font-bold transition xl:px-5 ${
-              showCategoryBrowser
-                ? "bg-white/10 text-white"
-                : "text-white/70 hover:bg-white/10 hover:text-white"
-            }`}
+          {/* ── Още → /categories ── */}
+          <Link
+            href="/categories"
+            className="flex shrink-0 flex-col items-center gap-1 border-l border-white/10 px-3 py-2.5 text-center text-[12px] font-bold text-white/50 transition hover:bg-white/10 hover:text-white xl:px-4"
           >
-            <LayoutGrid className="h-5 w-5" strokeWidth={1.8} />
-            <span className="flex items-center gap-0.5 whitespace-nowrap">
-              Още
-              <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${showCategoryBrowser ? "rotate-180" : ""}`} />
-            </span>
-          </button>
+            <LayoutGrid className="h-[18px] w-[18px]" strokeWidth={1.8} />
+            <span className="whitespace-nowrap">Още</span>
+          </Link>
         </div>
       </nav>
-
-      {/* ── Category browser panel ────────────────────────────────────────── */}
-      {showCategoryBrowser && (
-        <>
-          {/* Click-outside backdrop */}
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setShowCategoryBrowser(false)}
-          />
-          {/* Panel */}
-          <div className="absolute inset-x-0 top-full z-50 border-t border-slate-200/60 bg-white shadow-2xl shadow-slate-900/10">
-            <div className="mx-auto max-w-7xl px-4 py-6 lg:px-6">
-
-              {/* Header row */}
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-black text-slate-900">Всички категории</h2>
-                  <p className="mt-0.5 text-[11px] text-slate-400">Изберете категория за разглеждане</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowCategoryBrowser(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                  aria-label="Затвори"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* Category grid — 7 per row on desktop = 2 clean rows for all 14 */}
-              <div className="grid grid-cols-4 gap-2 sm:grid-cols-7 lg:grid-cols-7">
-                {ALL_CATEGORIES.map(({ icon: Icon, label }) => (
-                  <Link
-                    key={label}
-                    href={`/listings?category=${encodeURIComponent(label)}`}
-                    onClick={() => setShowCategoryBrowser(false)}
-                    className="group flex flex-col items-center gap-2.5 rounded-2xl border border-slate-100 p-3 text-center transition-all duration-150 hover:border-blue-200 hover:bg-blue-50/60 hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                  >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-50 transition duration-150 group-hover:bg-white group-hover:shadow-sm">
-                      <Icon className="h-[18px] w-[18px] text-blue-950 transition-transform duration-150 group-hover:scale-110" strokeWidth={1.8} />
-                    </div>
-                    <span className="text-[11px] font-bold leading-tight text-slate-600 transition-colors group-hover:text-blue-950">
-                      {label}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-
-            </div>
-          </div>
-        </>
-      )}
 
       {/* ── Mobile menu ──────────────────────────────────────────────────── */}
       {mobileMenuOpen && (
