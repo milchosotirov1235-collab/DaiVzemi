@@ -62,19 +62,19 @@ export default function CategoriesPage() {
               <Link
                 key={label}
                 href={`/listings?category=${encodeURIComponent(label)}`}
-                className="group flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-5 text-center shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md hover:shadow-blue-100/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:py-6"
+                className="group flex flex-col items-center gap-3.5 rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md hover:shadow-blue-100/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:py-7"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-50 transition-all duration-200 group-hover:bg-blue-50 group-hover:scale-105">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-50 transition-all duration-200 group-hover:bg-blue-50 group-hover:scale-105">
                   <Icon
-                    className="h-6 w-6 text-blue-950 transition-transform duration-200 group-hover:scale-110"
+                    className="h-[26px] w-[26px] text-blue-950 transition-transform duration-200 group-hover:scale-110"
                     strokeWidth={1.8}
                   />
                 </div>
                 <div className="w-full min-w-0">
-                  <p className="text-[13px] font-black leading-tight text-slate-900 group-hover:text-blue-950">
+                  <p className="text-sm font-black leading-tight text-slate-900 group-hover:text-blue-950">
                     {label}
                   </p>
-                  <p className="mt-1 text-[10px] font-medium leading-snug text-slate-400 group-hover:text-blue-500/70">
+                  <p className="mt-1 text-[11px] font-medium leading-snug text-slate-400 group-hover:text-blue-500/70">
                     {hints}
                   </p>
                 </div>
