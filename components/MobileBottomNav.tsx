@@ -89,8 +89,14 @@ export default function MobileBottomNav() {
     });
 
     return () => {
-      msgChannelRef.current?.unsubscribe();
-      notifChannelRef.current?.unsubscribe();
+      if (msgChannelRef.current) {
+        supabase.removeChannel(msgChannelRef.current);
+        msgChannelRef.current = null;
+      }
+      if (notifChannelRef.current) {
+        supabase.removeChannel(notifChannelRef.current);
+        notifChannelRef.current = null;
+      }
     };
   }, []);
 
