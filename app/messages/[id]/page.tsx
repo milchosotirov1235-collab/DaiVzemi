@@ -89,6 +89,7 @@ export default function ConversationPage() {
   const conversationId = params?.id as string;
 
   const [userId, setUserId] = useState<string | null>(null);
+  const [myUsername, setMyUsername] = useState<string | null>(null);
   const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [otherUser, setOtherUser] = useState<Profile | null>(null);
@@ -149,12 +150,17 @@ export default function ConversationPage() {
 
       const otherId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id;
 
-      // Parallel: other user profile + listing title + messages
-      const [profileRes, listingRes, messagesRes] = await Promise.all([
+      // Parallel: other user profile + my profile + listing title + messages
+      const [profileRes, myProfileRes, listingRes, messagesRes] = await Promise.all([
         supabase
           .from("profiles")
           .select("id, username, avatar_url")
           .eq("id", otherId)
+          .maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", user.id)
           .maybeSingle(),
         supabase
           .from("listings")
@@ -169,6 +175,7 @@ export default function ConversationPage() {
       ]);
 
       setOtherUser(profileRes.data ?? null);
+      setMyUsername(myProfileRes.data?.username ?? null);
       setListingTitle(listingRes.data?.title ?? null);
       setMessages(messagesRes.data ?? []);
 
@@ -292,12 +299,39 @@ export default function ConversationPage() {
     const recipientId =
       conversation.buyer_id === userId ? conversation.seller_id : conversation.buyer_id;
 
-    await supabase.from("notifications").insert({
-      user_id: recipientId,
-      type: "new_message",
-      conversation_id: conversation.id,
-      body: text.length > 80 ? `${text.slice(0, 80)}…` : text,
-    });
+    const { data: notifData } = await supabase
+      .from("notifications")
+      .insert({
+        user_id: recipientId,
+        type: "new_message",
+        conversation_id: conversation.id,
+        body: text.length > 80 ? `${text.slice(0, 80)}…` : text,
+      })
+      .select("id")
+      .single();
+
+    // Fire-and-forget email notification — never blocks sending
+    if (notifData?.id) {
+      supabase.auth.getSession().then(({ data: sessionData }) => {
+        const token = sessionData?.session?.access_token;
+        if (!token) return;
+        fetch("/api/email/send", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            type: "new_message",
+            notificationId: notifData.id,
+            recipientId,
+            senderUsername: myUsername ?? "Потребител",
+            messagePreview: text.length > 120 ? `${text.slice(0, 120)}…` : text,
+            conversationId: conversation.id,
+          }),
+        }).catch(() => { /* silent */ });
+      });
+    }
 
     setSending(false);
     inputRef.current?.focus();

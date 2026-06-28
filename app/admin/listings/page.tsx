@@ -185,6 +185,24 @@ export default function AdminListings() {
           listing_id: listing.id,
           read: false,
         });
+
+        // Fire-and-forget email — never blocks the moderation action
+        supabase.auth.getSession().then(({ data: sessionData }) => {
+          const token = sessionData?.session?.access_token;
+          if (!token) return;
+          fetch("/api/email/send", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              type: status === "approved" ? "listing_approved" : "listing_rejected",
+              listingId: listing.id,
+              userId: listing.user_id,
+            }),
+          }).catch(() => { /* silent */ });
+        });
       }
     }
     setActionId(null);
