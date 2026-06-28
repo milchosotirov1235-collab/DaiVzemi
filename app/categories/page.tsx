@@ -8,7 +8,6 @@ import {
   Briefcase,
   Building2,
   Car,
-  Diamond,
   Gamepad2,
   Hammer,
   Home as HomeIcon,
@@ -22,6 +21,23 @@ import {
   Trees,
   Wrench,
 } from "lucide-react";
+
+// Custom ring-with-diamond icon — no equivalent exists in lucide-react
+function RingIcon({ className, strokeWidth = 1.8 }: { className?: string; strokeWidth?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth}
+      strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {/* Diamond crown */}
+      <path d="M6 9L12 3L18 9" />
+      {/* Table (girdle line) */}
+      <line x1="6" y1="9" x2="18" y2="9" />
+      {/* Pavilion → culet */}
+      <path d="M6 9L12 14L18 9" />
+      {/* Ring shank */}
+      <path d="M8.5 14C7 15 6.5 16.5 6.5 18C6.5 20.2 9 22 12 22C15 22 17.5 20.2 17.5 18C17.5 16.5 17 15 15.5 14" />
+    </svg>
+  );
+}
 
 export const metadata: Metadata = {
   title: "Всички категории — DaiVzemi",
@@ -39,7 +55,7 @@ const CATEGORIES = [
   { icon: Trees,      label: "Дом и градина",     hints: "Мебели · Декорация · Градина" },
   { icon: Trophy,     label: "Спорт и хоби",      hints: "Фитнес · Колоездене · Риболов" },
   { icon: Gamepad2,   label: "Гейминг",           hints: "Конзоли · Игри · Аксесоари" },
-  { icon: Diamond,    label: "Бижута и ценности", hints: "Пръстени · Гривни · Часовници" },
+  { icon: RingIcon,   label: "Бижута и ценности", hints: "Пръстени · Гривни · Часовници" },
   { icon: Hammer,     label: "Услуги",            hints: "Ремонти · Транспорт · Почистване" },
   { icon: Briefcase,  label: "Работа",            hints: "IT · Маркетинг · Строителство" },
   { icon: PawPrint,   label: "Животни",                   hints: "Кучета · Котки · Птици" },
