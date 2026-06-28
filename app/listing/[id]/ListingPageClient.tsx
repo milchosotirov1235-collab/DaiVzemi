@@ -57,6 +57,8 @@ type SellerProfile = {
   city: string | null;
   created_at: string | null;
   phone: string | null;
+  is_business: boolean | null;
+  business_name: string | null;
 };
 
 type SimilarListing = {
@@ -496,7 +498,7 @@ export default function ListingPageClient({ id }: { id: string }) {
           Promise.resolve(
             supabase
               .from("profiles")
-              .select("id, username, first_name, last_name, avatar_url, city, created_at, phone")
+              .select("id, username, first_name, last_name, avatar_url, city, created_at, phone, is_business, business_name")
               .eq("id", data.user_id)
               .maybeSingle()
           ).then(({ data: profile }) => { if (profile) setSeller(profile as SellerProfile); })
@@ -695,6 +697,7 @@ export default function ListingPageClient({ id }: { id: string }) {
   const detailEntries = getDetailEntries(listing.details);
 
   const sellerDisplayName =
+    (seller?.is_business && seller?.business_name) ||
     [seller?.first_name, seller?.last_name].filter(Boolean).join(" ") ||
     seller?.username ||
     "Продавач";
@@ -890,9 +893,14 @@ export default function ListingPageClient({ id }: { id: string }) {
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <Link href={`/user/${seller.id}`} className="truncate text-sm font-black text-slate-900 hover:text-blue-950">
-                    {sellerDisplayName}
-                  </Link>
+                  <div className="flex items-center gap-1.5">
+                    <Link href={`/user/${seller.id}`} className="truncate text-sm font-black text-slate-900 hover:text-blue-950">
+                      {sellerDisplayName}
+                    </Link>
+                    {seller.is_business && (
+                      <span className="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-700 ring-1 ring-blue-200">Фирма</span>
+                    )}
+                  </div>
                   <p className="text-xs text-slate-500">
                     {[seller.city, seller.created_at ? `Активен от ${formatMonthYear(seller.created_at)}` : null]
                       .filter(Boolean).join(" · ")}
@@ -1191,8 +1199,13 @@ export default function ListingPageClient({ id }: { id: string }) {
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="truncate text-base font-black text-slate-900">{sellerDisplayName}</p>
-                    {seller.username && (
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-base font-black text-slate-900">{sellerDisplayName}</p>
+                      {seller.is_business && (
+                        <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-black text-blue-700 ring-1 ring-blue-200">Фирма</span>
+                      )}
+                    </div>
+                    {seller.username && !seller.is_business && (
                       <p className="text-xs font-semibold text-slate-500">@{seller.username}</p>
                     )}
                   </div>

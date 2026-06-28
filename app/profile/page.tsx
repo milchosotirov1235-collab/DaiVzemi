@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import SellerTips from "@/components/SellerTips";
-import { AlertTriangle, Camera, CheckCircle2, Loader2, Lock, User } from "lucide-react";
+import { AlertTriangle, Building2, Camera, CheckCircle2, Loader2, Lock, User } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 // ---------------------------------------------------------------------------
@@ -41,6 +41,12 @@ export default function ProfilePage() {
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
+
+  // Business profile
+  const [isBusiness, setIsBusiness] = useState(false);
+  const [businessName, setBusinessName] = useState("");
+  const [businessDescription, setBusinessDescription] = useState("");
+  const [website, setWebsite] = useState("");
 
   // Avatar
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -101,7 +107,7 @@ export default function ProfilePage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("username, first_name, last_name, phone, city, avatar_url")
+        .select("username, first_name, last_name, phone, city, avatar_url, is_business, business_name, business_description, website")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -112,6 +118,10 @@ export default function ProfilePage() {
         setPhone(profile.phone ?? "");
         setCity(profile.city ?? "");
         setAvatarUrl(profile.avatar_url ?? null);
+        setIsBusiness(profile.is_business ?? false);
+        setBusinessName(profile.business_name ?? "");
+        setBusinessDescription(profile.business_description ?? "");
+        setWebsite(profile.website ?? "");
       } else {
         // No profile row — try to recover from auth metadata (set during signUp).
         setProfileMissing(true);
@@ -207,6 +217,9 @@ export default function ProfilePage() {
     const cleanLastName = lastName.trim();
     const cleanPhone = phone.trim();
     const cleanCity = city.trim();
+    const cleanBusinessName = businessName.trim();
+    const cleanBusinessDescription = businessDescription.trim();
+    const cleanWebsite = website.trim();
 
     // Validation
     if (cleanUsername.length < 3) {
@@ -221,6 +234,16 @@ export default function ProfilePage() {
 
     if (cleanPhone && !/^[0-9+ ()-]{6,20}$/.test(cleanPhone)) {
       setNotice({ type: "error", message: "Моля въведете валиден телефонен номер." });
+      return;
+    }
+
+    if (isBusiness && !cleanBusinessName) {
+      setNotice({ type: "error", message: "Въведете име на фирмата." });
+      return;
+    }
+
+    if (cleanWebsite && !/^https?:\/\/.+/.test(cleanWebsite)) {
+      setNotice({ type: "error", message: "Уебсайтът трябва да започва с http:// или https://" });
       return;
     }
 
@@ -246,6 +269,10 @@ export default function ProfilePage() {
       phone: cleanPhone || null,
       city: cleanCity || null,
       avatar_url: newAvatarUrl,
+      is_business: isBusiness,
+      business_name: isBusiness ? cleanBusinessName || null : null,
+      business_description: isBusiness ? cleanBusinessDescription || null : null,
+      website: isBusiness ? cleanWebsite || null : null,
       updated_at: new Date().toISOString(),
     });
 
@@ -662,6 +689,69 @@ export default function ProfilePage() {
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-base font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10 lg:px-5 lg:py-4"
                     />
                   </label>
+                </div>
+
+                {/* ── Business profile ── */}
+                <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5 lg:mt-8">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-950 text-white">
+                        <Building2 className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-slate-900">Бизнес профил</p>
+                        <p className="mt-0.5 text-xs font-semibold text-slate-500">
+                          Активирайте, за да се показвате като фирма или магазин.
+                        </p>
+                      </div>
+                    </div>
+                    {/* Toggle */}
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={isBusiness}
+                      onClick={() => setIsBusiness((v) => !v)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition focus:outline-none focus:ring-2 focus:ring-blue-950 focus:ring-offset-2 ${isBusiness ? "bg-blue-950" : "bg-slate-200"}`}
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${isBusiness ? "translate-x-6" : "translate-x-1"}`} />
+                    </button>
+                  </div>
+
+                  {isBusiness && (
+                    <div className="mt-4 grid gap-4">
+                      <label className="space-y-2">
+                        <span className="block text-sm font-black text-blue-950">
+                          Име на фирмата <span className="text-red-500">*</span>
+                        </span>
+                        <input
+                          value={businessName}
+                          onChange={(e) => setBusinessName(e.target.value)}
+                          placeholder="ООД Примерна Фирма"
+                          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                        />
+                      </label>
+                      <label className="space-y-2">
+                        <span className="block text-sm font-black text-blue-950">Кратко описание</span>
+                        <textarea
+                          value={businessDescription}
+                          onChange={(e) => setBusinessDescription(e.target.value)}
+                          placeholder="Какво предлага вашата фирма..."
+                          rows={3}
+                          className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                        />
+                      </label>
+                      <label className="space-y-2">
+                        <span className="block text-sm font-black text-blue-950">Уебсайт</span>
+                        <input
+                          value={website}
+                          onChange={(e) => setWebsite(e.target.value)}
+                          placeholder="https://www.example.bg"
+                          type="url"
+                          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base font-bold text-slate-900 outline-none transition focus:border-blue-950 focus:ring-2 focus:ring-blue-950/10"
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
 
                 <button

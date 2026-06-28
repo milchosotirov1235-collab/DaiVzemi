@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import UnverifiedBanner from "@/components/UnverifiedBanner";
-import { Flag, Loader2, MapPin, MessageCircle, User } from "lucide-react";
+import { Building2, ExternalLink, Flag, Loader2, MapPin, MessageCircle, User } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { checkReportRateLimit } from "@/lib/security/rateLimit";
 
@@ -19,6 +19,10 @@ type PublicProfile = {
   avatar_url: string | null;
   city: string | null;
   created_at: string | null;
+  is_business: boolean | null;
+  business_name: string | null;
+  business_description: string | null;
+  website: string | null;
 };
 
 type Listing = {
@@ -129,7 +133,7 @@ export default function UserProfilePage() {
       const [profileRes, listingsRes] = await Promise.all([
         supabase
           .from("profiles")
-          .select("id, username, avatar_url, city, created_at")
+          .select("id, username, avatar_url, city, created_at, is_business, business_name, business_description, website")
           .eq("id", profileId)
           .maybeSingle<PublicProfile>(),
         supabase
@@ -314,12 +318,26 @@ export default function UserProfilePage() {
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <h1 className="text-2xl font-black text-slate-900">
-                  {profile.username ?? "Без потребителско име"}
-                  {isSelf && (
-                    <span className="ml-3 text-base font-normal text-slate-400">(Вие)</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-2xl font-black text-slate-900">
+                    {profile.is_business && profile.business_name
+                      ? profile.business_name
+                      : profile.username ?? "Без потребителско име"}
+                  </h1>
+                  {profile.is_business && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700 ring-1 ring-blue-200">
+                      <Building2 className="h-3 w-3" />
+                      Фирма
+                    </span>
                   )}
-                </h1>
+                  {isSelf && (
+                    <span className="text-base font-normal text-slate-400">(Вие)</span>
+                  )}
+                </div>
+
+                {profile.is_business && profile.business_description && (
+                  <p className="mt-1.5 text-sm text-slate-600 max-w-xl">{profile.business_description}</p>
+                )}
 
                 <div className="mt-2 flex flex-wrap gap-4 text-sm text-slate-500">
                   {profile.city && (
@@ -328,10 +346,28 @@ export default function UserProfilePage() {
                       {profile.city}
                     </span>
                   )}
-                  <span className="flex items-center gap-1.5">
-                    <User className="h-4 w-4 shrink-0" />
-                    Член от {formatJoinDate(profile.created_at)}
-                  </span>
+                  {profile.is_business ? (
+                    <span className="flex items-center gap-1.5">
+                      <Building2 className="h-4 w-4 shrink-0" />
+                      Бизнес профил
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5">
+                      <User className="h-4 w-4 shrink-0" />
+                      Член от {formatJoinDate(profile.created_at)}
+                    </span>
+                  )}
+                  {profile.is_business && profile.website && (
+                    <a
+                      href={profile.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-blue-700 hover:underline"
+                    >
+                      <ExternalLink className="h-4 w-4 shrink-0" />
+                      Уебсайт
+                    </a>
+                  )}
                 </div>
 
                 <p className="mt-2 text-sm font-semibold text-slate-700">

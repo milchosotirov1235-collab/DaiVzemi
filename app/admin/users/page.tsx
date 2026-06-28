@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, ShieldCheck, ShieldOff, UserCheck, UserX } from "lucide-react";
+import { Building2, Loader2, ShieldCheck, ShieldOff, UserCheck, UserX } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 // ---------------------------------------------------------------------------
@@ -17,6 +17,8 @@ type AdminUser = {
   suspended: boolean;
   created_at: string | null;
   trust_score: number | null;
+  is_business: boolean | null;
+  business_name: string | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -72,7 +74,7 @@ export default function AdminUsers() {
     setLoading(true);
     const { data } = await supabase
       .from("profiles")
-      .select("id, username, city, role, suspended, created_at, trust_score")
+      .select("id, username, city, role, suspended, created_at, trust_score, is_business, business_name")
       .order("created_at", { ascending: false })
       .limit(300);
     setUsers((data as AdminUser[]) ?? []);
@@ -179,10 +181,20 @@ export default function AdminUsers() {
                   return (
                     <tr key={u.id} className={`transition hover:bg-slate-50 ${u.suspended ? "opacity-60" : ""}`}>
                       <td className="px-5 py-3.5">
-                        <Link href={`/admin/users/${u.id}`} className="font-semibold text-blue-950 hover:underline">
-                          {u.username ?? <span className="italic text-slate-400">Без потребителско име</span>}
-                        </Link>
-                        {isSelf && <span className="ml-2 text-xs font-normal text-slate-400">(вие)</span>}
+                        <div className="flex items-center gap-2">
+                          <Link href={`/admin/users/${u.id}`} className="font-semibold text-blue-950 hover:underline">
+                            {u.is_business && u.business_name
+                              ? u.business_name
+                              : u.username ?? <span className="italic text-slate-400">Без потребителско име</span>}
+                          </Link>
+                          {u.is_business && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-700 ring-1 ring-blue-200">
+                              <Building2 className="h-2.5 w-2.5" />
+                              Фирма
+                            </span>
+                          )}
+                          {isSelf && <span className="text-xs font-normal text-slate-400">(вие)</span>}
+                        </div>
                       </td>
                       <td className="px-4 py-3.5 font-mono text-xs text-slate-400">{shortId(u.id)}</td>
                       <td className="px-4 py-3.5 text-slate-600">{u.city ?? "—"}</td>
